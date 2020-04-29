@@ -108,7 +108,13 @@ ggplot(data= plot_dt, aes( x= symbol, y = nSampMinCount, color = exprds)) +
 
 anyKept <- unique(plot_dt$symbol[plot_dt$kept])
 
-ggplot(data= plot_dt[plot_dt$kept,], aes( x= symbol, y = nSampMinCount, color = kept, fill  = exprds)) + 
-  geom_bar(stat="identity", position="dodge")
+ggplot(data= plot_dt[plot_dt$symbol %in% anyKept,], aes( x= symbol, y = nSampMinCount, color = kept, fill  = exprds)) + 
+  geom_bar(stat="identity", position="dodge")+
+  scale_fill_manual(values=c("red", "blue")) +
+  scale_color_manual(values=c("green", "yellow"))
 
-
+ggplot(data= plot_dt[plot_dt$symbol %in% anyKept,], aes( x= symbol, y = nSampMinRatio, color = kept, fill  = exprds)) + 
+  geom_bar(stat="identity", position="dodge")+
+  scale_fill_manual(values=c("red", "blue")) +
+  scale_color_manual(values=c("green", "yellow")) +
+  geom_hline(yintercept=0.8)

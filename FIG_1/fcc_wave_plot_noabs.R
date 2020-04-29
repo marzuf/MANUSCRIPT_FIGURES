@@ -292,6 +292,8 @@ all_fcc_dt <- foreach(hicds = all_obs_hicds, .combine='rbind') %dopar% {
       data.frame(
         hicds = hicds,
         exprds = exprds,
+        fcc_auc = pct_inc_qt ,
+		fcc_auc_mean = pct_inc,
         stringsAsFactors=FALSE
       )
       
