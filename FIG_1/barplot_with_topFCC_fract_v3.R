@@ -1,5 +1,5 @@
 
-# Rscript barplot_with_FCC_fract.R
+# Rscript barplot_with_topFCC_fract_v3.R
 
 require(doMC)
 require(foreach)
@@ -16,20 +16,20 @@ source("../../Yuanlong_Cancer_HiC_data_TAD_DA/subtype_cols.R")
 source("../settings.R")
 
 
-outFolder <- "BARPLOT_WITH_FCC_FRACT"
+outFolder <- "BARPLOT_WITH_TOPFCC_FRACT_V3"
 dir.create(outFolder, recursive = TRUE)
 
 buildData <- TRUE
 
-fcc_fract <- seq(from=-1, to=1, by=0.25)
-# fcc_fract_names <- paste0("FCC > ", fcc_fract[1:(length(fcc_fract)-1)], " and FCC <= ",fcc_fract[2:length(fcc_fract)])
-fcc_fract_names <- paste0("FCC \u2208 ]", fcc_fract[1:(length(fcc_fract)-1)], ", ",fcc_fract[2:length(fcc_fract)], "]")
-fcc_fract_names <- paste0("]", fcc_fract[1:(length(fcc_fract)-1)], ", ",fcc_fract[2:length(fcc_fract)], "]")
+minRange1 <- 0  # <= 0; ]0-0.5] ; ]0.5, 1[ ; 1
+minRange2 <- 0.5
+maxRange <- 1
 
-fcc_fract_names[fcc_fract_names == "]-1, -0.75]"] <- "[-1, -0.75]"
+fcc_fract_names <- c(paste0("<=", minRange1), 
+					paste0("]", minRange1, ", ", minRange2, "]"),
+				paste0("]", minRange2, ", ", maxRange, "["),
+				 paste0(maxRange))
 
-
-# fract_sort <- "FCC > 0.75 and FCC <= 1"
 fract_sort <- fcc_fract_names[length(fcc_fract_names)]
 
 ggsci_pal <- "lancet"
@@ -64,26 +64,25 @@ if(buildData){
       stopifnot(file.exists(fcc_file))
       all_fcc <- get(load(fcc_file))
       
-      # [1] -1.00 -0.75   -0.50       -0.25   0.00    0.25  0.50  0.75  1.00
-      # [1]   0   0        10        411      571      355  97 350
-      # > sum(all_fcc > 0.75 & all_fcc <= 1)
-      # [1] 350
-      # > sum(all_fcc > 0.5 & all_fcc <= 0.75)
-      # [1] 97
-      # sum(all_fcc > -0.5 & all_fcc <= -0.25)
-      # [1] 10
-      fcc_hist <- hist(all_fcc, breaks=fcc_fract)$counts
-      names(fcc_hist) <- fcc_fract_names
-      fcc_hist_nbr <- fcc_hist
-      fcc_hist <- fcc_hist/length(all_fcc)
-      stopifnot(sum(fcc_hist) == 1)
+      nRange0 <- sum(all_fcc <= minRange1)
+      nRange1 <- sum(all_fcc > minRange1 & all_fcc <= minRange2)
+      nRange2 <- sum(all_fcc > minRange2 & all_fcc < maxRange)
+      nRange3 <- sum(all_fcc == 1)
       
+stopifnot(nRange0+nRange1+nRange2+nRange3 == length(all_fcc))
+	  
+	  # data.frame(
+	  #   hicds = hicds,
+	  #   exprds = exprds,
+	  #   FCC = all_fcc[all_fcc > 0.75],
+	  #   stringsAsFactors = FALSE
+	  # )
       data.frame(
         hicds = hicds,
         exprds = exprds,
-        intervalFCC = names(fcc_hist),
-        countFCC = as.numeric(fcc_hist),
-		nFCC = as.numeric(fcc_hist_nbr),
+        intervalFCC = fcc_fract_names,
+        countFCC = c(nRange0, nRange1, nRange2, nRange3),
+        ratioFCC = c(nRange0/length(all_fcc), nRange1/length(all_fcc), nRange2/length(all_fcc), nRange3/length(all_fcc)),
         stringsAsFactors = FALSE
       )
     }
@@ -99,7 +98,7 @@ if(buildData){
   all_dt <- get(load(inFile))
   # load("BARPLOT_WITH_FCC_FRACT/all_dt.Rdata")
 }
-
+# stop("-ok\n")
 all_dt$intervalFCC <- factor(all_dt$intervalFCC, levels = rev(fcc_fract_names))
 stopifnot(!is.na(all_dt$intervalFCC))
 
@@ -136,7 +135,7 @@ mycols <- all_cols[all_cmps[exprds_order]]
 
 mycols_fract <- all_cols[all_cmps[exprds_order_fract]]
 
-fract_plot_with_lab <- ggplot(all_dt, aes(x=dataset, y=countFCC, fill=intervalFCC, color=intervalFCC)) + 
+fract_plot_with_lab <- ggplot(all_dt, aes(x=dataset, y=ratioFCC, fill=intervalFCC, color=intervalFCC)) + 
   geom_bar(position="stack", stat="identity") +
   ggtitle(paste0(fractBarTitle), 
           subtitle = paste0(fractBarSubTitle) )+
@@ -195,7 +194,7 @@ cat(paste0("... written: ", outFile, "\n"))
 
 all_dt$labSymb <- labsymbol
 
-fract_plot_with_symb <- ggplot(all_dt, aes(x=dataset, y=countFCC, fill=intervalFCC, color=intervalFCC)) + 
+fract_plot_with_symb <- ggplot(all_dt, aes(x=dataset, y=ratioFCC, fill=intervalFCC, color=intervalFCC)) + 
   geom_bar(position="stack", stat="identity") +
   # coord_cartesian(expand = FALSE) +
   coord_cartesian(clip = 'off', expand=FALSE) +
@@ -251,12 +250,12 @@ cat(paste0("... written: ", outFile, "\n"))
 
 save(all_dt, file="all_dt.Rdata", version=2)
 
-tmp <- all_dt[as.character(all_dt$intervalFCC) == "]0.75, 1]",]
+tmp <- all_dt[as.character(all_dt$intervalFCC) == fract_sort,]
 tmp <- tmp[order(tmp$countFCC, decreasing = TRUE),]
 
 all_dt$dataset <- factor(all_dt$dataset, levels=tmp$dataset)
 
-fract_plot_with_symb <- ggplot(all_dt, aes(x=dataset, y=countFCC, fill=intervalFCC, color=intervalFCC)) + 
+fract_plot_with_symb <- ggplot(all_dt, aes(x=dataset, y=ratioFCC, fill=intervalFCC, color=intervalFCC)) + 
   geom_bar(position="stack", stat="identity") +
   # coord_cartesian(expand = FALSE) +
   coord_cartesian(clip = 'off', expand=FALSE) +
@@ -314,7 +313,7 @@ cat(paste0("... written: ", outFile, "\n"))
 
 
 
-fract_plot_with_symb <- ggplot(all_dt, aes(x=dataset, y=countFCC, fill=intervalFCC, color=intervalFCC)) + 
+fract_plot_with_symb <- ggplot(all_dt, aes(x=dataset, y=ratioFCC, fill=intervalFCC, color=intervalFCC)) + 
   geom_bar(position="stack", stat="identity") +
   # coord_cartesian(expand = FALSE) +
   coord_cartesian(clip = 'off', expand=FALSE) +

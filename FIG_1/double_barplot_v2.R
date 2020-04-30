@@ -13,13 +13,15 @@ source("../settings.R")
 outFolder <- "DOUBLE_BARPLOT_V2"
 dir.create(outFolder, recursive = TRUE)
 
+ggsci_pal <- "d3"
+ggsci_subpal <- ""
 
 myHeight <- 5
 myWidth <- 7
 
 plotCex <- 1.4
 
-interval_fcc <- c("]0.5-1[", "1")
+interval_fcc <- c("]0.5, 1[", "1")
 
 dt2 <- get(load("BARPLOT_WITH_TOPFCC_FRACT/all_dt.Rdata"))
 dt2$dataset <- file.path(dt2$hicds, dt2$exprds)
@@ -88,8 +90,10 @@ p1_aucRatio_plot <- ggplot(dt1, aes(x=dataset, y = fcc_auc_minus1, color=cmp, fi
 p2_fccFract_plot <- ggplot(dt2, aes(x=dataset, y = ratioFCC, color = intervalFCC, fill = intervalFCC))+ 
   ggtitle(p2_tit, subtitle = p2_sub)+
   geom_bar(stat="identity") + 
-  scale_fill_d3()+
-  scale_color_d3() + 
+  #scale_fill_d3()+
+  #scale_color_d3() + 
+  eval(parse(text=paste0("scale_color_", ggsci_pal, "(", ggsci_subpal, ")")))+
+  eval(parse(text=paste0("scale_fill_", ggsci_pal, "(", ggsci_subpal, ")")))+
   scale_y_continuous(breaks = scales::pretty_breaks(n = 10))+
   scale_x_discrete(labels=rep(labsymbol, length(dt2$dataset)), name=p2_xlab)+
   labs(fill=p2_legTitle) +

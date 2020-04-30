@@ -127,7 +127,7 @@ mycols <- all_cols[all_cmps[exprds_order]]
 
 mycols_fract <- all_cols[all_cmps[exprds_order_fract]]
 
-fract_plot_with_lab <- ggplot(all_dt, aes(x=dataset, y=countFCC, fill=intervalFCC, color=intervalFCC)) + 
+fract_plot_with_lab <- ggplot(all_dt, aes(x=dataset, y=ratioFCC, fill=intervalFCC, color=intervalFCC)) + 
   geom_bar(position="stack", stat="identity") +
   ggtitle(paste0(fractBarTitle), 
           subtitle = paste0(fractBarSubTitle) )+
@@ -186,7 +186,7 @@ cat(paste0("... written: ", outFile, "\n"))
 
 all_dt$labSymb <- labsymbol
 
-fract_plot_with_symb <- ggplot(all_dt, aes(x=dataset, y=countFCC, fill=intervalFCC, color=intervalFCC)) + 
+fract_plot_with_symb <- ggplot(all_dt, aes(x=dataset, y=ratioFCC, fill=intervalFCC, color=intervalFCC)) + 
   geom_bar(position="stack", stat="identity") +
   # coord_cartesian(expand = FALSE) +
   coord_cartesian(clip = 'off', expand=FALSE) +
@@ -247,7 +247,7 @@ tmp <- tmp[order(tmp$countFCC, decreasing = TRUE),]
 
 all_dt$dataset <- factor(all_dt$dataset, levels=tmp$dataset)
 
-fract_plot_with_symb <- ggplot(all_dt, aes(x=dataset, y=countFCC, fill=intervalFCC, color=intervalFCC)) + 
+fract_plot_with_symb <- ggplot(all_dt, aes(x=dataset, y=ratioFCC, fill=intervalFCC, color=intervalFCC)) + 
   geom_bar(position="stack", stat="identity") +
   # coord_cartesian(expand = FALSE) +
   coord_cartesian(clip = 'off', expand=FALSE) +
@@ -305,7 +305,7 @@ cat(paste0("... written: ", outFile, "\n"))
 
 
 
-fract_plot_with_symb <- ggplot(all_dt, aes(x=dataset, y=countFCC, fill=intervalFCC, color=intervalFCC)) + 
+fract_plot_with_symb <- ggplot(all_dt, aes(x=dataset, y=ratioFCC, fill=intervalFCC, color=intervalFCC)) + 
   geom_bar(position="stack", stat="identity") +
   # coord_cartesian(expand = FALSE) +
   coord_cartesian(clip = 'off', expand=FALSE) +
