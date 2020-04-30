@@ -76,5 +76,21 @@ options(save.defaults = list(version=2), scipen=100)
 geneSignifThresh <- 0.01
 tadSignifThresh <- 0.01
 
+# FOR FIGURE 1:
+my_box_theme <- theme(
+  panel.grid.major.y =  element_line(colour = "grey", size = 0.5, linetype=1),
+  panel.grid.minor.y =  element_line(colour = "grey", size = 0.5, linetype=1),
+  panel.background = element_rect(fill = "transparent"),
+
+  axis.title.x = element_text(size=14, hjust=0.5, vjust=0.5),
+  plot.title = element_text(hjust=0.5, size = 16, face="bold"),
+  plot.subtitle = element_text(hjust=0.5, size = 14, face="italic"),
+  legend.title = element_text(face="bold")
+) 
+  
+
+
+
+
 
 
