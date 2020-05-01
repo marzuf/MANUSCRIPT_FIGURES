@@ -274,6 +274,26 @@ plot_var <- "ratioMissedLowFCsameDir"
 boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), data = get(plot_dt))
 
 
+################################
+# Boxplot 1: # missed lowFC genes by TAD and rD_range 
+################################
+nMissedByTAD_dt <- aggregate(missedLowFCdiffDir ~ hicds + exprds + rD_range + region, FUN=sum, data=all_dt)
+
+min1_nMissedByTAD_dt <- nMissedByTAD_dt[nMissedByTAD_dt$missedLowFCdiffDir > 0,]
+min2_nMissedByTAD_dt <- nMissedByTAD_dt[nMissedByTAD_dt$missedLowFCdiffDir > 1,]
+min2_nMissedByTAD_dt$ds_id <- file.path(min2_nMissedByTAD_dt$hicds, min2_nMissedByTAD_dt$exprds, min2_nMissedByTAD_dt$region)
+
+plot_dt <- "min1_nMissedByTAD_dt"
+plot_var <- "missedLowFCdiffDir"
+
+boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), data = get(plot_dt))
+
+plot_dt <- "min2_nMissedByTAD_dt"
+boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), data = get(plot_dt))
+
+
+multipleMissed_TADs <- min2_nMissedByTAD_dt$ds_id
+
 ###################################################################
 # rD distribution of missed genes 
 ###################################################################
@@ -284,6 +304,10 @@ missed_dt <- all_dt[all_dt$missedGeneSignif,]
 
 plot_multiDens(
   lapply(split(missed_dt, missed_dt$missedLowFCsameDir), function(x) x[["TAD_rD"]])
+)
+
+plot_multiDens(
+  lapply(split(missed_dt, missed_dt$missedLowFCsameDir), function(x) log10(x[["TAD_varFC"]]))
 )
 
 ###################################################################
@@ -326,6 +350,53 @@ recFocus_dt <- recFocus_dt[order(recFocus_dt$missed_nDS, decreasing = TRUE),]
 
 recFocus_dt$geneSymbol <- entrez2symb[paste0(recFocus_dt$entrezID)]
 stopifnot(!is.na(recFocus_dt$geneSymbol))
+
+###################################################################
+# gene focus gene multiple TADs
+###################################################################
+
+nMissedByTAD_focus_dt <- aggregate(missedLowFCdiffDir ~ hicds + exprds + rD_range + region, FUN=sum, data=focus_dt)
+table(nMissedByTAD_focus_dt$missedLowFCdiffDir)
+# 0 
+# 636 
+# => look at TAD with multiple missed genes but not multiple missed focus genes
+
+min1_nMissedByTAD_focus_dt <- nMissedByTAD_dt[nMissedByTAD_dt$missedLowFCdiffDir > 0,]
+nrow(min1_nMissedByTAD_focus_dt)
+min2_nMissedByTAD_focus_dt <- nMissedByTAD_dt[nMissedByTAD_dt$missedLowFCdiffDir > 1,]
+nrow(min2_nMissedByTAD_focus_dt)
+min2_nMissedByTAD_dt$ds_id <- file.path(min2_nMissedByTAD_dt$hicds, min2_nMissedByTAD_dt$exprds, min2_nMissedByTAD_dt$region)
+
+table(min2_nMissedByTAD_dt$missedLowFCdiffDir)
+
+min2_nMissedByTAD_dt[order(min2_nMissedByTAD_dt$missedLowFCdiffDir, decreasing = TRUE),]
+
+focus_dt$ds_id <- file.path(focus_dt$hicds, focus_dt$exprds, focus_dt$region)
+
+multiple_focus_dt <- focus_dt[focus_dt$ds_id %in% min2_nMissedByTAD_dt$ds_id,]
+
+min3_nMissedByTAD_focus_dt <- nMissedByTAD_dt[nMissedByTAD_dt$missedLowFCdiffDir > 2,]
+min3_nMissedByTAD_focus_dt$ds_id <- file.path(min3_nMissedByTAD_focus_dt$hicds, min3_nMissedByTAD_focus_dt$exprds, min3_nMissedByTAD_focus_dt$region)
+min3_nMissedByTAD_focus_dt$ds_id
+
+multiple_focus_dt <- focus_dt[focus_dt$ds_id %in% min3_nMissedByTAD_focus_dt$ds_id,]
+multiple_focus_dt$geneSymbol <- entrez2symb[paste0(multiple_focus_dt$entrezID)]
+stopifnot(!is.na(multiple_focus_dt$geneSymbol))
+# min3_nMissedByTAD_focus_dt$ds_id
+[1] "ENCSR444WCZ_A549_40kb/TCGAluad_nonsmoker_smoker/chr16_TAD3"     
+[2] "LG2_40kb/TCGAluad_nonsmoker_smoker/chr16_TAD3"                  
+[3] "PA2_40kb/TCGApaad_wt_mutKRAS/chr19_TAD202"                      
+[4] "ENCSR862OGI_RPMI-7951_40kb/TCGAskcm_lowInf_highInf/chr19_TAD215"
+[5] "K562_40kb/TCGAlaml_wt_mutFLT3/chr19_TAD3"                       
+[6] "ENCSR862OGI_RPMI-7951_40kb/TCGAskcm_wt_mutCTNNB1/chr6_TAD119"   
+# Rscript look_TAD_expression_withRank_v2.R ENCSR444WCZ_A549_40kb TCGAluad_nonsmoker_smoker chr16_TAD3
+# Rscript look_TAD_expression_withRank_v2.R LG2_40kb TCGAluad_nonsmoker_smoker chr16_TAD3
+# Rscript look_TAD_expression_withRank_v2.R PA2_40kb TCGApaad_wt_mutKRAS chr19_TAD202
+# Rscript look_TAD_expression_withRank_v2.R ENCSR862OGI_RPMI-7951_40kb TCGAskcm_lowInf_highInf chr19_TAD215
+# Rscript look_TAD_expression_withRank_v2.R K562_40kb TCGAlaml_wt_mutFLT3 chr19_TAD3
+# Rscript look_TAD_expression_withRank_v2.R ENCSR862OGI_RPMI-7951_40kb TCGAskcm_wt_mutCTNNB1 chr6_TAD119
+
+
 
 
 # * TRASH *#
