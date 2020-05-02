@@ -153,6 +153,7 @@ fract_plot_with_lab <- ggplot(all_dt, aes(x=dataset, y=countFCC, fill=intervalFC
   eval(parse(text=paste0("scale_color_", ggsci_pal, "(", ggsci_subpal, ")")))+
   eval(parse(text=paste0("scale_fill_", ggsci_pal, "(", ggsci_subpal, ")")))+
   theme( # Increase size of axis lines
+	text = element_text(family=fontFamily),
     plot.margin = unit(plotMargin, "lines"), # top, right, bottom, and left 
     plot.title = element_text(hjust = 0.5, face = "bold", size=16, family=fontFamily),
     plot.subtitle = element_text(hjust = 0, vjust=2,face = "italic", size =8, family=fontFamily, lineheight = 1.75),
@@ -212,6 +213,7 @@ fract_plot_with_symb <- ggplot(all_dt, aes(x=dataset, y=countFCC, fill=intervalF
                      labels = seq(from=0, to=1, by=0.1))+
   scale_x_discrete(labels=all_dt$labSymb, name=paste0("(all datasets - n=", nDS, ")"))+
   theme( # Increase size of axis lines
+	text = element_text(family=fontFamily),
     plot.margin = unit(plotMargin, "lines"), # top, right, bottom, and left 
     plot.title = element_text(hjust = 0.5, face = "bold", size=16, family=fontFamily),
     plot.subtitle = element_text(hjust = 0, vjust=2, face = "italic", size = 8, family=fontFamily, lineheight = 1.75),
@@ -273,6 +275,7 @@ fract_plot_with_symb <- ggplot(all_dt, aes(x=dataset, y=countFCC, fill=intervalF
                      labels = seq(from=0, to=1, by=0.1))+
   scale_x_discrete(labels=all_dt$labSymb, name=paste0("(all datasets - n=", nDS, ")"))+
   theme( # Increase size of axis lines
+	text = element_text(family=fontFamily),
     plot.margin = unit(plotMargin, "lines"), # top, right, bottom, and left 
     plot.title = element_text(hjust = 0.5, face = "bold", size=16, family=fontFamily),
     plot.subtitle = element_text(hjust = 0, vjust=2, face = "italic", size = 8, family=fontFamily, lineheight = 1.75),
@@ -331,6 +334,7 @@ fract_plot_with_symb <- ggplot(all_dt, aes(x=dataset, y=countFCC, fill=intervalF
                      labels = seq(from=0, to=1, by=0.1))+
   scale_x_discrete(name=paste0("(all datasets - n=", nDS, ")"))+
   theme( # Increase size of axis lines
+	text = element_text(family=fontFamily),
     plot.margin = unit(plotMargin, "lines"), # top, right, bottom, and left 
     plot.title = element_text(hjust = 0.5, face = "bold", size=16, family=fontFamily),
     plot.subtitle = element_text(hjust = 0, vjust=2, face = "italic", size = 8, family=fontFamily, lineheight = 1.75),
@@ -398,6 +402,7 @@ scatPlot <- ggscatter(auc_fract_ratio_dt,
   labs(color=legTitle)+
   geom_smooth(aes(color = intervalFCC),method = "lm", linetype=2, se=F)+
   theme( # Increase size of axis lines
+	text = element_text(family=fontFamily),
     plot.title = element_text(hjust = 0.5, face = "bold", size=16, family=fontFamily),
     plot.subtitle = element_text(hjust = 0.5, face = "italic", size = 14, family=fontFamily),
     axis.text.y = element_text(color="black", hjust=1,vjust = 0.5, size=12, family=fontFamily),
@@ -471,6 +476,7 @@ scatPlot <- ggscatter(auc_fract_ratio_dt,
   
   
   theme( # Increase size of axis lines
+	text = element_text(family=fontFamily),
     plot.title = element_text(hjust = 0.5, face = "bold", size=16, family=fontFamily),
     plot.subtitle = element_text(hjust = 0.5, face = "italic", size = 14, family=fontFamily),
     axis.text.y = element_text(color="black", hjust=1,vjust = 0.5, size=12, family=fontFamily),
@@ -502,6 +508,7 @@ scatPlot <- ggscatter(auc_fract_ratio_dt,
   scale_x_continuous(labels = ds_auc_order, breaks=xbreaks, expand=c(xax_exp,xax_exp))+
 
   theme( # Increase size of axis lines
+	text = element_text(family=fontFamily),
     plot.title = element_text(hjust = 0.5, face = "bold", size=16, family=fontFamily),
     plot.subtitle = element_text(hjust = 0.5, face = "italic", size = 14, family=fontFamily),
     axis.text.y = element_text(color="black", hjust=1,vjust = 0.5, size=12, family=fontFamily),
@@ -553,6 +560,7 @@ scatPlot <- ggscatter(auc_fract_signif_dt,
   labs(color=legTitle)+
   geom_smooth(aes(color = intervalFCC),method = "lm", linetype=2, se=F)+
   theme( # Increase size of axis lines
+	text = element_text(family=fontFamily),
     plot.title = element_text(hjust = 0.5, face = "bold", size=16, family=fontFamily),
     plot.subtitle = element_text(hjust = 0.5, face = "italic", size = 14, family=fontFamily),
     axis.text.y = element_text(color="black", hjust=1,vjust = 0.5, size=12, family=fontFamily),

@@ -155,6 +155,7 @@ fract_plot_with_lab <- ggplot(all_dt, aes(x=ds_rank, y=ratioFCC, fill=intervalFC
   eval(parse(text=paste0("scale_color_", ggsci_pal, "(", ggsci_subpal, ")")))+
   eval(parse(text=paste0("scale_fill_", ggsci_pal, "(", ggsci_subpal, ")")))+
   theme( # Increase size of axis lines
+	text = element_text(family=fontFamily),
     plot.margin = unit(plotMargin, "lines"), # top, right, bottom, and left 
     plot.title = element_text(hjust = 0.5, face = "bold", size=16, family=fontFamily),
     plot.subtitle = element_text(hjust = 0, vjust=2,face = "italic", size =8, family=fontFamily, lineheight = 1.75),
@@ -214,6 +215,7 @@ fract_plot_with_symb <- ggplot(all_dt, aes(x=ds_rank, y=ratioFCC, fill=intervalF
                      labels = seq(from=0, to=1, by=0.1))+
   scale_x_continuous(labels=all_dt$labSymb, breaks =1:nrow(all_dt), name=paste0("(all datasets - n=", nDS, ")"))+
   theme( # Increase size of axis lines
+	text = element_text(family=fontFamily),
     plot.margin = unit(plotMargin, "lines"), # top, right, bottom, and left 
     plot.title = element_text(hjust = 0.5, face = "bold", size=16, family=fontFamily),
     plot.subtitle = element_text(hjust = 0, vjust=2, face = "italic", size = 8, family=fontFamily, lineheight = 1.75),
@@ -275,6 +277,7 @@ fract_plot_with_symb <- ggplot(all_dt, aes(x=ds_rank, y=ratioFCC, fill=intervalF
                      labels = seq(from=0, to=1, by=0.1))+
   scale_x_continuous(labels=all_dt$labSymb, breaks = 1:nrow(all_dt), name=paste0("(all datasets - n=", nDS, ")"))+
   theme( # Increase size of axis lines
+	text = element_text(family=fontFamily),
     plot.margin = unit(plotMargin, "lines"), # top, right, bottom, and left 
     plot.title = element_text(hjust = 0.5, face = "bold", size=16, family=fontFamily),
     plot.subtitle = element_text(hjust = 0, vjust=2, face = "italic", size = 8, family=fontFamily, lineheight = 1.75),
@@ -337,6 +340,7 @@ fract_plot_with_symb <- ggplot(all_dt, aes(x=ds_rank, y=ratioFCC, fill=intervalF
                      labels = seq(from=0, to=1, by=0.1))+
   scale_x_continuous(name=paste0("(all datasets - n=", nDS, ")"))+
   theme( # Increase size of axis lines
+	text = element_text(family=fontFamily),
     plot.margin = unit(plotMargin, "lines"), # top, right, bottom, and left 
     plot.title = element_text(hjust = 0.5, face = "bold", size=16, family=fontFamily),
     plot.subtitle = element_text(hjust = 0, vjust=2, face = "italic", size = 8, family=fontFamily, lineheight = 1.75),

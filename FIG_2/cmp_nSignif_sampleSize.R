@@ -41,6 +41,37 @@ script11_name <- "11sameNbr_runEmpPvalCombined"
 nsub=""
 nsub=20
 
+custom_plot <- function(p) {
+  newp <- p+
+    ggtitle("# signif. and sample size", subtitle = paste0(init_hicds, " - ", init_exprds))+
+    scale_fill_manual(values = c(col1, col2)) +
+    scale_color_manual(values = c(col1, col2)) +
+    theme(
+      text = element_text(family=fontFamily),
+      plot.title = element_text(hjust = 0.5, face = "bold", size=16),
+      plot.subtitle = element_text(hjust = 0.5, face = "italic", size = 14),
+      panel.grid = element_blank(),
+      panel.grid.major.y = element_line(colour = "grey"),
+      panel.grid.minor.y = element_line(colour = "grey"),
+      axis.line.x= element_line(size = .2, color = "black"),
+      axis.line.y = element_line(size = .2, color = "black"),
+      axis.text.y = element_text(color="black", hjust=1,vjust = 0.5, size=12),
+      axis.text.x =element_text(color="black", hjust=0.5,vjust = 0.5, size=12),
+      # axis.ticks.x = element_blank(),
+      axis.title.y = element_text(color="black", size=14),
+      axis.title.x = element_text(color="black", size=14),
+      panel.border = element_blank(),
+      panel.background = element_rect(fill = "transparent"),
+      legend.key.size = unit(1.0, 'cm'),
+      legend.background =  element_rect(),
+      legend.text = element_text(size=12),
+      legend.key = element_blank(),
+      legend.title = element_text(face="bold", size=12, hjust=0.5)
+    )
+  return(newp)
+}
+
+
 all_tadSignif_dt <- foreach(hicds = my_hicds, .combine='rbind') %dopar% {
       exprds = all_exprds[[paste0(hicds)]][1]
       hicds_dt <- foreach(exprds = my_exprds[[paste0(hicds)]], .combine='rbind') %do% {
@@ -173,40 +204,41 @@ cat(paste0("... written: ", outFile, "\n"))
 ############################################################### # detected features
 ###############################################################
 
-signif_p <- ggplot(data = plot_dt,aes_string(x="sampLab",y="value", fill = "variable"))+
-  ggtitle("# signif. and sample size", subtitle = paste0(init_hicds, " - ", init_exprds))+
-  geom_boxplot()+
-  
+init_p <- custom_plot(ggplot(data = plot_dt,aes_string(x="sampLab",y="value", fill = "variable", color="variable"))+
   scale_x_discrete(name= "# of samples")+
   scale_y_continuous(name="Ratio signif. features", breaks=scales::pretty_breaks(n = 10))+
-  scale_fill_manual(values = c(col1, col2)) +
-  labs(fill  = paste0("Ratio signif.") ) +
-  theme(
-    plot.title = element_text(hjust = 0.5, face = "bold", size=16),
-    plot.subtitle = element_text(hjust = 0.5, face = "italic", size = 14),
-    panel.grid = element_blank(),
-    panel.grid.major.y = element_line(colour = "grey"),
-    panel.grid.minor.y = element_line(colour = "grey"),
-    axis.line.x= element_line(size = .2, color = "black"),
-    axis.line.y = element_line(size = .2, color = "black"),
-    axis.text.y = element_text(color="black", hjust=1,vjust = 0.5, size=12),
-    axis.text.x =element_text(color="black", hjust=0.5,vjust = 0.5, size=12),
-    # axis.ticks.x = element_blank(),
-    axis.title.y = element_text(color="black", size=14),
-    axis.title.x = element_text(color="black", size=14),
-    panel.border = element_blank(),
-    panel.background = element_rect(fill = "transparent"),
-    legend.key.size = unit(1.0, 'cm'),
-    legend.background =  element_rect(),
-    legend.text = element_text(size=12),
-    legend.key = element_blank(),
-    legend.title = element_text(face="bold", size=12, hjust=0.5)
-  )
-       
+  labs(fill  = paste0("Ratio signif.") , color  = paste0("Ratio signif.") ) )
+
+signif_p <- init_p +  
+  geom_boxplot(notch = FALSE, outlier.shape=NA)+
+  geom_point(aes(color=variable), position=position_jitterdodge(),  alpha=0.5)    +
+  guides(color = FALSE)
+
+
 
 outFile <- file.path(outFolder, paste0(init_hicds, "_", init_exprds, "_signifSubSamples_boxplot.", plotType))
 ggsave(plot = signif_p, filename = outFile, height=myHeightGG, width = myWidthGG)
 cat(paste0("... written: ", outFile, "\n"))
+
+
+signif_p_strip <- init_p + 
+  geom_jitter(
+    position = position_jitterdodge(jitter.width = 0.2, dodge.width = 0.8),
+    size = 1.2
+  ) +
+  stat_summary(
+    fun.data="mean_sdl",  fun.args = list(mult=1), 
+    geom = "pointrange",  size = 0.4,
+    position = position_dodge(0.8)
+  ) +
+  guides(fill = FALSE)
+
+
+
+outFile <- file.path(outFolder, paste0(init_hicds, "_", init_exprds, "_signifSubSamples_stripchart.", plotType))
+ggsave(plot = signif_p_strip, filename = outFile, height=myHeightGG, width = myWidthGG)
+cat(paste0("... written: ", outFile, "\n"))
+
 
 ###############################################################
 ############################################################### # consistency
@@ -267,7 +299,10 @@ save(all_tadSignif, file=outFile, version=2)
 cat(paste0("... written: ", outFile, "\n"))
 # all_tadSignif <- get(load(file.path(outFolder, "all_tadSignif.Rdata")))
 
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### 
 #### PLOT1:  consist. to ref
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### 
+
 ref_geneSignif <- all_geneSignif[[paste0(init_hicds)]][[paste0(init_exprds)]]
 ref_tadSignif <- all_tadSignif[[paste0(init_hicds)]][[paste0(init_exprds)]]
 
@@ -293,29 +328,139 @@ refConst_geneSignif_dt <- foreach(i = 1:nrow(allSignif_agg_dt), .combine='rbind'
 outFile <- file.path(outFolder, "refConst_geneSignif_dt.Rdata")
 save(refConst_geneSignif_dt, file=outFile, version=2)
 cat(paste0("... written: ", outFile, "\n"))
-# all_tadSignif <- get(load(file.path(outFolder, "refConst_geneSignif_dt.Rdata")))
+# refConst_geneSignif_dt <- get(load(file.path(outFolder, "refConst_geneSignif_dt.Rdata")))
 
 
+plot_dt2 <- melt(refConst_geneSignif_dt, id=c("hicds", "exprds") )
+plot_dt2 <- merge(plot_dt[,c("hicds", "exprds", "sampLab")], plot_dt2, by=c("hicds", "exprds"), all.x=F, all.y=T)
+stopifnot(!is.na(plot_dt2))
+
+plot_dt2$sampLab <- factor(plot_dt2$sampLab, levels=labLevels)
+
+
+plot_dt2$variable[plot_dt2$variable == "ratioGeneRefSignif"] <- paste0("TADs\n(adj. p-val<=", tadSignifThresh, ")")
+plot_dt2$variable[plot_dt2$variable == "ratioTadRefSignif"] <- paste0("genes\n(adj. p-val<=", geneSignifThresh, ")")
+
+init_p2 <- custom_plot(ggplot(data = plot_dt2,aes_string(x="sampLab",y="value", fill = "variable", color="variable"))+
+  scale_x_discrete(name= "# of samples")+
+  scale_y_continuous(name="Ratio of ref. signif. features", breaks=scales::pretty_breaks(n = 10))+
+  labs(fill  = paste0("Ratio from\nref. signif.") , color  = paste0("Ratio from\nref. signif.") ))
+
+ratioRef_p <- init_p2 +  
+  geom_boxplot(notch = FALSE, outlier.shape=NA)+
+  geom_point(aes(color=variable), position=position_jitterdodge(),  alpha=0.5)    +
+  guides(color = FALSE)
+
+
+
+outFile <- file.path(outFolder, paste0(init_hicds, "_", init_exprds, "_signifSubSamplesRatioRef_boxplot.", plotType))
+ggsave(plot = ratioRef_p, filename = outFile, height=myHeightGG, width = myWidthGG)
+cat(paste0("... written: ", outFile, "\n"))
+
+
+ratioRef_p_strip <- init_p2 + 
+  geom_jitter(
+    position = position_jitterdodge(jitter.width = 0.2, dodge.width = 0.8),
+    size = 1.2
+  ) +
+  stat_summary(
+    fun.data="mean_sdl",  fun.args = list(mult=1), 
+    geom = "pointrange",  size = 0.4,
+    position = position_dodge(0.8)
+  ) +
+  guides(fill = FALSE)
+
+
+
+outFile <- file.path(outFolder, paste0(init_hicds, "_", init_exprds, "_signifSubSamplesRatioRef_stripchart.", plotType))
+ggsave(plot = ratioRef_p_strip, filename = outFile, height=myHeightGG, width = myWidthGG)
+cat(paste0("... written: ", outFile, "\n"))
+
+
+
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### 
 ### PLOT2: constit. among each level
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### 
 tmp_dt <- allSignif_agg_dt
 sampLevels <- unique(as.character(allSignif_agg_dt$sampLab))
 
 stopifnot(allSignif_agg_dt$exprds == init_exprds)
 nsamp = sampLevels[2]
-foreach(nsamp = sampLevels, .combine='rbind') %dopar% {
+acrossConst_geneSignif_dt <- foreach(nsamp = sampLevels, .combine='rbind') %dopar% {
   
   matching_hicds <- allSignif_agg_dt$hicds[as.character(allSignif_agg_dt$sampLab) == nsamp]
-  
 
-  matching_geneSignif <- lapply(all_geneSignif[matching_hicds], function(x)x[[1]])
+  # if(length(matching_hicds) == 1) {
+  #   matching_geneSignif <- lapply(all_geneSignif[matching_hicds], function(x)x[[1]])
+  # } else {
+  #   
+  # } 
+  matching_geneSignif <- unlist(all_geneSignif[matching_hicds],recursive=FALSE)
+  # matching_geneSignif <- lapply(all_geneSignif[matching_hicds], function(x)x[[1]])
   intersect_geneMatch <- Reduce(intersect, matching_geneSignif)
   union_geneMatch <- Reduce(union, matching_geneSignif)
   geneConsistRatio <- length(intersect_geneMatch)/length(union_geneMatch)
   
-  matching_tadSignif <- lapply(all_tadSignif[matching_hicds], function(x)x[[1]])
+  matching_tadSignif <- unlist(all_tadSignif[matching_hicds], recursive=FALSE)
+    # matching_tadSignif <- lapply(all_tadSignif[matching_hicds], function(x)x[[1]])
   intersect_tadMatch <- Reduce(intersect, matching_tadSignif)
   union_tadMatch <- Reduce(union, matching_tadSignif)
   tadConsistRatio <- length(intersect_tadMatch)/length(union_tadMatch)
   
+  data.frame(
+    hicds = init_hicds,
+    exprds=init_exprds,
+    geneConsistRatio,
+    tadConsistRatio,
+    sampLab = nsamp,
+    stringsAsFactors = FALSE
+  )
+  
 }
+
+
+plot_dt3 <- melt(acrossConst_geneSignif_dt, id=c("hicds", "exprds", "sampLab") )
+stopifnot(!is.na(plot_dt3))
+
+plot_dt3$variable[plot_dt$variable == "geneConsistRatio"] <- paste0("TADs\n(adj. p-val<=", tadSignifThresh, ")")
+plot_dt3$variable[plot_dt$variable == "tadConsistRatio "] <- paste0("genes\n(adj. p-val<=", geneSignifThresh, ")")
+
+plot_dt3$sampLab <- factor(plot_dt3$sampLab, levels=labLevels)
+
+
+init_p3 <- custom_plot(ggplot(data = plot_dt3,aes_string(x="sampLab",y="value", fill = "variable", color="variable"))+
+  scale_x_discrete(name= "# of samples")+
+  scale_y_continuous(name="Ratio of consist. signif. features", breaks=scales::pretty_breaks(n = 10))+
+  labs(fill  = paste0("Ratio consist. signif.") , color  = paste0("Ratio from\nref. signif.") ) )
+
+ratioMatch_p <- init_p3 +  
+  geom_boxplot(notch = FALSE, outlier.shape=NA)+
+  geom_point(aes(color=variable), position=position_jitterdodge(),  alpha=0.5)    +
+  guides(color = FALSE)
+
+
+
+outFile <- file.path(outFolder, paste0(init_hicds, "_", init_exprds, "_signifSubSamplesRatioMatch_boxplot.", plotType))
+ggsave(plot = ratioMatch_p, filename = outFile, height=myHeightGG, width = myWidthGG)
+cat(paste0("... written: ", outFile, "\n"))
+
+
+ratioMatch_p_strip <- init_p3 + 
+  geom_jitter(
+    position = position_jitterdodge(jitter.width = 0.2, dodge.width = 0.8),
+    size = 1.2
+  ) +
+  stat_summary(
+    fun.data="mean_sdl",  fun.args = list(mult=1), 
+    geom = "pointrange",  size = 0.4,
+    position = position_dodge(0.8)
+  ) +
+  guides(fill = FALSE)
+
+
+
+outFile <- file.path(outFolder, paste0(init_hicds, "_", init_exprds, "_signifSubSamplesRatioMatch_stripchart.", plotType))
+ggsave(plot = ratioMatch_p_strip, filename = outFile, height=myHeightGG, width = myWidthGG)
+cat(paste0("... written: ", outFile, "\n"))
+
 

@@ -162,6 +162,7 @@ for(a_t in all_types) {
     # scale_fill_gradient( high="red", low="blue", na.value = "white")  +
     scale_fill_gradient2( high="red", low="blue", na.value = "grey", mid ="white", midpoint=mean(plot_dt$density_y))  +
     theme(
+	text = element_text(family=fontFamily),
       axis.text.x = element_text(colour = dsCols, size=12),
       axis.text.y= element_text(colour = "black", size=12),
       axis.title.x = element_text(colour = "black", size=14, face="bold"),
@@ -239,6 +240,7 @@ for(a_t in all_types) {
     # scale_fill_gradient( high="red", low="blue", na.value = "white" )  +
     scale_fill_gradient2( high="red", low="blue", na.value = "grey", mid ="white", midpoint=mean(plot_dt$density_y))  +
     theme(
+	text = element_text(family=fontFamily),
       axis.text.x = element_text(colour = dsCols, size=12),
       axis.text.y= element_text(colour = "black", size=12),
       axis.title.x = element_text(colour = "black", size=14, face="bold"),

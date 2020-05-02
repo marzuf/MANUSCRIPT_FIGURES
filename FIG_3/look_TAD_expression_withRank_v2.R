@@ -232,6 +232,7 @@ p_var_boxplot <-  ggplot(withRank_toplot_dt2, aes(x = symbol_lab, y = value_log1
   
   labs(fill  = paste0("Cond."), color=paste0("Cond.")) +
   theme( 
+	text = element_text(family=fontFamily),
     plot.title = element_text(hjust = 0.5, face = "bold", size=16),
     plot.subtitle = element_text(hjust = 0.5, face = "italic", size = 14),
     panel.grid = element_blank(),
