@@ -52,7 +52,7 @@ all_exprds <- all_obs_exprds
 
 resolution <- 0.01
 
-buildData <- FALSE
+buildData <- TRUE
 
 if(buildData){
   hicds = all_hicds[1]
@@ -116,7 +116,8 @@ for(a_t in all_types) {
     stopifnot(length(hicds) == 1)
     exprds <- unique(x$exprds)
     stopifnot(length(exprds) == 1)
-    ds_dt <- density(x$FCC)
+#    ds_dt <- density(x$FCC)
+	ds_dt <- density(x$FCC, from=-1, to=1) # update 03.05.2020 -> limit density curves
     data.frame(
       hicds=hicds,
       exprds=exprds,
@@ -134,8 +135,8 @@ for(a_t in all_types) {
 
   nDS <- length(unique(as.character(sub_dt$dataset)))
 
-  # new_density_x <- seq(min(sub_density_dt$density_x),max(sub_density_dt$density_x),by=resolution)
-  new_density_x <- seq(-1,1,by=resolution)
+   new_density_x <- seq(min(sub_density_dt$density_x),max(sub_density_dt$density_x),by=resolution) # update 03.05.2020 -> limit density curves
+#  new_density_x <- seq(-1,1,by=resolution)
   # new_density_x <- seq(min(all_result_dt$FCC),max(all_result_dt$FCC),by=resolution)
 
   plot_dt <- foreach(i = 1:nDS, .combine='rbind') %dopar% {
@@ -159,8 +160,6 @@ for(a_t in all_types) {
     scale_y_continuous(name="FCC score",
                        breaks = scales::pretty_breaks(n = 20),  expand = c(0, 0))+
     labs(fill = "Density")+
-    # scale_fill_gradient( high="red", low="blue", na.value = "white")  +
-    scale_fill_gradient2( high="red", low="blue", na.value = "grey", mid ="white", midpoint=mean(plot_dt$density_y))  +
     theme(
 	text = element_text(family=fontFamily),
       axis.text.x = element_text(colour = dsCols, size=12),
@@ -171,13 +170,25 @@ for(a_t in all_types) {
       plot.subtitle = element_text(hjust=0.5, size=14, face="italic"),
       panel.background = element_rect(fill = "transparent")
       # legend.background =  element_rect()
-    )
+    )+
+	geom_vline(xintercept=seq(from=1.5, by=1, length.out = nDS-1), linetype=3) +
 
-  density_plot <- density_plot + geom_vline(xintercept=seq(from=1.5, by=1, length.out = nDS-1), linetype=3)
+  density_plot1 <- density_plot + 
+    # scale_fill_gradient( high="red", low="blue", na.value = "white")  +
+    scale_fill_gradient2( high="red", low="blue", na.value = "grey", mid ="white", midpoint=mean(plot_dt$density_y))  
+
+  density_plot2 <- density_plot + 
+					scale_fill_viridis_c(option="A")  
+
   
   outFile <- file.path(outFolder, paste0("FCC_score_dist_allDS_", a_t, "_densityheatmap.", plotType))
-  ggsave(density_plot, filename = outFile,  height=myHeightGG, width=myWidthGG)
+  ggsave(density_plot1, filename = outFile,  height=myHeightGG, width=myWidthGG)
   cat(paste0("... written: ", outFile, "\n"))
+
+  outFile <- file.path(outFolder, paste0("FCC_score_dist_allDS_", a_t, "_densityheatmap_vPal.", plotType))
+  ggsave(density_plot2, filename = outFile,  height=myHeightGG, width=myWidthGG)
+  cat(paste0("... written: ", outFile, "\n"))
+
   
   outFile <- file.path(outFolder, paste0("density_plot_", a_t, ".Rdata"))
   save(plot_dt, file = outFile)
@@ -191,7 +202,8 @@ for(a_t in all_types) {
     stopifnot(length(hicds) == 1)
     exprds <- unique(x$exprds)
     stopifnot(length(exprds) == 1)
-    ds_dt <- density(x$FCC)
+#    ds_dt <- density(x$FCC)
+    ds_dt <- density(x$FCC, from=-1, to=1) # TRIAL 4520
     data.frame(
       hicds=hicds,
       exprds=exprds,
@@ -211,8 +223,8 @@ for(a_t in all_types) {
   
   nDS <- length(unique(as.character(sub_dt$dataset)))
   
-  # new_density_x <- seq(min(sub_density_dt$density_x),max(sub_density_dt$density_x),by=resolution)
-  new_density_x <- seq(-1,1,by=resolution)
+   new_density_x <- seq(min(sub_density_dt$density_x),max(sub_density_dt$density_x),by=resolution) # update 03.05.2020 -> limit density curves
+#  new_density_x <- seq(-1,1,by=resolution)
   # new_density_x <- seq(min(all_result_dt$FCC),max(all_result_dt$FCC),by=resolution)
   
   
@@ -262,5 +274,22 @@ for(a_t in all_types) {
   
   
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

@@ -34,6 +34,80 @@ inDT <- get(load("../../v2_Yuanlong_Cancer_HiC_data_TAD_DA/GENE_RANK_TAD_RANK/al
 tmp <- inDT[inDT$hicds==hicds & inDT$exprds== exprds,  ]
 
 ##############################################################
+############################### PREP DATA FOR ALL CATEGORIES
+##############################################################
+tads_nTop <- 10
+
+topGenes <- 100
+lastGenes <- 100
+
+genes_nTop <- 100
+
+topTADs <- 10
+lastTADs <- 10
+
+inDT2 <- inDT
+inDT2$dataset <- file.path(inDT2$hicds, inDT2$exprds)
+inDT_dt <- do.call(rbind, by(inDT2, inDT2$dataset, function(x) {
+  x$gene_rank_std <- x$gene_rank/max(x$gene_rank)
+  x$gene_rank2 <- rank(x$adj.P.Val, ties=rankTieMeth)
+  x$gene_rank_rev <- rank(-x$adj.P.Val, ties=rankTieMeth)
+
+  
+  tad_dt <- x[,c("region", "tad_adjCombPval", "tad_rank")]
+  tad_dt <- unique(tad_dt)
+  tad_dt$tad_rank_std <- tad_dt$tad_rank/max(tad_dt$tad_rank)
+  tad_dt$tad_rank2 <- rank(tad_dt$tad_adjCombPval, ties=rankTieMeth)
+  tad_dt$tad_rank_rev <- rank(-tad_dt$tad_adjCombPval, ties=rankTieMeth)
+  tad_dt$tad_rank <- NULL
+  tad_dt$tad_adjCombPval <- NULL
+  merge(x, tad_dt, by=c("region"))
+  
+  
+  
+}))
+stopifnot(inDT_dt$gene_rank==inDT_dt$gene_rank2)
+stopifnot(! (inDT_dt$gene_rank_rev <= lastGenes & inDT_dt$gene_rank <= topGenes))
+stopifnot(inDT_dt$tad_rank==inDT_dt$tad_rank2)
+stopifnot(! (inDT_dt$tad_rank_rev <= lastTADs & inDT_dt$tad_rank <= topTADs))
+
+
+
+
+
+
+
+inDT_dt$gene_rank_cat <- ifelse(inDT_dt$gene_rank_rev <= lastGenes, paste0("last ", lastGenes, " genes"), 
+                                ifelse(inDT_dt$gene_rank <= topGenes, paste0("top ", topGenes, " genes"), "other")) 
+
+inDT_dt$tad_rank_cat <- ifelse(inDT_dt$tad_rank_rev <= lastTADs, paste0("last ", lastTADs, " TADs"), 
+                               ifelse(inDT_dt$tad_rank <= topTADs, paste0("top ", topTADs, " TADs"), "other")) 
+
+##############################################################
+############################### PREP DATA FOR ALL CATEGORIES
+##############################################################
+agg_dt <- aggregate(entrezID~gene_rank_cat + tad_rank_cat, data = inDT_dt, FUN=length)
+colnames(agg_dt)[colnames(agg_dt) == "entrezID"] <- "nGenes"
+
+ggballoonplot(agg_dt, x="gene_rank_cat", y ="tad_rank_cat", fill = "nGenes")+
+  scale_fill_viridis_c(option = "C", trans="log")
+
+agg_dt2 <- agg_dt[!(agg_dt$gene_rank_cat=="other" & agg_dt$tad_rank_cat=="other"),] 
+ggballoonplot(agg_dt2, x="gene_rank_cat", y ="tad_rank_cat", fill = "nGenes")+
+  scale_fill_viridis_c(option = "C", trans="log")
+
+inDT_dt$foo_val <- TRUE
+
+agg_dt3 <- aggregate(entrezID~gene_rank+tad_rank +dataset, FUN=length,data=inDT_dt)
+
+ggplot(agg_dt3, aes(x = gene_rank, y = tad_rank, z =entrezID)) +
+  # stat_summary_hex( function(z) log(sum(z))) +
+  stat_summary_hex() +
+  scale_fill_viridis_c(option = "C", trans="log")
+  labs(fill = "Log counts")
+
+
+##############################################################
 ############################### stacked barplot top10 TADs
 ##############################################################
 
@@ -42,23 +116,8 @@ tads_nTop <- 10
 topGenes <- 100
 lastGenes <- 100
 
-plot_dt <- inDT
-plot_dt$dataset <- file.path(plot_dt$hicds, plot_dt$exprds)
-plot_dt_std <- do.call(rbind, by(plot_dt, plot_dt$dataset, function(x) {
-  x$gene_rank_std <- x$gene_rank/max(x$gene_rank)
-  x$gene_rank2 <- rank(x$adj.P.Val, ties=rankTieMeth)
-  x$gene_rank_rev <- rank(-x$adj.P.Val, ties=rankTieMeth)
-  x
-}))
-stopifnot(plot_dt_std$gene_rank==plot_dt_std$gene_rank2)
+plot_dt <- inDT_dt[inDT_dt$tad_rank <= tads_nTop,]
 
-stopifnot(! (plot_dt_std$gene_rank_rev <= lastGenes & plot_dt_std$gene_rank <= topGenes))
-
-plot_dt <- plot_dt_std[plot_dt_std$tad_rank <= tads_nTop,]
-
-
-plot_dt$gene_rank_cat <- ifelse(plot_dt$gene_rank_rev <= lastGenes, paste0("last ", lastGenes, " genes"), 
-                                ifelse(plot_dt$gene_rank <= topGenes, paste0("top ", topGenes, " genes"), "other")) 
   
 stopifnot(!duplicated(plot_dt))
 agg_dt <- aggregate(entrezID ~ tad_rank+gene_rank_cat, data = plot_dt, FUN=length)
@@ -80,29 +139,11 @@ genes_nTop <- 100
 topTADs <- 10
 lastTADs <- 10
 
-plot_dt <- inDT
-plot_dt$dataset <- file.path(plot_dt$hicds, plot_dt$exprds)
-plot_dt_std <- do.call(rbind, by(plot_dt, plot_dt$dataset, function(x) {
-  
-  tad_dt <- x[,c("region", "tad_adjCombPval", "tad_rank")]
-  tad_dt <- unique(tad_dt)
-  tad_dt$tad_rank_std <- tad_dt$tad_rank/max(tad_dt$tad_rank)
-  tad_dt$tad_rank2 <- rank(tad_dt$tad_adjCombPval, ties=rankTieMeth)
-  tad_dt$tad_rank_rev <- rank(-tad_dt$tad_adjCombPval, ties=rankTieMeth)
-  tad_dt$tad_rank <- NULL
-  tad_dt$tad_adjCombPval <- NULL
-  merge(x, tad_dt, by=c("region"))
-  
-}))
-stopifnot(plot_dt_std$tad_rank==plot_dt_std$tad_rank2)
-
-stopifnot(! (plot_dt_std$tad_rank_rev <= lastTADs & plot_dt_std$tad_rank <= topTADs))
-
-plot_dt <- plot_dt_std[plot_dt_std$gene_rank <= genes_nTop,]
 
 
-plot_dt$tad_rank_cat <- ifelse(plot_dt$tad_rank_rev <= lastTADs, paste0("last ", lastTADs, " TADs"), 
-                                ifelse(plot_dt$tad_rank <= topTADs, paste0("top ", topTADs, " TADs"), "other")) 
+plot_dt <- inDT_dt[inDT_dt$gene_rank <= genes_nTop,]
+
+
 
 stopifnot(!duplicated(plot_dt))
 agg_dt <- aggregate(entrezID ~ gene_rank+tad_rank_cat, data = plot_dt, FUN=length)

@@ -1,4 +1,4 @@
-# Rscript fcc_density_heatmap_permDT_v2.R
+# Rscript fcc_density_heatmap_permDT_v0.R
 
 # each column => dataset; color-coded by density
 
@@ -9,7 +9,7 @@ set.seed(29042020)
 SSHFS <- FALSE
 setDir <- ifelse(SSHFS, "/media/electron", "")
 
-script_name <- "fcc_density_heatmap_permDT_v2.R"
+script_name <- "fcc_density_heatmap_permDT_v0.R"
 cat("> START ", script_name, "\n")
 startTime <- Sys.time()
 
@@ -46,7 +46,7 @@ source("../../Cancer_HiC_data_TAD_DA/utils_fct.R")
 pipOutFolder <- file.path(pipFolder, "PIPELINE", "OUTPUT_FOLDER")
 stopifnot(dir.exists(pipOutFolder))
 
-outFolder <- "FCC_DENSITY_HEATMAP_PERMDT_V2" 
+outFolder <- "FCC_DENSITY_HEATMAP_PERMDT_V0" 
 dir.create(outFolder, recursive = TRUE)
 
 all_hicds <- all_obs_hicds
@@ -123,7 +123,7 @@ for(a_t in all_types) {
     stopifnot(length(hicds) == 1)
     exprds <- unique(x$exprds)
     stopifnot(length(exprds) == 1)
-    ds_dt <- density(x$FCC, from=-1, to=1) # update 03.05.2020 -> limit density curves
+    ds_dt <- density(x$FCC) 
     data.frame(
       hicds=hicds,
       exprds=exprds,
@@ -143,8 +143,8 @@ for(a_t in all_types) {
   
   subTit <- paste0("all datasets (n=", nDS, "; # permut=", keepPermut, ")")
 
-   new_density_x <- seq(min(sub_density_dt$density_x),max(sub_density_dt$density_x),by=resolution) # update 03.05.2020 -> limit density curves
-#  new_density_x <- seq(-1,1,by=resolution)
+
+  new_density_x <- seq(-1,1,by=resolution)
 
   plot_dt <- foreach(i = 1:nDS, .combine='rbind') %dopar% {
     sub_dt <- sub_density_dt[sub_density_dt$heatmap_x == i,]
@@ -178,8 +178,8 @@ for(a_t in all_types) {
       panel.background = element_rect(fill = "transparent")
       # legend.background =  element_rect()
     ) + geom_vline(xintercept=seq(from=1.5, by=1, length.out = nDS-1), linetype=3)
-
-  density_plot1 <- density_plot +
+  
+ density_plot1 <- density_plot +
     # scale_fill_gradient( high="red", low="blue", na.value = "white" )  +
     scale_fill_gradient2( high="red", low="blue", na.value = "grey", mid ="white", midpoint=mean(plot_dt$density_y))  
 
@@ -195,6 +195,7 @@ for(a_t in all_types) {
   ggsave(density_plot2, filename = outFile,  height=myHeightGG, width=myWidthGG)
   cat(paste0("... written: ", outFile, "\n"))
   
+  
   outFile <- file.path(outFolder, paste0("density_plot_", a_t, ".Rdata"))
   save(plot_dt, file = outFile)
   cat(paste0("... written: ", outFile, "\n"))
@@ -207,7 +208,7 @@ for(a_t in all_types) {
     stopifnot(length(hicds) == 1)
     exprds <- unique(x$exprds)
     stopifnot(length(exprds) == 1)
-    ds_dt <- density(x$FCC, from=-1, to=1) # update 03.05.2020 -> limit density curves
+    ds_dt <- density(x$FCC)
     data.frame(
       hicds=hicds,
       exprds=exprds,
@@ -229,8 +230,8 @@ for(a_t in all_types) {
   
   subTit <- paste0("all datasets (n=", nDS, "; # permut=", keepPermut, ")")
   
-   new_density_x <- seq(min(sub_density_dt$density_x),max(sub_density_dt$density_x),by=resolution) # update 03.05.2020 -> limit density curves
-#  new_density_x <- seq(-1,1,by=resolution)
+
+  new_density_x <- seq(-1,1,by=resolution)
   
   plot_dt <- foreach(i = 1:nDS, .combine='rbind') %dopar% {
     sub_dt <- sub_density_dt[sub_density_dt$heatmap_x == i,]

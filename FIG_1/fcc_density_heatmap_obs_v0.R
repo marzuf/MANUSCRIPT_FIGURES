@@ -1,15 +1,13 @@
-# Rscript fcc_density_heatmap_permDT_v2.R
+# Rscript fcc_density_heatmap_obs_v0.R 
 
 # each column => dataset; color-coded by density
 
 options(scipen = 100)
 
-set.seed(29042020)
-
 SSHFS <- FALSE
 setDir <- ifelse(SSHFS, "/media/electron", "")
 
-script_name <- "fcc_density_heatmap_permDT_v2.R"
+script_name <- "fcc_density_heatmap_obs_v0.R"
 cat("> START ", script_name, "\n")
 startTime <- Sys.time()
 
@@ -46,7 +44,7 @@ source("../../Cancer_HiC_data_TAD_DA/utils_fct.R")
 pipOutFolder <- file.path(pipFolder, "PIPELINE", "OUTPUT_FOLDER")
 stopifnot(dir.exists(pipOutFolder))
 
-outFolder <- "FCC_DENSITY_HEATMAP_PERMDT_V2" 
+outFolder <- "FCC_DENSITY_HEATMAP_OBS_V0" 
 dir.create(outFolder, recursive = TRUE)
 
 all_hicds <- all_obs_hicds
@@ -54,9 +52,7 @@ all_exprds <- all_obs_exprds
 
 resolution <- 0.01
 
-keepPermut <- 1000
-
-buildData <- FALSE
+buildData <- TRUE
 
 if(buildData){
   hicds = all_hicds[1]
@@ -67,18 +63,16 @@ if(buildData){
       
       cat("... start ", hicds, " - ", exprds, " \n")
       
-      fcc_file <- file.path(pipOutFolder, hicds, exprds, "8cOnlyFCC_runAllDown", "prodSignedRatio_permDT.Rdata")
+      fcc_file <- file.path(pipOutFolder, hicds, exprds, "8cOnlyFCC_runAllDown", "all_obs_prodSignedRatio.Rdata")
+      if(!file.exists(fcc_file)) {
+        fcc_file <- file.path(pipOutFolder, hicds, exprds, "8cOnlyFCConlyObs_runAllDown", "all_obs_prodSignedRatio.Rdata")  
+      }
       if(!file.exists(fcc_file)) return(NULL)
       stopifnot(file.exists(fcc_file))
-      fcc_perm_dt <- get(load(fcc_file))
-      stopifnot(ncol(fcc_perm_dt) >= keepPermut)
-      
-      keepCols <- sample(x=1:ncol(fcc_perm_dt), size = keepPermut)
-      
-      stopifnot(length(keepCols) == keepPermut)
-      
-      fcc_perm_dt <- fcc_perm_dt[,keepCols ]
-      all_fcc <- as.numeric(fcc_perm_dt)
+      all_fcc <- as.numeric(get(load(fcc_file)))
+      # if(!file.exists(fcc_file)) {
+      #   fcc_file <- file.path(pipOutFolder, hicds, exprds, "8cOnlyFCConlyObs_runAllDown", "all_obs_prodSignedRatio.Rdata")  
+      # }
       
       data.frame(
         hicds = hicds,
@@ -100,8 +94,7 @@ if(buildData){
 
 all_result_dt$dataset <- file.path(all_result_dt$hicds, all_result_dt$exprds)
 
-all_result_dt$hicds_lab <- "PERMG2T"
-
+all_result_dt$hicds_lab <- "OBSERVED"
 
 all_types <- unique(all_result_dt$hicds_lab)
 a_t = all_types[1]
@@ -123,7 +116,7 @@ for(a_t in all_types) {
     stopifnot(length(hicds) == 1)
     exprds <- unique(x$exprds)
     stopifnot(length(exprds) == 1)
-    ds_dt <- density(x$FCC, from=-1, to=1) # update 03.05.2020 -> limit density curves
+    ds_dt <- density(x$FCC)
     data.frame(
       hicds=hicds,
       exprds=exprds,
@@ -140,11 +133,8 @@ for(a_t in all_types) {
   sub_density_dt$heatmap_x <- as.numeric(sub_density_dt$dataset)
 
   nDS <- length(unique(as.character(sub_dt$dataset)))
-  
-  subTit <- paste0("all datasets (n=", nDS, "; # permut=", keepPermut, ")")
 
-   new_density_x <- seq(min(sub_density_dt$density_x),max(sub_density_dt$density_x),by=resolution) # update 03.05.2020 -> limit density curves
-#  new_density_x <- seq(-1,1,by=resolution)
+  new_density_x <- seq(-1,1,by=resolution)
 
   plot_dt <- foreach(i = 1:nDS, .combine='rbind') %dopar% {
     sub_dt <- sub_density_dt[sub_density_dt$heatmap_x == i,]
@@ -162,7 +152,7 @@ for(a_t in all_types) {
   density_plot <- ggplot(plot_dt, aes(x = dataset, y = density_x, fill = density_y))+
     geom_tile() +
   ggtitle(paste0("FCC score distribution - ", a_t),
-          subtitle = subTit) +
+          subtitle = paste0("all datasets (n=", nDS, ")")) +
     scale_x_discrete(name="Datasets ranked by decreasing AUC FCC ratio", labels = rep(labsymbol, nDS ), expand = c(0, 0))  +
     scale_y_continuous(name="FCC score",
                        breaks = scales::pretty_breaks(n = 20),  expand = c(0, 0))+
@@ -177,15 +167,17 @@ for(a_t in all_types) {
       plot.subtitle = element_text(hjust=0.5, size=14, face="italic"),
       panel.background = element_rect(fill = "transparent")
       # legend.background =  element_rect()
-    ) + geom_vline(xintercept=seq(from=1.5, by=1, length.out = nDS-1), linetype=3)
+    )+
+		geom_vline(xintercept=seq(from=1.5, by=1, length.out = nDS-1), linetype=3) 
 
-  density_plot1 <- density_plot +
-    # scale_fill_gradient( high="red", low="blue", na.value = "white" )  +
+  
+  density_plot1 <- density_plot + 
+    # scale_fill_gradient( high="red", low="blue", na.value = "white")  +
     scale_fill_gradient2( high="red", low="blue", na.value = "grey", mid ="white", midpoint=mean(plot_dt$density_y))  
 
-
-  density_plot2 <- density_plot +
+  density_plot2 <- density_plot + 
 					scale_fill_viridis_c(option="A")  
+
   
   outFile <- file.path(outFolder, paste0("FCC_score_dist_allDS_", a_t, "_densityheatmap.", plotType))
   ggsave(density_plot1, filename = outFile,  height=myHeightGG, width=myWidthGG)
@@ -207,7 +199,7 @@ for(a_t in all_types) {
     stopifnot(length(hicds) == 1)
     exprds <- unique(x$exprds)
     stopifnot(length(exprds) == 1)
-    ds_dt <- density(x$FCC, from=-1, to=1) # update 03.05.2020 -> limit density curves
+    ds_dt <- density(x$FCC)
     data.frame(
       hicds=hicds,
       exprds=exprds,
@@ -227,10 +219,9 @@ for(a_t in all_types) {
   
   nDS <- length(unique(as.character(sub_dt$dataset)))
   
-  subTit <- paste0("all datasets (n=", nDS, "; # permut=", keepPermut, ")")
+  new_density_x <- seq(-1,1,by=resolution)
+
   
-   new_density_x <- seq(min(sub_density_dt$density_x),max(sub_density_dt$density_x),by=resolution) # update 03.05.2020 -> limit density curves
-#  new_density_x <- seq(-1,1,by=resolution)
   
   plot_dt <- foreach(i = 1:nDS, .combine='rbind') %dopar% {
     sub_dt <- sub_density_dt[sub_density_dt$heatmap_x == i,]
@@ -247,8 +238,8 @@ for(a_t in all_types) {
   
   density_plot <- ggplot(plot_dt, aes(x = dataset, y = density_x, fill = density_y))+ 
     geom_tile() +
-    ggtitle(paste0("FCC score distribution - ", a_t),   
-            subtitle = subTit) +
+    ggtitle(paste0("CHECKPLOT - FCC score distribution - ", a_t),   
+            subtitle = paste0("all datasets (n=", nDS, ")")) +
     scale_x_discrete(name="Datasets ranked by decreasing AUC FCC ratio", labels = rep(labsymbol, nDS ), expand = c(0, 0))  +
     scale_y_continuous(name="FCC score",
                        breaks = scales::pretty_breaks(n = 20),  expand = c(0, 0))+
@@ -278,5 +269,22 @@ for(a_t in all_types) {
   
   
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
