@@ -15,6 +15,8 @@ all_exprds <- sapply(all_hicds, function(x) list.files(file.path(pipFolder, x)))
 all_obs_hicds <- all_hicds[! (grepl("RANDOM", all_hicds) | grepl("PERMUT", all_hicds))]
 all_obs_exprds <- sapply(all_obs_hicds, function(x) list.files(file.path(pipFolder, x)))
 
+get_exprds <- function(myfold) sapply(myfold, function(x) list.files(file.path(pipFolder, x)))
+
 plotCex <- 1.4
 axisCex <- 1.4
 labCex <- 1.4
@@ -77,7 +79,9 @@ geneSignifThresh <- 0.01
 tadSignifThresh <- 0.01
 
 # FOR FIGURE 1:
+require(ggplot2)
 my_box_theme <- theme(
+	text = element_text(family=fontFamily),
   panel.grid.major.y =  element_line(colour = "grey", size = 0.5, linetype=1),
   panel.grid.minor.y =  element_line(colour = "grey", size = 0.5, linetype=1),
   panel.background = element_rect(fill = "transparent"),

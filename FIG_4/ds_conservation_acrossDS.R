@@ -124,7 +124,7 @@ save(byCmp_dt, file=file.path(outFolder, "byCmp_dt.Rdata"), version=2)
 byCmp_dt$reg_rank <- 1:nrow(byCmp_dt)
 byCmp_dt$reg_rank <- factor(as.character(byCmp_dt$reg_rank))
 
-ggplot(byCmp_dt, aes(x=region, y=conserved, group=1))+
+ggplot(byCmp_dt, aes(x=reg_rank, y=conserved, group=1))+
   geom_line()+ 
   facet_grid(. ~ cmpType)
 
