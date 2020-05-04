@@ -47,18 +47,19 @@ do.call(plotType, list(outFile, height=myHeight, width=myWidth))
 
 tit1 <- "FCC AUC ratio (PERMG2T)"
 tit1 <- "FCC AUC ratio"
+tit1 <- "FCC cumsum curve AUC ratio"
 
 par(mfrow=c(2,1))
 
 # par(cex=0.7, mai=c(0.1,0.1,0.2,0.1), mar=c(0.1, 0.1, 0.1, 0.1))
-par(cex=0.7, mai=c(1,4,2,1), mar=c(1,4,2,1)) # c(bottom, left, top, right) w
+par(cex=0.7, mai=c(1,4,2,1), mar=c(1,5,2,1)) # c(bottom, left, top, right) w
 # par(fig=c(0.05, 0.9, 0.6, 0.9 )) # c(x1, x2, y1, y2)
 par(bty="L")
 par(family=fontFamily)
 barplot(plot_dt$fcc_auc_resc, col = plot_dt$barcols, 
         xlab = "",
-        ylab="",
-        # ylab="FCC AUC ratio (PERMG2T)",
+        # ylab="",
+        ylab="FCC AUC ratio",
         cex.main=plotCex, cex.axis=plotCex, cex.lab=plotCex,
         axes=FALSE)
 axis(2, at=c(0, toplabs), labels = c("", format(toplabs+1, digits=3)), las=2, cex=plotCex)
@@ -75,7 +76,9 @@ tit2 <- paste0("Ratio TADs with FCC \u2208 ", plotRange)
 barplot(plot_dt$ratioTopFCC, col = plot_dt$barcols,
         xlab = "",
         # ylab = paste0("Fract. of TADs in ", plotRange),
-        ylab = "",
+        # ylab = "",
+        # ylab=paste0("Ratio TADs with FCC \u2208 ", plotRange),
+        ylab=paste0("Ratio of TADs"),
         cex.main=plotCex, cex.axis=plotCex, cex.lab=plotCex,
         axes=FALSE)
 axis(2, at=c(0, botlabs), labels=c("", format(botlabs, digits = 2)), las=2, cex=plotCex)

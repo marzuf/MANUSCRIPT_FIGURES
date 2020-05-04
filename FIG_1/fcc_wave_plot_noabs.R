@@ -44,7 +44,13 @@ pointObsCol <- colObs
 all_fcc_dt <- foreach(hicds = all_obs_hicds, .combine='rbind') %dopar% {
     exprds = all_exprds[[paste0(hicds)]][1]
     hicds_dt <- foreach(exprds = all_obs_exprds[[paste0(hicds)]], .combine='rbind') %do% {
-      
+
+		stopifnot(hicds %in% names(hicds_names))
+		stopifnot(exprds %in% names(exprds_names))
+
+		hicds_lab <- hicds_names[paste0(hicds)]
+		exprds_lab <- exprds_names[paste0(exprds)]
+			  
       cat(paste0("> START ", hicds, " - ", exprds, "\n"))
       
       settingF <- file.path(setDir, "/mnt/etemp/marie/v2_Yuanlong_Cancer_HiC_data_TAD_DA", "PIPELINE", "INPUT_FILES", hicds, paste0("run_settings_", exprds, ".R"))
@@ -169,7 +175,7 @@ all_fcc_dt <- foreach(hicds = all_obs_hicds, .combine='rbind') %dopar% {
       par(bty="l")
       
       my_main <- paste0("Genome-wide intra-TAD fold-change concordance")
-      my_sub <- paste0(hicds, " - " , exprds)
+      my_sub <- paste0(hicds_lab, " - " , exprds_lab)
       my_xlab <- paste0("TADs ranked by FCC")
       my_ylab <- paste0("FCC cumulative sum")
       
@@ -192,6 +198,8 @@ all_fcc_dt <- foreach(hicds = all_obs_hicds, .combine='rbind') %dopar% {
       # CHANGED HERE 28.04.2020 -> do not take abs !
       # obs_cumsum <- cumsum(abs(observ_vect - 0))
       obs_cumsum <- cumsum(observ_vect - 0)
+
+		par(mar = par()$mar + c(0,1,0,0))
       
       plot(obs_cumsum ~ x_val,
            main= my_main,

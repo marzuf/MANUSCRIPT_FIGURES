@@ -65,26 +65,30 @@ dt1$fcc_auc_minus1 <- dt1$fcc_auc - 1
 
 p1_tit <- "FCC AUC ratio"
 p1_tit <- ""
+p1_tit <- "FCC cumsum curve AUC ratio"
+
 p1_sub <- ""
 p1_xlab <- ""
 p1_ylab <- "FCC AUC ratio"
 
 
-p2_tit <- "FCC distribution"
 p2_tit <- ""
+p2_tit <- "FCC distribution"
+
 p2_sub <- ""
 p2_xlab <- ""
 p2_ylab <- "FCC range"
 
 p3_tit <- "FCC distribution - enrichment across datasets"
 p3_tit <- ""
+p3_tit <- "FCC distribution (by range)"
 p3_sub <- ""
 p3_xlab <- ""
 p3_ylab <- "FCC range"
 
 p1_legTitle <- ""
 p2_legTitle <- "Ratio of TADs"
-p3_legTitle <- "Ratio of TADs\n(dataset resc.)"
+p3_legTitle <- "z-score\nratio of TADs\n(dataset resc.)"
 
 plotMargin <- c(0.1,0.1,0.1,0.1)
 
@@ -136,6 +140,7 @@ p2_fccFract_plot <- ggplot(p2_dt,aes(x=dataset, y = intervalFCC,  fill = ratioFC
   guides(color = FALSE)+
   coord_cartesian(clip = 'off', expand=F) +
   theme(  
+    text = element_text(family=fontFamily),
     axis.text.x = element_text(size=10, hjust=0.5, vjust=1, color=dotcols),
     plot.margin = unit(plotMargin, "lines")) 
 # coord_flip()
@@ -152,13 +157,16 @@ p3_fccFractResc_plot <- ggplot(dt2, aes(x=dataset, y = intervalFCC,  fill = rati
   guides(color = FALSE)+
   coord_cartesian(clip = 'off', expand=F) +
   theme(  
+    text = element_text(family=fontFamily),
     axis.text.x = element_text(size=10, hjust=0.5, vjust=1, color=dotcols),
     plot.margin = unit(plotMargin, "lines")) 
 # coord_flip()
 
 
-out_p <- p1_aucRatio_plot/p2_fccFract_plot/p3_fccFractResc_plot
+out_p <- p1_aucRatio_plot/p2_fccFract_plot/p3_fccFractResc_plot +
+  plot_layout(heights = c(2, 1,1))
+
 
 outFile <- file.path(outFolder, paste0("FCC_aucRatio_topFract.", plotType))
-ggsave(plot = out_p, filename = outFile, height=myHeightGG*2, width=myWidth)
+ggsave(plot = out_p, filename = outFile, height=myHeightGG, width=myWidth)
 cat(paste0("... written: ", outFile, "\n"))

@@ -33,6 +33,12 @@ exprds <- args[2]
 stopifnot(!is.na(hicds))
 stopifnot(!is.na(exprds))
 
+stopifnot(hicds %in% names(hicds_names))
+stopifnot(exprds %in% names(exprds_names))
+
+hicds_lab <- hicds_names[paste0(hicds)]
+exprds_lab <- exprds_names[paste0(exprds)]
+
 fcc_file <- file.path(pipFolder, hicds, exprds, step8fcc_folder, "all_obs_prodSignedRatio.Rdata")
 stopifnot(file.exists(fcc_file))
 all_fcc <- get(load(fcc_file))
@@ -52,7 +58,7 @@ stopifnot(!is.na(fcc_cols))
 
 rel_rank <- c(1:length(all_fcc))/length(all_fcc)
 
-myTit <- paste0(hicds, " - ", exprds)
+myTit <- paste0(hicds_lab, " - ", exprds_lab)
 my_xlab <- "Ranked TADs"
 my_ylab <- "FCC"
 
@@ -71,6 +77,7 @@ plot(
   ylab="",
   # xlab=my_xlab,
   # ylab= my_ylab,
+	cex.main=plotCex,
   cex.axis=plotCex,
   cex.lab=plotCex,
  axes=FALSE 

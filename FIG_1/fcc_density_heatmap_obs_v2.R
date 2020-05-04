@@ -92,6 +92,8 @@ if(buildData){
   all_result_dt <- get(load(outFile))
 }  
 
+min_fcc <- min(all_result_dt$FCC)
+
 all_result_dt$dataset <- file.path(all_result_dt$hicds, all_result_dt$exprds)
 
 all_result_dt$hicds_lab <- "OBSERVED"
@@ -193,6 +195,25 @@ for(a_t in all_types) {
   outFile <- file.path(outFolder, paste0("density_plot_", a_t, ".Rdata"))
   save(plot_dt, file = outFile)
   cat(paste0("... written: ", outFile, "\n"))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   
   sub_dt <- all_result_dt[all_result_dt$hicds_lab == a_t,]
   sub_dt$FCC[sub_dt$hicds == dirname(ds_levels[1]) & sub_dt$exprds == basename(ds_levels[1])] <- sub_dt$FCC[sub_dt$hicds == dirname(ds_levels[1]) & sub_dt$exprds == basename(ds_levels[1])] - 0.5

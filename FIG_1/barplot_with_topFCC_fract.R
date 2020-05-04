@@ -24,7 +24,7 @@ buildData <- TRUE
 minRange <- 0.5
 maxRange <- 1
 
-fcc_fract_names <- c(paste0("]", minRange, "-", maxRange, "["), "1")
+fcc_fract_names <- c(paste0("]", minRange, ", ", maxRange, "["), "1")
 fract_sort <- fcc_fract_names[length(fcc_fract_names)]
 
 ggsci_pal <- "lancet"

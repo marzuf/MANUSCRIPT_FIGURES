@@ -2,7 +2,7 @@
 
 require(ggplot2)
 
-plotType <- "svg"
+plotType <- "png"
 
 source("../settings.R")
 
@@ -54,8 +54,9 @@ density_plot <- ggplot(cmp_dt, aes(x = dataset, y = density_x, fill = density_y_
                           )  + geom_vline(xintercept=seq(from=1.5, by=1, length.out = nDS-1), linetype=3)
                         
 density_plot1 <- density_plot  +
- # scale_fill_gradient( high="red", low="blue", na.value = "white" )  +
-  scale_fill_gradient2( high="red", low="blue", na.value = "grey", mid ="white", midpoint=mean(cmp_dt$density_y_Ratio)) 
+  scale_fill_gradient( high="red", low="blue", na.value = "white" ) 
+# +
+#  scale_fill_gradient2( high="red", low="blue", na.value = "grey", mid ="white", midpoint=mean(cmp_dt$density_y_Ratio)) 
 
 
   density_plot2 <- density_plot + 
@@ -68,4 +69,67 @@ cat(paste0("... written: ", outFile, "\n"))
 outFile <- file.path(outFolder, paste0("FCC_score_ratio_dist_allDS_obs_perm_densityheatmap_vPal.", plotType))
 ggsave(density_plot2, filename = outFile,  height=myHeightGG, width=myWidthGG)
 cat(paste0("... written: ", outFile, "\n"))
+
+all_dt <- get(load("FCC_DENSITY_HEATMAP_OBS_V2/all_result_dt.Rdata"))
+min_fcc <- min(all_dt$FCC)
+stopifnot(!is.na(min_fcc))
+
+
+cmp_dt_cut <- cmp_dt[cmp_dt$density_x >= min_fcc,]
+
+density_plot <- ggplot(cmp_dt_cut, aes(x = dataset, y = density_x, fill = density_y_Ratio))+
+  geom_tile() +
+  ggtitle(paste0("FCC score distribution - OBS/PERMUT [log2]"),
+          subtitle = subTit) +
+  scale_x_discrete(name="Datasets ranked by decreasing AUC FCC ratio", labels = rep(labsymbol, nDS ), expand = c(0, 0))  +
+  scale_y_continuous(name="FCC score",
+                     breaks = scales::pretty_breaks(n = 20),  expand = c(0, 0))+
+  labs(fill = "Density\nratio [log2]")+
+                          theme(
+	text = element_text(family=fontFamily),
+                            axis.text.x = element_text(colour = dsCols, size=12),
+                            axis.text.y= element_text(colour = "black", size=12),
+                            axis.title.x = element_text(colour = "black", size=14, face="bold"),
+                            axis.title.y = element_text(colour = "black", size=14, face="bold"),
+                            plot.title = element_text(hjust=0.5, size=16, face="bold"),
+                            plot.subtitle = element_text(hjust=0.5, size=14, face="italic"),
+                            panel.background = element_rect(fill = "transparent")
+                            # legend.background =  element_rect()
+                          )  + geom_vline(xintercept=seq(from=1.5, by=1, length.out = nDS-1), linetype=3)
+                        
+density_plot1 <- density_plot  +
+  scale_fill_gradient( high="red", low="blue", na.value = "white" ) 
+# +
+#  scale_fill_gradient2( high="red", low="blue", na.value = "grey", mid ="white", midpoint=mean(cmp_dt$density_y_Ratio)) 
+
+
+  density_plot2 <- density_plot + 
+					scale_fill_viridis_c(option="A")  
+
+outFile <- file.path(outFolder, paste0("FCC_score_ratio_dist_allDS_obs_perm_densityheatmap_cutMin.", plotType))
+ggsave(density_plot1, filename = outFile,  height=myHeightGG, width=myWidthGG)
+cat(paste0("... written: ", outFile, "\n"))
+
+outFile <- file.path(outFolder, paste0("FCC_score_ratio_dist_allDS_obs_perm_densityheatmap_vPal_cutMin.", plotType))
+ggsave(density_plot2, filename = outFile,  height=myHeightGG, width=myWidthGG)
+cat(paste0("... written: ", outFile, "\n"))
+
+
+#> load("FCC_DENSITY_HEATMAP_OBS_V2/all_result_dt.Rdata")
+#> head(all_result_dt
+#+ )
+#                 hicds           exprds       FCC
+#1 Barutcu_MCF-10A_40kb TCGAbrca_lum_bas 0.3017254
+#2 Barutcu_MCF-10A_40kb TCGAbrca_lum_bas 0.4187001
+#3 Barutcu_MCF-10A_40kb TCGAbrca_lum_bas 1.0000000
+#4 Barutcu_MCF-10A_40kb TCGAbrca_lum_bas 1.0000000
+#5 Barutcu_MCF-10A_40kb TCGAbrca_lum_bas 0.4083328
+#6 Barutcu_MCF-10A_40kb TCGAbrca_lum_bas 0.2549637
+#> min(all_result_dt$FCC)
+#[1] -0.4820128
+#> load("FCC_DENSITY_HEATMAP_PERMDT_V2/all_result_dt.Rdata")                                                                                                                                              
+#> min(all_result_dt$FCC)
+#[1] -0.6138406
+
+
 

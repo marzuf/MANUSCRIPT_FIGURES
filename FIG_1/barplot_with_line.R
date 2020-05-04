@@ -72,7 +72,7 @@ linecol <- "brown"
 outFile <- file.path(outFolder, paste0("fcc_barplot_coloredBars.", plotType))
 do.call(plotType, list(outFile, height=myHeight, width=myWidth*1.2))
 
-par(mar=par()$mar+c(2,0,0,0))
+par(mar=par()$mar+c(2,0,0,2))
 
 par(family=fontFamily)
 barp <- barplot(dt1$fcc_auc-1,
@@ -80,27 +80,37 @@ barp <- barplot(dt1$fcc_auc-1,
                 main = my_main,
                 # xlab="Datasets",
                 cex.main = plotCex,
-                xlab=paste0("Datasets\n(n=", nrow(dt1), ")"),
+                # xlab=paste0("Datasets\n(n=", nrow(dt1), ")"),
+                xlab="",
                 col=dscols, axes=F)
 axis(2, at = seq(0, 0.8, by=0.1), labels = seq(0, 0.8, by=0.1)+1)
-
+mtext(1, text=paste0("Datasets\n(n=", nrow(dt1), ")"), line=2, cex=plotCex)
 
 # add the line
 par(new = T, family=fontFamily)
 
 plot(x=barp,
      # ylim = c(0,1),
-     y=plot_dt2$countFCC,  type="o", col = linecol,
+     xlab="", ylab="", lty=1,pch=16,lwd=2,
+     y=plot_dt2$countFCC,  type="b", col = linecol,
      axes=FALSE)
 
-axis(side=4, col = linecol, col.ticks = linecol, col.axis=linecol, at = seq(0, 1, by=0.1))
-mtext(side = 4, line = 3, text=my_main2, col=linecol,  cex=plotCex)
+axis(side=4, col = linecol, col.ticks = linecol, col.axis=linecol, at = seq(0, 1, by=0.05))
+mtext(side = 4, line = 2, text=my_main2, col=linecol,  cex=plotCex)
 
-legend("bottom", pch=16, col=c(all_cols, linecol), 
-       legend=c(names(all_cols), paste0("Ratio\n", lineVar, " \nTADs")),
-        lty=c(rep(-1, length(all_cols), 1)),
-       cex = c(rep(plotCex, length(all_cols)), -1),
-       inset=c(0,-1), xpd=TRUE,
+# legend("bottom", pch=16, col=c(all_cols, linecol), 
+#        legend=c(names(all_cols), paste0("Ratio\n", lineVar, " \nTADs")),
+#         lty=c(rep(-1, length(all_cols), 1)),
+#        cex = c(rep(plotCex, length(all_cols)), -1),
+#        inset=c(0,-1), xpd=TRUE,
+#        horiz = TRUE,
+#        bty="n")
+legend("bottom", pch=16, col=c(all_cols), 
+       legend=c(names(all_cols)),
+       lty=c(rep(-1, length(all_cols))),
+       cex = c(rep(plotCex, length(all_cols))),
+       inset=c(0,-0.5),
+       xpd=TRUE,
        horiz = TRUE,
        bty="n")
 

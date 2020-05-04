@@ -16,7 +16,7 @@ source("../../Cancer_HiC_data_TAD_DA/utils_fct.R")
 source("../../Yuanlong_Cancer_HiC_data_TAD_DA/subtype_cols.R")
 source("../settings.R")
 
-myWidth <- myWidth * 1.2
+# myWidth <- myWidth * 1.2
 
 outFolder <- "TAD_VS_GENE_SIGNIF_ALL_DS"
 dir.create(outFolder, recursive = TRUE)
@@ -29,22 +29,29 @@ ggsci_subpal <- ""
 plotMargin <- c(1,2,1,1)
 
 
-inDT <- get(load("../../v2_Yuanlong_Cancer_HiC_data_TAD_DA/GENE_RANK_TAD_RANK/all_gene_tad_signif_dt.Rdata"))
+myHeightGG <- 5
+myWidthGG <- 7
 
-tmp <- inDT[inDT$hicds==hicds & inDT$exprds== exprds,  ]
+
+rankTieMeth <- "min"
+
+genes_nTop <- 100
+topTADs <- 10
+lastTADs <- 10
+
+tads_nTop <- 10
+topGenes <- 100
+lastGenes <- 100
+
+yOffset <- 0.2 # for the balloonplot
+
+inDT <- get(load(file.path(runFolder, "GENE_RANK_TAD_RANK/all_gene_tad_signif_dt.Rdata")))
+
 
 ##############################################################
 ############################### PREP DATA FOR ALL CATEGORIES
 ##############################################################
-tads_nTop <- 10
 
-topGenes <- 100
-lastGenes <- 100
-
-genes_nTop <- 100
-
-topTADs <- 10
-lastTADs <- 10
 
 inDT2 <- inDT
 inDT2$dataset <- file.path(inDT2$hicds, inDT2$exprds)
@@ -71,50 +78,135 @@ stopifnot(! (inDT_dt$gene_rank_rev <= lastGenes & inDT_dt$gene_rank <= topGenes)
 stopifnot(inDT_dt$tad_rank==inDT_dt$tad_rank2)
 stopifnot(! (inDT_dt$tad_rank_rev <= lastTADs & inDT_dt$tad_rank <= topTADs))
 
-
-
-
-
-
-
 inDT_dt$gene_rank_cat <- ifelse(inDT_dt$gene_rank_rev <= lastGenes, paste0("last ", lastGenes, " genes"), 
                                 ifelse(inDT_dt$gene_rank <= topGenes, paste0("top ", topGenes, " genes"), "other")) 
 
 inDT_dt$tad_rank_cat <- ifelse(inDT_dt$tad_rank_rev <= lastTADs, paste0("last ", lastTADs, " TADs"), 
                                ifelse(inDT_dt$tad_rank <= topTADs, paste0("top ", topTADs, " TADs"), "other")) 
 
+stopifnot(!is.na(inDT_dt))
+
+gene_levels <- c(paste0("last ", lastGenes, " genes"), "other",  paste0("top ", topGenes, " genes"))
+
+tad_levels <- c(paste0("last ", lastTADs, " TADs"), "other", paste0("top ", topTADs, " TADs"))
+
+
 ##############################################################
 ############################### PREP DATA FOR ALL CATEGORIES
 ##############################################################
+
+annotateSize <- 6
+annotateSizeL <- 8
+
+nDS <- length(unique(inDT_dt$dataset))
+
+
+
+myTit <- "Genes signif. gene-level vs. TAD-level"
+
 agg_dt <- aggregate(entrezID~gene_rank_cat + tad_rank_cat, data = inDT_dt, FUN=length)
 colnames(agg_dt)[colnames(agg_dt) == "entrezID"] <- "nGenes"
 
-ggballoonplot(agg_dt, x="gene_rank_cat", y ="tad_rank_cat", fill = "nGenes")+
-  scale_fill_viridis_c(option = "C", trans="log")
+agg_dt$gene_rank_cat <- factor(agg_dt$gene_rank_cat, levels=gene_levels)
+agg_dt$tad_rank_cat <- factor(agg_dt$tad_rank_cat, levels=tad_levels)
+stopifnot(!is.na(agg_dt))
+
+agg_dt <- agg_dt[order(as.numeric(agg_dt$gene_rank_cat), as.numeric(agg_dt$tad_rank_cat)),]
+
+balloon_p1 <- ggballoonplot(agg_dt, x="gene_rank_cat", y ="tad_rank_cat", fill = "nGenes")+
+  ggtitle(myTit, subtitle = paste0("# datasets = ", nDS))+
+  scale_fill_viridis_c(option = "C", trans="log10") +
+  scale_size( trans="log10") +
+  labs(size = "# genes", fill = "# genes")+
+  theme(
+    plot.title = element_text(size = 18, face ="bold", hjust=0.5),
+    plot.subtitle = element_text(size = 16, face ="italic", hjust=0.5),
+    axis.text =element_text(size=14)
+  )
+
+
+outFile <- file.path(outFolder, 
+                     paste0("nSignifGenes_topGenes",genes_nTop, "_vs_topTADs", tads_nTop, "_balloonplot.", plotType))
+ggsave(plot = balloon_p1, filename = outFile, height=myHeightGG, width = myWidthGG)
+cat(paste0("... written: ", outFile, "\n"))
+
+balloon_p1b <- balloon_p1 + annotate("text",
+                      x=as.numeric(agg_dt$gene_rank_cat),
+                      y=as.numeric(agg_dt$tad_rank_cat)+yOffset,
+                      label = agg_dt$nGenes,
+                      size = annotateSize
+                      )
+
+outFile <- file.path(outFolder, 
+                     paste0("nSignifGenes_topGenes",genes_nTop, "_vs_topTADs", tads_nTop, "_balloonplotWithText.", plotType))
+ggsave(plot = balloon_p1b, filename = outFile, height=myHeightGG, width = myWidthGG)
+cat(paste0("... written: ", outFile, "\n"))
+
+outFile <- file.path(outFolder, 
+                     paste0("nSignifGenes_topGenes",genes_nTop, "_vs_topTADs", tads_nTop, "_table.txt"))
+write.table(agg_dt, file=outFile, col.names = T, row.names = F, sep="\t", quote=F)
+cat(paste0("... written: ", outFile, "\n"))
+
 
 agg_dt2 <- agg_dt[!(agg_dt$gene_rank_cat=="other" & agg_dt$tad_rank_cat=="other"),] 
-ggballoonplot(agg_dt2, x="gene_rank_cat", y ="tad_rank_cat", fill = "nGenes")+
-  scale_fill_viridis_c(option = "C", trans="log")
+balloon_p2 <- ggballoonplot(agg_dt2, x="gene_rank_cat", y ="tad_rank_cat", 
+                            fill = "nGenes", size="nGenes", 
+                            font.label=c(14, "bold", "red"), 
+                            show.label=FALSE)+
+  ggtitle(myTit, subtitle = paste0("# datasets = ", nDS))+
+  scale_size( trans="log10")+
+  scale_fill_viridis_c(option = "C", trans="log10")+
+  # scale_fill_viridis_c(option = 'C', trans = "log10",  breaks = trans_breaks("log10", function(x) 10^x)) +
+  labs(size = "# genes", fill = "# genes")+
+  theme(
+    plot.title = element_text(size = 18, face ="bold", hjust=0.5),
+    plot.subtitle = element_text(size = 16, face ="italic", hjust=0.5),
+    axis.text =element_text(size=14)
+  )
 
-inDT_dt$foo_val <- TRUE
+outFile <- file.path(outFolder, 
+                     paste0("nSignifGenes_topGenes",genes_nTop, "_vs_topTADs", tads_nTop, "_balloonplot_noOther.", plotType))
+ggsave(plot = balloon_p2, filename = outFile, height=myHeightGG, width = myWidthGG)
+cat(paste0("... written: ", outFile, "\n"))
 
-agg_dt3 <- aggregate(entrezID~gene_rank+tad_rank +dataset, FUN=length,data=inDT_dt)
+balloon_p2b <- balloon_p2 + annotate("text",
+                                     x=as.numeric(agg_dt2$gene_rank_cat),
+                                     y=as.numeric(agg_dt2$tad_rank_cat)+yOffset,
+                                     label = agg_dt2$nGenes,
+                                     size = annotateSize)+
+              annotate("text",
+                       x=as.numeric(agg_dt$gene_rank_cat[(agg_dt$gene_rank_cat=="other" & agg_dt$tad_rank_cat=="other")] ),
+                       y=as.numeric(agg_dt$tad_rank_cat[(agg_dt$gene_rank_cat=="other" & agg_dt$tad_rank_cat=="other")] ),
+                       label = agg_dt$nGenes[(agg_dt$gene_rank_cat=="other" & agg_dt$tad_rank_cat=="other")],
+                       size = annotateSizeL)
+              
 
-ggplot(agg_dt3, aes(x = gene_rank, y = tad_rank, z =entrezID)) +
-  # stat_summary_hex( function(z) log(sum(z))) +
-  stat_summary_hex() +
-  scale_fill_viridis_c(option = "C", trans="log")
-  labs(fill = "Log counts")
+outFile <- file.path(outFolder, 
+                     paste0("nSignifGenes_topGenes",genes_nTop, "_vs_topTADs", tads_nTop, "_balloonplot_noOtherWithText.", plotType))
+ggsave(plot = balloon_p2b, filename = outFile, height=myHeightGG, width = myWidthGG)
+cat(paste0("... written: ", outFile, "\n"))
+
+
+rank_hex_p <- ggplot(inDT_dt, aes(x = gene_rank, y = tad_rank)) +
+  ggtitle("TAD rank vs. gene rank") +
+  scale_fill_viridis_c(option = "C")+
+  stat_binhex(show.legend = T, bins = 20)+
+  labs(fill = "", x ="Gene rank", y= "TAD rank") +
+    my_box_theme +
+  theme(  panel.grid.major.y =  element_line(colour = "grey", size = 0.5, linetype=1),
+          panel.grid.minor.y =  element_line(colour = "grey", size = 0.5, linetype=1))
+
+outFile <- file.path(outFolder, 
+                     paste0("TADrank_vs_geneRank_density_hexplot.", plotType))
+ggsave(plot = rank_hex_p, filename = outFile, height=myHeightGG, width = myWidthGG)
+cat(paste0("... written: ", outFile, "\n"))
+
 
 
 ##############################################################
 ############################### stacked barplot top10 TADs
 ##############################################################
 
-tads_nTop <- 10
-
-topGenes <- 100
-lastGenes <- 100
 
 plot_dt <- inDT_dt[inDT_dt$tad_rank <= tads_nTop,]
 
@@ -123,22 +215,29 @@ stopifnot(!duplicated(plot_dt))
 agg_dt <- aggregate(entrezID ~ tad_rank+gene_rank_cat, data = plot_dt, FUN=length)
 colnames(agg_dt)[colnames(agg_dt) == "entrezID"] <- "nGenes"
 
-ggplot(agg_dt, aes(x=tad_rank, y = nGenes, color = gene_rank_cat, fill = gene_rank_cat)) +
-  geom_bar(stat="identity")
+geneCat_tadRank_p <- ggplot(agg_dt, aes(x=tad_rank, y = nGenes, color = gene_rank_cat, fill = gene_rank_cat)) +
+  ggtitle("Gene-level vs. TAD-level ranks", subtitle="by TAD rank")+
+  geom_bar(stat="identity")+
+labs(fill ="Gene rank", x=paste0("TAD rank (top ", tads_nTop, ")"), y="# of genes")+
+  scale_x_continuous(breaks=c(1:max(agg_dt$tad_rank)), labels = c(1:max(agg_dt$tad_rank)))+
+  guides(color=FALSE)+
+    eval(parse(text=paste0("scale_fill_", ggsci_pal, "(", ggsci_subpal, ")")))+
+  eval(parse(text=paste0("scale_color_", ggsci_pal, "(", ggsci_subpal, ")")))+
+  my_box_theme +
+  theme(
+    # axis.line = element_line()
+    axis.line.x = element_line()
+        )
+outFile <- file.path(outFolder, 
+                     paste0("geneCat_by_TADrank_barplot.", plotType))
+ggsave(plot = geneCat_tadRank_p, filename = outFile, height=myHeightGG, width = myWidthGG)
+cat(paste0("... written: ", outFile, "\n"))
 
 
 
 ##############################################################
 ############################### geom area  top10 TADs
 ##############################################################
-
-rankTieMeth <- "min"
-
-genes_nTop <- 100
-
-topTADs <- 10
-lastTADs <- 10
-
 
 
 plot_dt <- inDT_dt[inDT_dt$gene_rank <= genes_nTop,]
@@ -147,12 +246,32 @@ plot_dt <- inDT_dt[inDT_dt$gene_rank <= genes_nTop,]
 
 stopifnot(!duplicated(plot_dt))
 agg_dt <- aggregate(entrezID ~ gene_rank+tad_rank_cat, data = plot_dt, FUN=length)
-colnames(agg_dt)[colnames(agg_dt) == "entrezID"] <- "nTADs"
+colnames(agg_dt)[colnames(agg_dt) == "entrezID"] <- "nGenes"
 
-ggplot(agg_dt, aes(x=gene_rank, y = nTADs, color = tad_rank_cat, fill = tad_rank_cat)) +
+ggplot(agg_dt, aes(x=gene_rank, y = nGenes, color = tad_rank_cat, fill = tad_rank_cat)) +
   geom_bar(stat="identity")
 
 
+tadCat_geneRank_p <- ggplot(agg_dt, aes(x=gene_rank, y = nGenes, color = tad_rank_cat, fill = tad_rank_cat)) +
+  ggtitle("TAD-level vs. gene-level ranks", subtitle="by gene rank")+
+  geom_bar(stat="identity")+
+  labs(fill ="TAD rank", x=paste0("Gene rank (top ", genes_nTop, ")"), y="# of genes")+
+  scale_x_continuous(breaks=c(1:max(agg_dt$gene_rank)), labels = c(1:max(agg_dt$gene_rank)))+
+  guides(color=FALSE)+
+  eval(parse(text=paste0("scale_fill_", ggsci_pal, "(", ggsci_subpal, ")")))+
+  eval(parse(text=paste0("scale_color_", ggsci_pal, "(", ggsci_subpal, ")")))+
+  my_box_theme +
+  theme(
+    # axis.line = element_line()
+    axis.line.x = element_line(),
+    axis.text.x = element_blank(),
+    axis.ticks =  element_blank()
+  )
+
+outFile <- file.path(outFolder, 
+                     paste0("TADcat_by_geneRank_barplot.", plotType))
+ggsave(plot = tadCat_geneRank_p, filename = outFile, height=myHeightGG, width = myWidthGG)
+cat(paste0("... written: ", outFile, "\n"))
 
 
 ##############################################################
@@ -224,8 +343,10 @@ my_tit <- paste0("TAD rank vs. gene rank")
 my_sub <- paste0("(gene rank <= ", genes_nTop, ")")
 
 
-outFile <- file.path(outFolder, paste0("tadRank_geneRank_topGenes_densplot.", plotType))
-do.call(plotType, list(outFile, height=myHeight, width=myWidth))
+# outFile <- file.path(outFolder, paste0("tadRank_geneRank_topGenes_densplot.", plotType))
+# do.call(plotType, list(outFile, height=myHeight, width=myWidth))
+outFile <- file.path(outFolder, paste0("tadRank_geneRank_topGenes_densplot.", "png"))
+do.call("png", list(outFile, height=400, width=400))
 par(bty="l", family=fontFamily)
 densplot(
   x = plot_dt$gene_rank,

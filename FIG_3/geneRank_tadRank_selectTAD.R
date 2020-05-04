@@ -2,15 +2,24 @@ hicds <- "ENCSR489OCU_NCI-H460_40kb"
 exprds <- "TCGAluad_norm_luad"
 tad_to_show <- "chr11_TAD390"
 
-plotType <- "png"
+plotType <- "svg"
 
-source("../FIGURES_V2_YUANLONG/settings.R")
+source("../settings.R")
 require(ggsci)
 
-source("../Cancer_HiC_data_TAD_DA/utils_fct.R")
+source("../../Cancer_HiC_data_TAD_DA/utils_fct.R")
 
 # Rscript geneRank_tadRank_selectTAD.R ENCSR489OCU_NCI-H460_40kb TCGAlusc_norm_lusc chr11_TAD390
+# Rscript geneRank_tadRank_selectTAD.R ENCSR489OCU_NCI-H460_40kb TCGAlusc_norm_lusc chr10_TAD268
 # Rscript geneRank_tadRank_selectTAD.R ENCSR489OCU_NCI-H460_40kb TCGAluad_norm_luad chr11_TAD390
+# Rscript geneRank_tadRank_selectTAD.R ENCSR489OCU_NCI-H460_40kb TCGAluad_norm_luad chr10_TAD268
+# 
+# Rscript geneRank_tadRank_selectTAD.R ENCSR489OCU_NCI-H460_40kb TCGAluad_mutKRAS_mutEGFR chr10_TAD16
+# Rscript geneRank_tadRank_selectTAD.R ENCSR489OCU_NCI-H460_40kb TCGAluad_mutKRAS_mutEGFR chr17_TAD162
+# Rscript geneRank_tadRank_selectTAD.R ENCSR489OCU_NCI-H460_40kb TCGAluad_nonsmoker_smoker chr10_TAD16
+# Rscript geneRank_tadRank_selectTAD.R ENCSR489OCU_NCI-H460_40kb TCGAluad_nonsmoker_smoker chr17_TAD162
+# 
+
 
 outFolder <- file.path("GENERANK_TADRANK_SELECTTAD")
 dir.create(outFolder, recursive = TRUE)
@@ -21,7 +30,13 @@ hicds <- args[1]
 exprds <- args[2]
 tad_to_show <- args[3]
 
-inDT <- get(load("../v2_Yuanlong_Cancer_HiC_data_TAD_DA/GENE_RANK_TAD_RANK/all_gene_tad_signif_dt.Rdata"))
+stopifnot(hicds %in% names(hicds_names))
+stopifnot(exprds %in% names(exprds_names))
+
+hicds_lab <- hicds_names[paste0(hicds)]
+exprds_lab <- exprds_names[paste0(exprds)]
+
+inDT <- get(load(file.path(runFolder, "GENE_RANK_TAD_RANK/all_gene_tad_signif_dt.Rdata")))
 
 ds_dt <- inDT[inDT$hicds == hicds & inDT$exprds == exprds,]
 
@@ -35,7 +50,6 @@ ds_dt <- merge(ds_dt, tad_dt[, c("hicds", "exprds", "region", "rev_tad_rank")], 
 nTADs <- length(unique(ds_dt$region))
 
 head(ds_dt[order(ds_dt$tad_adjCombPval),])
-
 
 
 geneSignifPval <- 0.05
@@ -53,44 +67,12 @@ last_reg <- unique(ds_dt$region[ds_dt$rev_tad_rank <= nTop])
 
 
 
-
-
-
 ds_dt$showCol <- ifelse(ds_dt$region == tad_to_show, tad_to_show_col, hide_col)
 
-stopifnot(!is.na(ds_dt$dotCol))
+stopifnot(!is.na(ds_dt$showCol))
 plot_dt <- ds_dt[ds_dt$region %in% top_reg | ds_dt$region %in% last_reg ,]
 
-
-outFile <- file.path(outFolder, paste0(hicds, "_", exprds, "_geneRank_tadRank_densplot.", plotType))
-do.call(plotType, list(outFile, height=myHeight, width=myWidth))
-par(bty="l", family=fontFamily)
-densplot(
-  y = ds_dt$gene_rank,
-  x = ds_dt$tad_rank,
-  ylab = "Gene rank",
-  xlab = "TAD rank",
-  main =  paste0(hicds, " - ", exprds),
-  cex = 0.7,
-  cex.lab=plotCex,
-  cex.axis=plotCex,
-  cex.main=1
-)
-points(
-  x = ds_dt$gene_rank[ds_dt$region == tad_to_show],
-  y = ds_dt$tad_rank[ds_dt$region == tad_to_show],
-  pch = 16,
-  col = tad_to_show_col,
-  cex = showCex
-)
-
-mtext(side=3, text = paste0("# genes = ", nrow(ds_dt)))
-
-foo <- dev.off()
-cat(paste0("... written: ", outFile, "\n"))
-
-
-
+plotTit <- paste0(hicds_lab, "\n" , exprds_lab)
 
 #########################################################################################################################
 #### BARPLOTS - all gene ranks
@@ -105,6 +87,7 @@ ds_dt$tad_rank_rel <- ds_dt$tad_rank/maxTADrank
 geneBar_pos <- 1
 tadBar_pos <- 2
 axisOffset <- 0.5
+labOffset <- 0.02
 
 outFile <- file.path(outFolder, paste0(hicds, "_", exprds, "_", tad_to_show, "_geneRank_tadRank_showBars_segments.", plotType))
 do.call(plotType, list(outFile, height=myHeight, width=myWidth*1.2))
@@ -115,37 +98,26 @@ plot(NULL,
      ylab="",
      axes=F,
      # main = paste0(hicds, " - " , exprds),
-     main = paste0(hicds, "\n" , exprds),
+     main = plotTit,
      # sub=paste0(),
      cex.axis=plotCex,
      cex.lab = plotCex,
      cex.main = plotCex,
-  xlim = c(geneBar_pos-axisOffset, tadBar_pos+axisOffset),
-  # ylim = c(-axisOffset, 1+axisOffset)
-  ylim = c(1+axisOffset, -axisOffset )
+     xlim = c(geneBar_pos-axisOffset, tadBar_pos+axisOffset),
+     # ylim = c(-axisOffset, 1+axisOffset)
+     ylim = c(1+axisOffset, -axisOffset )
 )
 # mtext(side=3, paste0(hicds, " - ", exprds), cex=plotCex)
 mtext(side=3, paste0(tad_to_show), cex=plotCex-0.2, line=-1)
 
 segments(x0=geneBar_pos,
          x1=tadBar_pos,
-         y0=ds_dt$gene_rank_rel[ds_dt$showCol == hide_col],
-         y1=ds_dt$tad_rank_rel[ds_dt$showCol == hide_col],
-         lty=3,
-         tcl=-.2,
-         col = hide_col
-)
-segments(x0=geneBar_pos,
-         x1=tadBar_pos,
          y0=ds_dt$gene_rank_rel[ds_dt$showCol == tad_to_show_col],
          y1=ds_dt$tad_rank_rel[ds_dt$showCol == tad_to_show_col],
          col = tad_to_show_col
-         )
-
-
+)
 # add bar for the genes
 segments(x0=geneBar_pos, y0=0, x1=geneBar_pos, y1=1, lwd=5)
-
 # add bar for the TADs
 segments(x0=tadBar_pos, y0=0, x1=tadBar_pos, y1=1, lwd=5)
 
@@ -156,18 +128,41 @@ text(
   labels=c("Gene ranks", "TAD ranks"),
   cex = plotCex
 )
-# legend(
-#   "bottom",
-#   # cex=0.6,
-#   # horiz=T,
-#   legend=c(paste0("# top TADs=", length(top_reg)),
-#            paste0("# genes Top TADs=", sum(ds_dt$showCol == tad_to_show_col)),
-#            paste0("# last TADs=", length(last_reg)),
-#            paste0("# genes Last TADs=", sum(ds_dt$dotCol %in% last_col))),
-#   bty="n"
-# )
+show_dt <- ds_dt[ds_dt$region == tad_to_show,]
+
+text(
+  y = c(unique(show_dt$tad_rank_rel), unique(show_dt$gene_rank_rel)),
+  x = c(rep(tadBar_pos, length(unique(show_dt$tad_rank_rel)))+labOffset, rep(geneBar_pos, length(unique(show_dt$gene_rank_rel)))-labOffset),
+  labels=c(unique(show_dt$tad_rank), unique(show_dt$gene_rank)),
+  cex = 1,
+  pos=c(rep(4, length(unique(show_dt$tad_rank_rel))), rep(2, length(unique(show_dt$gene_rank_rel))))
+)
+segments(
+  y0 = c(unique(show_dt$tad_rank_rel), unique(show_dt$gene_rank_rel)),
+  y1 = c(unique(show_dt$tad_rank_rel), unique(show_dt$gene_rank_rel)),
+  x0 = c(rep(tadBar_pos, length(unique(show_dt$tad_rank_rel))), rep(geneBar_pos, length(unique(show_dt$gene_rank_rel)))),
+  x1 = c(rep(tadBar_pos, length(unique(show_dt$tad_rank_rel)))+labOffset, rep(geneBar_pos, length(unique(show_dt$gene_rank_rel)))-labOffset),
+  lwd=1
+)
+
 foo <- dev.off()
 cat(paste0("... written: ", outFile, "\n"))
+
+##################################################################### GGREPEL VERSION
+tad_y <- 0
+gene_y <- 1
+show_dt$TAD_y <- tad_y
+show_dt$gene_y <- gene_y
+
+ggplot()+
+  geom_point()+
+  theme_void() +
+  geom_segment(data=show_dt, aes(x=tad_rank, y=TAD_y, xend=gene_rank, yend=gene_y))
+  
+
+
+
+
 
 
 #########################################################################################################################
@@ -205,7 +200,8 @@ plot(NULL,
      axes=F,
      # main=paste0("Top and last ", nTop, " TADs"),
      # main=paste0(hicds, " - " , exprds),
-     main=paste0(hicds, "\n" , exprds),
+     # main=paste0(hicds, "\n" , exprds),
+     main = plotTit,
      # sub=paste0(),
      cex.axis=plotCex,
      cex.lab = plotCex,
@@ -247,19 +243,8 @@ text(
   labels=c("Median gene rank", "TAD ranks"),
   cex = plotCex
 )
-# legend(
-#   "bottom",
-#   # cex=0.6,
-#   # horiz=T,
-#   legend=c(paste0("# top TADs=", length(top_reg)),
-#            # paste0("# genes Top TADs=", sum(med_plot_dt$dotCol %in% top_col)),
-#            # paste0("# genes Last TADs=", sum(med_plot_dt$dotCol %in% last_col)),
-#           paste0("# last TADs=", length(last_reg))),
-#   bty="n"
-# )
 foo <- dev.off()
 cat(paste0("... written: ", outFile, "\n"))
-
 
 
 
