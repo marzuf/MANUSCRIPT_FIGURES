@@ -42,8 +42,6 @@ if(buildData){
     exprds = all_exprds[[paste0(hicds)]][1]
     hicds_dt <- foreach(exprds = all_obs_exprds[[paste0(hicds)]], .combine='rbind') %do% {
       
-          
-      
       ds_rank_dt <- all_ranks_dt[all_ranks_dt$hicds == hicds & all_ranks_dt$exprds == exprds, ]
       
       tad_rD <- get(load(file.path(pipFolder, hicds, exprds, "8cOnlyRatioDownFastSave_runAllDown", "all_obs_ratioDown.Rdata")))
@@ -52,7 +50,6 @@ if(buildData){
         TAD_rD = as.numeric(tad_rD), 
         stringsAsFactors = FALSE
       )
-      
       tad_meanFC <- get(load(file.path(pipFolder, hicds, exprds, "3_runMeanTADLogFC", "all_meanLogFC_TAD.Rdata")))
       tad_meanFC_dt <- data.frame(
         region = names(tad_meanFC),
@@ -60,14 +57,12 @@ if(buildData){
         stringsAsFactors = FALSE
       )
       
-      
       tad_maxFC <- get(load(file.path(pipFolder, hicds, exprds, "3max_runMaxTADLogFC", "all_maxLogFC_TAD.Rdata")))
       tad_maxFC_dt <- data.frame(
         region = names(tad_maxFC),
         TAD_maxFC = as.numeric(tad_maxFC), 
         stringsAsFactors = FALSE
       )
-      
       tad_varFC <- get(load(file.path(pipFolder, hicds, exprds, "3var_runVarTADLogFC", "all_varLogFC_TAD.Rdata")))
       tad_varFC_dt <- data.frame(
         region = names(tad_varFC),
@@ -93,7 +88,6 @@ if(buildData){
       tad_logFCpval_dt$TAD_logFCpval_log10 <- -log10(tad_logFCpval_dt$TAD_logFCpval)
       
       
-      
       # missed_genes_dt <- ds_rank_dt[ds_rank_dt$adj.P.Val > geneSignifThresh &
       #                              ds_rank_dt$tad_adjCombPval <= tadSignifThresh,]
       
@@ -106,20 +100,14 @@ if(buildData){
       
       dt <- merge(ds_rank_dt, tad_maxFC_dt, by = c("region"), all=T)
       stopifnot(!is.na(dt))
-      
-      
       dt <- merge(dt, tad_meanFC_dt, by = c("region"), all=T)
       stopifnot(!is.na(dt))
-      
       dt <- merge(dt, tad_varFC_dt, by = c("region"), all=T)
       stopifnot(!is.na(dt))
-      
       dt <- merge(dt, tad_rD_dt, by = c("region"), all=T)
       stopifnot(!is.na(dt))
-      
       dt <- merge(dt, tad_logFCpval_dt, by = c("region"), all=T)
       stopifnot(!is.na(dt))
-      
       dt <- merge(dt, tad_meanCorrPval_dt, by = c("region"), all=T)
       stopifnot(!is.na(dt))
       
@@ -155,6 +143,9 @@ all_dt$missedLowFCsameDir <- all_dt$lowSameDirFC & all_dt$missedGeneSignif
 all_dt$missedLowFCdiffDir <- all_dt$lowDiffDirFC & all_dt$missedGeneSignif
 # plot(all_dt$tad_adjCombPval~all_dt$TAD_rD)
 
+all_dt$dataset <- file.path(hicds, exprds)
+nDS <- length(unique(all_dt$dataset))
+
 all_dt$rD_range <- cut(all_dt$TAD_rD, breaks=rd_ranges, include.lowest=TRUE)
 stopifnot(!is.na(all_dt$rD_range))
 
@@ -170,6 +161,9 @@ ratioMissed_dt <- aggregate(missedGeneSignif ~ hicds + exprds + rD_range, FUN=me
 plot_dt <- "ratioMissed_dt"
 plot_var <- "missedGeneSignif"
 
+plotDesc <- "Ratio missed genes (over all genes, by dataset)"
+subTit <- paste0("gene-level adj. p-val > ",  geneSignifThresh, "TAD-level adj. p-val <= ",  tadSignifThresh)
+
 boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), data = get(plot_dt))
 
 ################################
@@ -181,6 +175,9 @@ nMissed_dt <- aggregate(missedGeneSignif ~ hicds + exprds + rD_range, FUN=sum, d
 plot_dt <- "nMissed_dt"
 plot_var <- "missedGeneSignif"
 
+plotDesc <- "# missed genes (by dataset)"
+subTit <- paste0("gene-level adj. p-val > ",  geneSignifThresh, "; TAD-level adj. p-val <= ",  tadSignifThresh)
+
 boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), data = get(plot_dt))
 
 ################################
@@ -191,12 +188,22 @@ nMissedLowFCsameDir_dt <- aggregate(missedLowFCsameDir ~ hicds + exprds + rD_ran
 plot_dt <- "nMissedLowFCsameDir_dt"
 plot_var <- "missedLowFCsameDir"
 
+plotDesc <- "# missedLowFCsameDir genes (by dataset)"
+subTit <- paste0("gene-level adj. p-val > ",  geneSignifThresh, "; TAD-level adj. p-val <= ",  tadSignifThresh,
+                 "; abs(logFC) <= ", lowFC_thresh)
+
 boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), data = get(plot_dt))
 
 ################################
 # Boxplot 4: out of all genes, ratio of lowFCsameDir
 ################################
 ratioMissedLowFCsameDir_dt <- aggregate(missedLowFCsameDir ~ hicds + exprds + rD_range, FUN=mean, data=all_dt)
+
+
+plotDesc <- "ratio missedLowFCsameDir genes (by dataset)"
+subTit <- paste0("gene-level adj. p-val > ",  geneSignifThresh, "; TAD-level adj. p-val <= ",  tadSignifThresh,
+                 "; abs(logFC) <= ", lowFC_thresh)
+
 
 plot_dt <- "ratioMissedLowFCsameDir_dt"
 plot_var <- "missedLowFCsameDir"
@@ -213,6 +220,12 @@ missedRatios_dt <- merge(nMissed_dt, nMissedLowFCsameDir_dt, by=c("hicds", "expr
 stopifnot(!is.na(missedRatios_dt))
 missedRatios_dt$ratioLowFCsameDir <- missedRatios_dt$missedLowFCsameDir/missedRatios_dt$missedGeneSignif
 stopifnot(na.omit(missedRatios_dt)$ratioLowFCsameDir >= 0 & na.omit(missedRatios_dt)$ratioLowFCsameDir <= 1)
+
+
+plotDesc <- "ratio missedLowFCsameDir/missed (by dataset)"
+subTit <- paste0("gene-level adj. p-val > ",  geneSignifThresh, "; TAD-level adj. p-val <= ",  tadSignifThresh,
+                 "; abs(logFC) <= ", lowFC_thresh)
+
 
 plot_dt <- "missedRatios_dt"
 plot_var <- "ratioLowFCsameDir"
@@ -231,18 +244,41 @@ stopifnot(na.omit(missedRatiosDiffDir_dt)$ratioLowFCdiffDir >= 0 & na.omit(misse
 plot_dt <- "missedRatiosDiffDir_dt"
 plot_var <- "ratioLowFCdiffDir"
 
+plotDesc <- "ratio missedLowFCdiffDir/missedGeneSignif (by dataset)"
+subTit <- paste0("gene-level adj. p-val > ",  geneSignifThresh, "; TAD-level adj. p-val <= ",  tadSignifThresh,
+                 "; abs(logFC) <= ", lowFC_thresh)
+
+
 boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), data = get(plot_dt))
 
 
 
 ################################
-# Boxplot 5: total detected genes
+# Boxplot 5: total detected genes tad-level
 ################################
 tadSignif_dt <- aggregate(tadSignif~hicds + exprds + rD_range, FUN=sum, data=all_dt)
 plot_dt <- "tadSignif_dt"
 plot_var <- "tadSignif"
 
+plotDesc <- "# TAD-level signif. genes"
+subTit <- paste0("TAD-level adj. p-val <= ",  tadSignifThresh)
+
 boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), data = get(plot_dt))
+
+
+
+################################
+# Boxplot 5: total detected genes gene-level
+################################
+geneSignif_dt <- aggregate(geneSignif~hicds + exprds + rD_range, FUN=sum, data=all_dt)
+plot_dt <- "geneSignif_dt"
+plot_var <- "geneSignif"
+
+plotDesc <- "# gene-level signif. genes"
+subTit <- paste0("gene-level adj. p-val <= ",  geneSignifThresh)
+
+boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), data = get(plot_dt))
+
 
 
 ################################
@@ -255,6 +291,10 @@ stopifnot(na.omit(signif_missed_dt)$ratioMissed >= 0 & na.omit(signif_missed_dt)
 
 plot_dt <- "signif_missed_dt"
 plot_var <- "ratioMissed"
+
+plotDesc <- "ratio missedGeneSignif/tadSignif (by dataset)"
+subTit <- paste0("gene-level adj. p-val > ",  geneSignifThresh, "; TAD-level adj. p-val <= ",  tadSignifThresh)
+
 
 boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), data = get(plot_dt))
 
@@ -271,28 +311,48 @@ stopifnot(na.omit(signif_missedLowFCsameDir_dt)$ratioMissedLowFCsameDir >= 0 & n
 plot_dt <- "signif_missedLowFCsameDir_dt"
 plot_var <- "ratioMissedLowFCsameDir"
 
+plotDesc <- "ratio missedLowFCsameDir/tadSignif (by dataset)"
+subTit <- paste0("gene-level adj. p-val > ",  geneSignifThresh, "; TAD-level adj. p-val <= ",  tadSignifThresh,
+                 "; abs(logFC) <= ", lowFC_thresh)
+
 boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), data = get(plot_dt))
 
 
 ################################
 # Boxplot 1: # missed lowFC genes by TAD and rD_range 
 ################################
-nMissedByTAD_dt <- aggregate(missedLowFCdiffDir ~ hicds + exprds + rD_range + region, FUN=sum, data=all_dt)
+nMissedByTAD_dt <- aggregate(missedLowFCsameDir ~ hicds + exprds + rD_range + region, FUN=sum, data=all_dt)
 
-min1_nMissedByTAD_dt <- nMissedByTAD_dt[nMissedByTAD_dt$missedLowFCdiffDir > 0,]
-min2_nMissedByTAD_dt <- nMissedByTAD_dt[nMissedByTAD_dt$missedLowFCdiffDir > 1,]
-min2_nMissedByTAD_dt$ds_id <- file.path(min2_nMissedByTAD_dt$hicds, min2_nMissedByTAD_dt$exprds, min2_nMissedByTAD_dt$region)
 
-plot_dt <- "min1_nMissedByTAD_dt"
-plot_var <- "missedLowFCdiffDir"
+plotDesc <- "# missedLowFCsameDir (by TAD)"
+subTit <- paste0("gene-level adj. p-val > ",  geneSignifThresh, "; TAD-level adj. p-val <= ",  tadSignifThresh,
+                 "; abs(logFC) <= ", lowFC_thresh)
+
+
+plot_dt <- "nMissedByTAD_dt"
+plot_var <- "missedLowFCsameDir"
 
 boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), data = get(plot_dt))
 
-plot_dt <- "min2_nMissedByTAD_dt"
-boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), data = get(plot_dt))
 
 
-multipleMissed_TADs <- min2_nMissedByTAD_dt$ds_id
+# min1_nMissedByTAD_dt <- nMissedByTAD_dt[nMissedByTAD_dt$missedLowFCdiffDir > 0,]
+# min2_nMissedByTAD_dt <- nMissedByTAD_dt[nMissedByTAD_dt$missedLowFCdiffDir > 1,]
+# min2_nMissedByTAD_dt$ds_id <- file.path(min2_nMissedByTAD_dt$hicds, min2_nMissedByTAD_dt$exprds, min2_nMissedByTAD_dt$region)
+# 
+# plot_dt <- "min1_nMissedByTAD_dt"
+# plot_var <- "missedLowFCdiffDir"
+# 
+# plotDesc <- "ratio missedLowFCsameDir/tadSignif"
+# subTit <- paste0("gene-level adj. p-val > ",  geneSignifThresh, "; TAD-level adj. p-val <= ",  tadSignifThresh,
+#                  "; abs(logFC) <= ", lowFC_thresh)
+# 
+# boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), data = get(plot_dt))
+# 
+# plot_dt <- "min2_nMissedByTAD_dt"
+# boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), data = get(plot_dt))
+# 
+# multipleMissed_TADs <- min2_nMissedByTAD_dt$ds_id
 
 ###################################################################
 # rD distribution of missed genes 
@@ -302,19 +362,45 @@ source("../../Cancer_HiC_data_TAD_DA/utils_fct.R")
 
 missed_dt <- all_dt[all_dt$missedGeneSignif,]
 
+
+
+plotDesc <- "TAD logFC distribution of missed genes (missedLowFCsameDir vs. other missed)"
+subTit <- paste0("gene-level adj. p-val > ",  geneSignifThresh, "; TAD-level adj. p-val <= ",  tadSignifThresh,
+                 "; abs(logFC) <= ", lowFC_thresh)
+
+plotDesc 
+plot_multiDens(
+  lapply(split(missed_dt, missed_dt$missedLowFCsameDir), function(x) x[["logFC"]])
+)
+
+
+
+plotDesc <- "TAD ratioDown distribution of missed genes (missedLowFCsameDir vs. other missed)"
+subTit <- paste0("gene-level adj. p-val > ",  geneSignifThresh, "; TAD-level adj. p-val <= ",  tadSignifThresh,
+                 "; abs(logFC) <= ", lowFC_thresh)
+
+plotDesc 
 plot_multiDens(
   lapply(split(missed_dt, missed_dt$missedLowFCsameDir), function(x) x[["TAD_rD"]])
 )
+
+plotDesc <- "TAD varFC distribution of missed genes (missedLowFCsameDir vs. other missed)"
+subTit <- paste0("gene-level adj. p-val > ",  geneSignifThresh, "; TAD-level adj. p-val <= ",  tadSignifThresh,
+                 "; abs(logFC) <= ", lowFC_thresh)
 
 plot_multiDens(
   lapply(split(missed_dt, missed_dt$missedLowFCsameDir), function(x) log10(x[["TAD_varFC"]]))
 )
 
-###################################################################
-# FC distribution of missed genes 
-###################################################################
-
-plot(density(missed_dt$logFC))
+# ###################################################################
+# # FC distribution of missed genes 
+# ###################################################################
+# 
+# plotDesc <- "LogFC distribution of missed genes"
+# subTit <- paste0("gene-level adj. p-val > ",  geneSignifThresh, "; TAD-level adj. p-val <= ",  tadSignifThresh,
+#                  "; abs(logFC) <= ", lowFC_thresh)
+# 
+# plot(density(missed_dt$logFC))
 
 
 ###################################################################
@@ -328,8 +414,6 @@ gff_dt <- read.delim(entrezDT_file, header = TRUE, stringsAsFactors = FALSE)
 gff_dt$entrezID <- as.character(gff_dt$entrezID)
 stopifnot(!duplicated(gff_dt$entrezID))
 entrez2symb <- setNames(gff_dt$symbol, gff_dt$entrezID)
-
-
 
 all_dt$focusGenes <- all_dt$missedLowFCsameDir & 
                      (all_dt$TAD_rD >= rD_highThresh | all_dt$TAD_rD <= rD_lowThresh)
@@ -355,7 +439,7 @@ stopifnot(!is.na(recFocus_dt$geneSymbol))
 # gene focus gene multiple TADs
 ###################################################################
 
-nMissedByTAD_focus_dt <- aggregate(missedLowFCdiffDir ~ hicds + exprds + rD_range + region, FUN=sum, data=focus_dt)
+nMissedByTAD_focus_dt <- aggregate(missedLowFCsameDir ~ hicds + exprds + rD_range + region, FUN=sum, data=focus_dt)
 table(nMissedByTAD_focus_dt$missedLowFCdiffDir)
 # 0 
 # 636 
@@ -374,6 +458,10 @@ min2_nMissedByTAD_dt[order(min2_nMissedByTAD_dt$missedLowFCdiffDir, decreasing =
 focus_dt$ds_id <- file.path(focus_dt$hicds, focus_dt$exprds, focus_dt$region)
 
 multiple_focus_dt <- focus_dt[focus_dt$ds_id %in% min2_nMissedByTAD_dt$ds_id,]
+multiple_focus_dt$geneSymbol <- entrez2symb[paste0(multiple_focus_dt$entrezID)]
+
+
+### min. 3 missed genes by TAD
 
 min3_nMissedByTAD_focus_dt <- nMissedByTAD_dt[nMissedByTAD_dt$missedLowFCdiffDir > 2,]
 min3_nMissedByTAD_focus_dt$ds_id <- file.path(min3_nMissedByTAD_focus_dt$hicds, min3_nMissedByTAD_focus_dt$exprds, min3_nMissedByTAD_focus_dt$region)
@@ -382,13 +470,14 @@ min3_nMissedByTAD_focus_dt$ds_id
 multiple_focus_dt <- focus_dt[focus_dt$ds_id %in% min3_nMissedByTAD_focus_dt$ds_id,]
 multiple_focus_dt$geneSymbol <- entrez2symb[paste0(multiple_focus_dt$entrezID)]
 stopifnot(!is.na(multiple_focus_dt$geneSymbol))
-# min3_nMissedByTAD_focus_dt$ds_id
-[1] "ENCSR444WCZ_A549_40kb/TCGAluad_nonsmoker_smoker/chr16_TAD3"     
-[2] "LG2_40kb/TCGAluad_nonsmoker_smoker/chr16_TAD3"                  
-[3] "PA2_40kb/TCGApaad_wt_mutKRAS/chr19_TAD202"                      
-[4] "ENCSR862OGI_RPMI-7951_40kb/TCGAskcm_lowInf_highInf/chr19_TAD215"
-[5] "K562_40kb/TCGAlaml_wt_mutFLT3/chr19_TAD3"                       
-[6] "ENCSR862OGI_RPMI-7951_40kb/TCGAskcm_wt_mutCTNNB1/chr6_TAD119"   
+
+# # min3_nMissedByTAD_focus_dt$ds_id
+# [1] "ENCSR444WCZ_A549_40kb/TCGAluad_nonsmoker_smoker/chr16_TAD3"     
+# [2] "LG2_40kb/TCGAluad_nonsmoker_smoker/chr16_TAD3"                  
+# [3] "PA2_40kb/TCGApaad_wt_mutKRAS/chr19_TAD202"                      
+# [4] "ENCSR862OGI_RPMI-7951_40kb/TCGAskcm_lowInf_highInf/chr19_TAD215"
+# [5] "K562_40kb/TCGAlaml_wt_mutFLT3/chr19_TAD3"                       
+# [6] "ENCSR862OGI_RPMI-7951_40kb/TCGAskcm_wt_mutCTNNB1/chr6_TAD119"   
 # Rscript look_TAD_expression_withRank_v2.R ENCSR444WCZ_A549_40kb TCGAluad_nonsmoker_smoker chr16_TAD3
 # Rscript look_TAD_expression_withRank_v2.R LG2_40kb TCGAluad_nonsmoker_smoker chr16_TAD3
 # Rscript look_TAD_expression_withRank_v2.R PA2_40kb TCGApaad_wt_mutKRAS chr19_TAD202
@@ -396,7 +485,7 @@ stopifnot(!is.na(multiple_focus_dt$geneSymbol))
 # Rscript look_TAD_expression_withRank_v2.R K562_40kb TCGAlaml_wt_mutFLT3 chr19_TAD3
 # Rscript look_TAD_expression_withRank_v2.R ENCSR862OGI_RPMI-7951_40kb TCGAskcm_wt_mutCTNNB1 chr6_TAD119
 
-
+stop("-ok\n")
 
 
 # * TRASH *#

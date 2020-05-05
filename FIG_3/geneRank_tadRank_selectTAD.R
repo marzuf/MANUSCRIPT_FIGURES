@@ -6,7 +6,7 @@ plotType <- "svg"
 
 source("../settings.R")
 require(ggsci)
-
+require(ggrepel)
 source("../../Cancer_HiC_data_TAD_DA/utils_fct.R")
 
 # Rscript geneRank_tadRank_selectTAD.R ENCSR489OCU_NCI-H460_40kb TCGAlusc_norm_lusc chr11_TAD390
@@ -150,17 +150,182 @@ cat(paste0("... written: ", outFile, "\n"))
 
 ##################################################################### GGREPEL VERSION
 tad_y <- 0
-gene_y <- 1
+gene_y <- 0.5
+
+axisOffset <- 0.5
+
+show_dt <- ds_dt[ds_dt$region == tad_to_show,]
 show_dt$TAD_y <- tad_y
 show_dt$gene_y <- gene_y
 
+show_dt_m1 <- show_dt[,c("entrezID", "tad_rank_rel", "tad_rank", "TAD_y")]
+colnames(show_dt_m1)[2:4] <- c("rank_x_rel", "rank_x", "y_pos") 
+show_dt_m2 <- show_dt[,c("entrezID", "gene_rank_rel", "gene_rank", "gene_y")]
+colnames(show_dt_m2)[2:4] <- c("rank_x_rel","rank_x", "y_pos") 
+
+show_dt_m <- rbind(show_dt_m1,show_dt_m2)
+
+myTit <- paste0(tad_to_show)
+myTit <- paste0(hicds_lab, " - ", exprds_lab, ": ", tad_to_show)
+subTit <- paste0(hicds_lab, " - ", exprds_lab)
+subTit <- ""
+
+geneLab <- "Gene ranks"
+tadLab <- "TAD ranks"
+
+repel_offset <- 0.4
+repel_offset_axis <- 0.2
+
+rankLabSize <- 5
+scaleLabSize <- 3
+
+relativeMin <- 0
+relativeMax <- 1
+
+show_dt_m$y_nudge <- ifelse(show_dt_m$y_pos == tad_y, -repel_offset, repel_offset) 
+
+save(show_dt_m, file="show_dt_m.Rdata", version=2)
+
+ranks_p <- ggplot(show_dt_m, aes(x=rank_x_rel, y =y_pos, label=show_dt_m$rank_x))+
+  ggtitle(myTit, subtitle=subTit)+
+  scale_y_continuous(name="", breaks=c(tad_y, gene_y), labels=c(tadLab, geneLab), limits=c(tad_y-axisOffset,gene_y+axisOffset))+
+  geom_point(color="red")+
+  # geom_text_repel(
+  #   # nudge_y      = c(-repel_offset ,-repel_offset, -repel_offset, repel_offset,repel_offset,repel_offset),
+  #   nudge_y      =  show_dt_m$y_nudge,
+  #   size = rankLabSize,
+  #   direction    = "x",
+  #   angle        = 0,
+  #   vjust        = 0,
+  #   hjust=0.5,
+  #   segment.size = 0.3
+  # ) +
+  labs(y="", x="")+
+  theme_void() +
+  theme(
+    text = element_text(family=fontFamily),
+    axis.title.x = element_text(size=14, hjust=0.5, vjust=0.5),
+    axis.title.y = element_text(size=14, hjust=0.5, vjust=0.5),
+    axis.text.y = element_text(size=14, hjust=0.5, vjust=0.5, face="bold"),
+    axis.text.x = element_blank(),
+    plot.title = element_text(hjust=-0.1, vjust=0, size = 16, face="bold"),
+    plot.subtitle = element_text(hjust=-0.1, vjust=0, size = 14, face="italic"),
+    legend.title = element_text(face="bold")
+  )+
+  geom_segment(data=show_dt, aes(x=tad_rank_rel, y=TAD_y, xend=gene_rank_rel, yend=gene_y), inherit.aes=F) +
+  geom_segment(aes(x=0, xend=1, y=tad_y, yend = tad_y), colour="grey", inherit.aes = F, linetype=3) +
+  geom_segment(aes(x=0, xend=1, y=gene_y, yend = gene_y), colour="grey", inherit.aes = F, linetype=3) 
+  
+lab_dt <- data.frame(x = c(tad_y,gene_y,tad_y,gene_y), 
+                     y = c(tad_y, tad_y, gene_y, gene_y), 
+                     value=c(1, length(unique(ds_dt$region)), 1, length(unique(ds_dt$entrezID))))
+
+# all_p <- ranks_p2 +   
+#   geom_text_repel(data=lab_dt, aes(x=x, y=y, label=value),inherit.aes = F,
+#   nudge_y      = c(-repel_offset_axis ,-repel_offset_axis, repel_offset_axis,repel_offset_axis),
+#   direction    = "x",
+#   size = scaleLabSize,
+#   angle        = 0,
+#   vjust        = 0,
+#   hjust=0.5,
+#   segment.size = 0.3, 
+#   colour="darkgrey"
+# ) 
+  
+lab_dt_1 <- data.frame(rank_x_rel = c(relativeMin, relativeMax, relativeMin, relativeMax), 
+                     rank_x=c(1, length(unique(ds_dt$region)), 1, length(unique(ds_dt$entrezID))),
+                     y_pos = c(tad_y, tad_y, gene_y, gene_y))
+lab_dt_1$y_nudge <- ifelse(lab_dt_1$y_pos == tad_y, -repel_offset_axis, repel_offset_axis) 
+lab_dt_2 <- show_dt_m[,c("rank_x_rel","rank_x", "y_pos", "y_nudge")]
+lab_dt_1$labSize <- scaleLabSize
+lab_dt_1$labCol <- "darkgrey"
+lab_dt_2$labSize <- rankLabSize
+lab_dt_2$labCol <- "black"
+
+lab_dt_all <- rbind(lab_dt_1, lab_dt_2)
+
+all_p <- ranks_p +   
+  geom_text_repel(data=lab_dt_all, aes(x=rank_x_rel, y=y_pos, label=rank_x),inherit.aes = F,
+                  nudge_y      = lab_dt_all$y_nudge,
+                  direction    = "x",
+                  size = lab_dt_all$labSize,
+                  angle        = 0,
+                  vjust        = 0,
+                  hjust=0.5,
+                  segment.size = 0.3, 
+                  colour=lab_dt_all$labCol
+  ) 
+
+  
+outFile <- file.path(outFolder, paste0(hicds, "_", exprds, "_", tad_to_show, "_geneRank_tadRank_showBars_segments_GG.", plotType))
+ggsave(plot = all_p, filename = outFile, height=myHeightGG/2.5, width = myWidthGG*1.2)
+cat(paste0("... written: ", outFile, "\n"))
+
+
+
+
+
+
+
+stop("-ok\n")
+
+
+
+
+
+
+
+
+
+
+################### THRASH
+
+
+
 ggplot()+
+  geom_point(data=show_dt_m, aes(x=rank_x, y =y_pos, label=show_dt_m$rank_x), color="red", inherit.aes = F)+
+  geom_text_repel(data=show_dt_m[show_dt_m$rank_x==0,],
+                  aes(x=rank_x, y =y_pos, label=show_dt_m$rank_x), inherit.aes = F,
+                  nudge_y      = -0.1,
+                  direction    = "x",
+                  angle        = 0,
+                  vjust        = 0,
+                  hjust=0.5,
+                  segment.size = 0.2
+  ) +
+  theme_void() +
+  geom_segment(data=show_dt, aes(x=tad_rank, y=TAD_y, xend=gene_rank, yend=gene_y), inherit.aes=F)
+
+
+
+
+
+
+ggplot(show_dt, aes(x=))+
   geom_point()+
   theme_void() +
   geom_segment(data=show_dt, aes(x=tad_rank, y=TAD_y, xend=gene_rank, yend=gene_y))
-  
 
 
+set.seed(42)
+
+ggplot(mtcars, aes(x = wt, y = 1, label = rownames(mtcars))) +
+  geom_point(color = "red") +
+  geom_text_repel(
+    nudge_y      = 0.05,
+    direction    = "x",
+    angle        = 90,
+    vjust        = 0,
+    segment.size = 0.2
+  ) +
+  xlim(1, 6) +
+  ylim(1, 0.8) +
+  theme(
+    axis.line.y  = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.text.y  = element_blank(),
+    axis.title.y = element_blank()
+  )
 
 
 
