@@ -124,7 +124,7 @@ if(buildData){
   # load("COORD_DETECT/all_dt.Rdata")
 }
 
-stop("-ok")
+# stop("-ok")
 
 rd_ranges <- seq(0,1,by=0.1)
 pval_ranges <- c(seq(0,0.05,by=0.01), 1)
@@ -164,7 +164,13 @@ plot_var <- "missedGeneSignif"
 plotDesc <- "Ratio missed genes (over all genes, by dataset)"
 subTit <- paste0("gene-level adj. p-val > ",  geneSignifThresh, "TAD-level adj. p-val <= ",  tadSignifThresh)
 
-boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), data = get(plot_dt))
+outFile <- file.path(outFolder, paste0(plot_var, "_ratio.", plotType))
+do.call(plotType, list(outFile, height=myHeight, width=myWidth))
+boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), ylab=paste0(plot_var, " (ratio)"), cex.main=plotCex, cex.lab=plotCex, cex.axis=plotCex, main = plotDesc,
+        xlab="ratioDown range",data = get(plot_dt))
+mtext(side=3, text = subTit)
+foo <- dev.off()
+cat(paste0("... written: ", outFile, "\n"))
 
 ################################
 # Boxplot 2: actual number of missed genes per dataset
@@ -178,7 +184,12 @@ plot_var <- "missedGeneSignif"
 plotDesc <- "# missed genes (by dataset)"
 subTit <- paste0("gene-level adj. p-val > ",  geneSignifThresh, "; TAD-level adj. p-val <= ",  tadSignifThresh)
 
-boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), data = get(plot_dt))
+outFile <- file.path(outFolder, paste0(plot_var, "_sum.", plotType))
+do.call(plotType, list(outFile, height=myHeight, width=myWidth))
+boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), ylab=paste0(plot_var, " (#)"), cex.main=plotCex, cex.lab=plotCex, cex.axis=plotCex, main = plotDesc, xlab="ratioDown range",data = get(plot_dt))
+mtext(side=3, text = subTit)
+foo <- dev.off()
+cat(paste0("... written: ", outFile, "\n"))
 
 ################################
 # Boxplot 3: actual number of missed genes with lowFCsameDir per dataset
@@ -192,7 +203,12 @@ plotDesc <- "# missedLowFCsameDir genes (by dataset)"
 subTit <- paste0("gene-level adj. p-val > ",  geneSignifThresh, "; TAD-level adj. p-val <= ",  tadSignifThresh,
                  "; abs(logFC) <= ", lowFC_thresh)
 
-boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), data = get(plot_dt))
+outFile <- file.path(outFolder, paste0(plot_var, "_sum.", plotType))
+do.call(plotType, list(outFile, height=myHeight, width=myWidth))
+boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), ylab=paste0(plot_var, " (#)"), cex.main=plotCex, cex.lab=plotCex, cex.axis=plotCex, main = plotDesc, xlab="ratioDown range",data = get(plot_dt))
+mtext(side=3, text = subTit)
+foo <- dev.off()
+cat(paste0("... written: ", outFile, "\n"))
 
 ################################
 # Boxplot 4: out of all genes, ratio of lowFCsameDir
@@ -208,7 +224,12 @@ subTit <- paste0("gene-level adj. p-val > ",  geneSignifThresh, "; TAD-level adj
 plot_dt <- "ratioMissedLowFCsameDir_dt"
 plot_var <- "missedLowFCsameDir"
 
-boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), data = get(plot_dt))
+outFile <- file.path(outFolder, paste0(plot_var, "_ratio.", plotType))
+do.call(plotType, list(outFile, height=myHeight, width=myWidth))
+boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), ylab=paste0(plot_var, " (ratio)"), cex.main=plotCex, cex.lab=plotCex, cex.axis=plotCex, main = plotDesc, xlab="ratioDown range",data = get(plot_dt))
+mtext(side=3, text = subTit)
+foo <- dev.off()
+cat(paste0("... written: ", outFile, "\n"))
 
 
 ################################
@@ -230,7 +251,12 @@ subTit <- paste0("gene-level adj. p-val > ",  geneSignifThresh, "; TAD-level adj
 plot_dt <- "missedRatios_dt"
 plot_var <- "ratioLowFCsameDir"
 
-boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), data = get(plot_dt))
+outFile <- file.path(outFolder, paste0(plot_var, "_missedLowFCsameDir_missed_ratio.", plotType))
+do.call(plotType, list(outFile, height=myHeight, width=myWidth))
+boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), ylab=plot_var, cex.main=plotCex, cex.lab=plotCex, cex.axis=plotCex, main = plotDesc, xlab="ratioDown range",data = get(plot_dt))
+mtext(side=3, text = subTit)
+foo <- dev.off()
+cat(paste0("... written: ", outFile, "\n"))
 
 ################################
 # Boxplot 4: out of the missed genes, ratio of lowFCdiffDir
@@ -248,8 +274,12 @@ plotDesc <- "ratio missedLowFCdiffDir/missedGeneSignif (by dataset)"
 subTit <- paste0("gene-level adj. p-val > ",  geneSignifThresh, "; TAD-level adj. p-val <= ",  tadSignifThresh,
                  "; abs(logFC) <= ", lowFC_thresh)
 
-
-boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), data = get(plot_dt))
+outFile <- file.path(outFolder, paste0(plot_var, "_missedLowFCdiffDir_missed_ratio.", plotType))
+do.call(plotType, list(outFile, height=myHeight, width=myWidth))
+boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), ylab=plot_var, cex.main=plotCex, cex.lab=plotCex, cex.axis=plotCex, main = plotDesc, xlab="ratioDown range",data = get(plot_dt))
+mtext(side=3, text = subTit)
+foo <- dev.off()
+cat(paste0("... written: ", outFile, "\n"))
 
 
 
@@ -263,7 +293,12 @@ plot_var <- "tadSignif"
 plotDesc <- "# TAD-level signif. genes"
 subTit <- paste0("TAD-level adj. p-val <= ",  tadSignifThresh)
 
-boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), data = get(plot_dt))
+outFile <- file.path(outFolder, paste0(plot_var, "_tadSignif_sum.", plotType))
+do.call(plotType, list(outFile, height=myHeight, width=myWidth))
+boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), ylab=paste0(plot_var, " (#)"), cex.main=plotCex, cex.lab=plotCex, cex.axis=plotCex, main = plotDesc, xlab="ratioDown range",data = get(plot_dt))
+mtext(side=3, text = subTit)
+foo <- dev.off()
+cat(paste0("... written: ", outFile, "\n"))
 
 
 
@@ -277,7 +312,12 @@ plot_var <- "geneSignif"
 plotDesc <- "# gene-level signif. genes"
 subTit <- paste0("gene-level adj. p-val <= ",  geneSignifThresh)
 
-boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), data = get(plot_dt))
+outFile <- file.path(outFolder, paste0(plot_var, "_geneSignif_sum.", plotType))
+do.call(plotType, list(outFile, height=myHeight, width=myWidth))
+boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), ylab=paste0(plot_var, " (#)"), cex.main=plotCex, cex.lab=plotCex, cex.axis=plotCex, main = plotDesc, xlab="ratioDown range",data = get(plot_dt))
+mtext(side=3, text = subTit)
+foo <- dev.off()
+cat(paste0("... written: ", outFile, "\n"))
 
 
 
@@ -295,8 +335,12 @@ plot_var <- "ratioMissed"
 plotDesc <- "ratio missedGeneSignif/tadSignif (by dataset)"
 subTit <- paste0("gene-level adj. p-val > ",  geneSignifThresh, "; TAD-level adj. p-val <= ",  tadSignifThresh)
 
-
-boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), data = get(plot_dt))
+outFile <- file.path(outFolder, paste0(plot_var, "_missedGeneSignif_tadSignif_ratio.", plotType))
+do.call(plotType, list(outFile, height=myHeight, width=myWidth))
+boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), ylab=plot_var, cex.main=plotCex, cex.lab=plotCex, cex.axis=plotCex, main = plotDesc, xlab="ratioDown range",data = get(plot_dt))
+mtext(side=3, text = subTit)
+foo <- dev.off()
+cat(paste0("... written: ", outFile, "\n"))
 
 
 
@@ -314,8 +358,12 @@ plot_var <- "ratioMissedLowFCsameDir"
 plotDesc <- "ratio missedLowFCsameDir/tadSignif (by dataset)"
 subTit <- paste0("gene-level adj. p-val > ",  geneSignifThresh, "; TAD-level adj. p-val <= ",  tadSignifThresh,
                  "; abs(logFC) <= ", lowFC_thresh)
-
-boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), data = get(plot_dt))
+outFile <- file.path(outFolder, paste0(plot_var, "_missedLowFCsameDir_tadSignif_ratio.", plotType))
+do.call(plotType, list(outFile, height=myHeight, width=myWidth))
+boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), ylab=plot_var, cex.main=plotCex, cex.lab=plotCex, cex.axis=plotCex, main = plotDesc, xlab="ratioDown range",data = get(plot_dt))
+mtext(side=3, text = subTit)
+foo <- dev.off()
+cat(paste0("... written: ", outFile, "\n"))
 
 
 ################################
@@ -332,7 +380,12 @@ subTit <- paste0("gene-level adj. p-val > ",  geneSignifThresh, "; TAD-level adj
 plot_dt <- "nMissedByTAD_dt"
 plot_var <- "missedLowFCsameDir"
 
-boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), data = get(plot_dt))
+outFile <- file.path(outFolder, paste0(plot_var, "_missedLowFCsameDir_byTAD_sum.", plotType))
+do.call(plotType, list(outFile, height=myHeight, width=myWidth))
+boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), ylab=paste0(plot_var, " (#)"), cex.main=plotCex, cex.lab=plotCex, cex.axis=plotCex, main = plotDesc, xlab="ratioDown range",data = get(plot_dt))
+mtext(side=3, text = subTit)
+foo <- dev.off()
+cat(paste0("... written: ", outFile, "\n"))
 
 
 
@@ -347,10 +400,10 @@ boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), data = get(plot_dt))
 # subTit <- paste0("gene-level adj. p-val > ",  geneSignifThresh, "; TAD-level adj. p-val <= ",  tadSignifThresh,
 #                  "; abs(logFC) <= ", lowFC_thresh)
 # 
-# boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), data = get(plot_dt))
+# boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), ylab=plot_var, cex.main=plotCex, cex.lab=plotCex, cex.axis=plotCex, main = plotDesc, xlab="ratioDown range",data = get(plot_dt))
 # 
 # plot_dt <- "min2_nMissedByTAD_dt"
-# boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), data = get(plot_dt))
+# boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), ylab=plot_var, cex.main=plotCex, cex.lab=plotCex, cex.axis=plotCex, main = plotDesc, xlab="ratioDown range",data = get(plot_dt))
 # 
 # multipleMissed_TADs <- min2_nMissedByTAD_dt$ds_id
 
@@ -368,10 +421,15 @@ plotDesc <- "TAD logFC distribution of missed genes (missedLowFCsameDir vs. othe
 subTit <- paste0("gene-level adj. p-val > ",  geneSignifThresh, "; TAD-level adj. p-val <= ",  tadSignifThresh,
                  "; abs(logFC) <= ", lowFC_thresh)
 
-plotDesc 
+plot_var <- "meanLogFC"
+outFile <- file.path(outFolder, paste0(plot_var, "_missedGenes_lowFCsameDir_density.", plotType))
+do.call(plotType, list(outFile, height=myHeight, width=myWidth))
 plot_multiDens(
-  lapply(split(missed_dt, missed_dt$missedLowFCsameDir), function(x) x[["logFC"]])
+  lapply(split(missed_dt, missed_dt$missedLowFCsameDir), function(x) x[["logFC"]]), plotTit = plotDesc
 )
+mtext(side=3, text = subTit)
+foo <- dev.off()
+cat(paste0("... written: ", outFile, "\n"))
 
 
 
@@ -379,18 +437,34 @@ plotDesc <- "TAD ratioDown distribution of missed genes (missedLowFCsameDir vs. 
 subTit <- paste0("gene-level adj. p-val > ",  geneSignifThresh, "; TAD-level adj. p-val <= ",  tadSignifThresh,
                  "; abs(logFC) <= ", lowFC_thresh)
 
-plotDesc 
+
+plot_var <- "ratioDown"
+outFile <- file.path(outFolder, paste0(plot_var, "_missedGenes_lowFCsameDir_density.", plotType))
+do.call(plotType, list(outFile, height=myHeight, width=myWidth))
+
 plot_multiDens(
-  lapply(split(missed_dt, missed_dt$missedLowFCsameDir), function(x) x[["TAD_rD"]])
+  lapply(split(missed_dt, missed_dt$missedLowFCsameDir), function(x) x[["TAD_rD"]]), plotTit = plotDesc
 )
+mtext(side=3, text = subTit)
+foo <- dev.off()
+cat(paste0("... written: ", outFile, "\n"))
+
 
 plotDesc <- "TAD varFC distribution of missed genes (missedLowFCsameDir vs. other missed)"
 subTit <- paste0("gene-level adj. p-val > ",  geneSignifThresh, "; TAD-level adj. p-val <= ",  tadSignifThresh,
                  "; abs(logFC) <= ", lowFC_thresh)
 
+plot_var <- "meanVarFC"
+outFile <- file.path(outFolder, paste0(plot_var, "_missedGenes_lowFCsameDir_density.", plotType))
+
+do.call(plotType, list(outFile, height=myHeight, width=myWidth))
+
 plot_multiDens(
-  lapply(split(missed_dt, missed_dt$missedLowFCsameDir), function(x) log10(x[["TAD_varFC"]]))
+  lapply(split(missed_dt, missed_dt$missedLowFCsameDir), function(x) log10(x[["TAD_varFC"]])), plotTit = plotDesc
 )
+mtext(side=3, text = subTit)
+foo <- dev.off()
+cat(paste0("... written: ", outFile, "\n"))
 
 # ###################################################################
 # # FC distribution of missed genes 
@@ -414,6 +488,9 @@ gff_dt <- read.delim(entrezDT_file, header = TRUE, stringsAsFactors = FALSE)
 gff_dt$entrezID <- as.character(gff_dt$entrezID)
 stopifnot(!duplicated(gff_dt$entrezID))
 entrez2symb <- setNames(gff_dt$symbol, gff_dt$entrezID)
+
+all_dt_2=all_dt
+save(all_dt_2, file="all_dt_2.Rdata",version=2)
 
 all_dt$focusGenes <- all_dt$missedLowFCsameDir & 
                      (all_dt$TAD_rD >= rD_highThresh | all_dt$TAD_rD <= rD_lowThresh)
@@ -439,26 +516,35 @@ stopifnot(!is.na(recFocus_dt$geneSymbol))
 # gene focus gene multiple TADs
 ###################################################################
 
-nMissedByTAD_focus_dt <- aggregate(missedLowFCsameDir ~ hicds + exprds + rD_range + region, FUN=sum, data=focus_dt)
-table(nMissedByTAD_focus_dt$missedLowFCdiffDir)
+nMissedByTAD_dt <- aggregate(missedLowFCsameDir ~ hicds + exprds + rD_range + region, FUN=sum, data=focus_dt)
+table(nMissedByTAD_dt$missedLowFCsameDir)
 # 0 
 # 636 
 # => look at TAD with multiple missed genes but not multiple missed focus genes
 
-min1_nMissedByTAD_focus_dt <- nMissedByTAD_dt[nMissedByTAD_dt$missedLowFCdiffDir > 0,]
+min1_nMissedByTAD_focus_dt <- nMissedByTAD_dt[nMissedByTAD_dt$missedLowFCsameDir > 0,]
 nrow(min1_nMissedByTAD_focus_dt)
-min2_nMissedByTAD_focus_dt <- nMissedByTAD_dt[nMissedByTAD_dt$missedLowFCdiffDir > 1,]
+min2_nMissedByTAD_focus_dt <- nMissedByTAD_dt[nMissedByTAD_dt$missedLowFCsameDir > 1,]
 nrow(min2_nMissedByTAD_focus_dt)
-min2_nMissedByTAD_dt$ds_id <- file.path(min2_nMissedByTAD_dt$hicds, min2_nMissedByTAD_dt$exprds, min2_nMissedByTAD_dt$region)
+min2_nMissedByTAD_focus_dt$ds_id <- file.path(min2_nMissedByTAD_focus_dt$hicds, min2_nMissedByTAD_focus_dt$exprds, min2_nMissedByTAD_focus_dt$region)
 
-table(min2_nMissedByTAD_dt$missedLowFCdiffDir)
+table(min2_nMissedByTAD_focus_dt$missedLowFCsameDir)
 
-min2_nMissedByTAD_dt[order(min2_nMissedByTAD_dt$missedLowFCdiffDir, decreasing = TRUE),]
+min2_nMissedByTAD_focus_dt[order(min2_nMissedByTAD_focus_dt$missedLowFCsameDir, decreasing = TRUE),]
 
 focus_dt$ds_id <- file.path(focus_dt$hicds, focus_dt$exprds, focus_dt$region)
 
-multiple_focus_dt <- focus_dt[focus_dt$ds_id %in% min2_nMissedByTAD_dt$ds_id,]
+multiple_focus_dt <- focus_dt[focus_dt$ds_id %in% min2_nMissedByTAD_focus_dt$ds_id,]
 multiple_focus_dt$geneSymbol <- entrez2symb[paste0(multiple_focus_dt$entrezID)]
+
+
+out_dt <- min2_nMissedByTAD_focus_dt
+out_dt <- out_dt[order(out_dt$missedLowFCsameDir, decreasing = TRUE),]
+
+outFile <- file.path(outFolder, "tad_with_multiple_missedLowFCsameDir_genes.txt")
+write.table(out_dt, file = outFile, sep="\t", col.names = T, row.names = FALSE, quote=F)
+foo <- dev.off()
+cat(paste0("... written: ", outFile, "\n"))
 
 
 ### min. 3 missed genes by TAD
@@ -572,7 +658,7 @@ boxplot(ratioLowInMissed~pvalCorr_range,data=agg3d_dt)
 
 missedGenes_dt <- all_dt[all_dt$missGeneSignif,]
 agg4a_signif_dt <- aggregate(lowSameDirFC ~ hicds+exprds+rD_range, data = missedGenes_dt, FUN=sum)
-boxplot(lowSameDirFC~rD_range,data=agg4a_signif_dt)
+boxplot(lowSameDirFC~rD_range, ylab=plot_var, cex.main=plotCex, cex.lab=plotCex, cex.axis=plotCex, main = plotDesc, xlab="ratioDown range",data=agg4a_signif_dt)
 agg4b_signif_dt <- aggregate(lowDiffDirFC ~ hicds+exprds+rD_range, data = missedGenes_dt, FUN=sum)
 boxplot(lowDiffDirFC~rD_range,data=agg4b_signif_dt)
 

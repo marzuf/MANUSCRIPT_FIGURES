@@ -1,5 +1,9 @@
 
 # Rscript example_fcc_dist.R ENCSR489OCU_NCI-H460_40kb TCGAluad_norm_luad
+# Rscript example_fcc_dist.R ENCSR079VIJ_G401_40kb TCGAkich_norm_kich
+# Rscript example_fcc_dist.R LG1_40kb TCGAluad_mutKRAS_mutEGFR
+# Rscript example_fcc_dist.R GSE105381_HepG2_40kb TCGAlihc_wt_mutCTNNB1
+
 
 require(doMC)
 require(foreach)
