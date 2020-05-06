@@ -1,6 +1,6 @@
 # IGV style
 
-# Rscript conserved_regions_viz.R
+# Rscript conserved_regions_vizGG.R
 # Rscript conserved_regions_viz.R norm_vs_tumor
 # Rscript conserved_regions_viz.R subtypes
 # Rscript conserved_regions_viz.R wt_vs_mut
@@ -11,7 +11,7 @@ cat("> START ", "conserved_regions_viz.R", "\n")
 
 startTime <- Sys.time()
 
-plotType <- "png"
+plotType <- "svg"
 
 
 
@@ -27,7 +27,7 @@ consAbove_col <- "orange"
 consBelow_col <- "black"
 
 
-outFolder <- file.path("CONSERVED_REGIONS_VIZ")
+outFolder <- file.path("CONSERVED_REGIONS_VIZGG")
 dir.create(outFolder, recursive = TRUE)
 
 
@@ -58,7 +58,6 @@ entrezDT_file <- paste0(setDir, "/mnt/ed4/marie/entrez2synonym/entrez/ENTREZ_POS
 gff_dt <- read.delim(entrezDT_file, header = TRUE, stringsAsFactors = FALSE)
 gff_dt$entrezID <- as.character(gff_dt$entrezID)
 
-cond_fc_dt <- get(load(file.path(runFolder, "CREATE_COND_MEANFC", "all_dt.Rdata")))
 
 result_dt <- get(load(file.path(runFolder, "CREATE_FINAL_TABLE/all_result_dt.Rdata")))
 nDS <- length(unique(file.path(result_dt$hicds, result_dt$exprds)))
@@ -156,22 +155,21 @@ region_plot_dt$exprds_lab <- exprds_names[paste0(region_plot_dt$exprds)]
 stopifnot(!is.na(region_plot_dt$hicds_lab))
 stopifnot(!is.na(region_plot_dt$exprds_lab))
 
-region_plot_dt$raw_labels <- paste0(as.character(region_plot_dt$hicds_lab), " - ", as.character(region_plot_dt$exprds_lab))
-
-save(all_regions_starts_ends,file= "all_regions_starts_ends.Rdata", version=2)
-save(all_genes_starts_ends,file= "all_genes_starts_ends.Rdata", version=2)
-
-# load("CONSERVED_REGIONS_VIZGG/region_plot_dt.Rdata")
-# load("CONSERVED_REGIONS_VIZGG/gene_plot_dt.Rdata")
-
-cat(nrow(region_plot_dt), "\n")
-
-region_plot_dt <- merge(region_plot_dt, cond_fc_dt[, c("hicds", "exprds","region", "meanFC") ], by=c("hicds", "exprds", "region"), all.x=T, all.y=F)
-
-cat(nrow(region_plot_dt), "\n")
-
 chromo <- unique(as.character(all_regions_starts_ends["chromo",]))
 stopifnot(length(chromo) == 1)
+
+
+save(region_plot_dt, file=file.path(outFolder, "region_plot_dt.Rdata"), version=2)
+save(gene_plot_dt, file=file.path(outFolder, "gene_plot_dt.Rdata"), version=2)
+# 
+# load("CONSERVED_REGIONS_VIZGG/gene_plot_dt.Rdata")
+# load("CONSERVED_REGIONS_VIZGG/region_plot_dt.Rdata")
+
+stop("--ok\n")
+
+
+
+
 
 
 dsSpace <- 0.5
@@ -230,52 +228,16 @@ segments(
   y1 = dsPos,
   col=tad_col
 )
-# text(
-#   x = region_plot_dt$start,
-#   y = dsPos + textOffset,
-#   # labels = colnames(all_regions_starts_ends),
-#   # labels = paste0(region_plot_dt$hicds_lab, " - ", region_plot_dt$exprds_lab) , #dirname(colnames(all_regions_starts_ends)),
-#   labels = region_plot_dt$labels,
-#   # cex = 0.5,
-#   cex = 0.7,
-#   pos=2,
-#   col = tad_col
-# )
-
-cat(nrow(region_plot_dt), "\n")
-
-for(i in 1:nrow(region_plot_dt)) {
-  
-  label_part1 <- gsub("(.+) (.+) vs. (.+)", "\\1", region_plot_dt$raw_labels[i])
-  label_part2 <- gsub("(.+) (.+) vs. (.+)", "\\2", region_plot_dt$raw_labels[i])
-  label_part3 <- gsub("(.+) (.+) vs. (.+)", "\\3", region_plot_dt$raw_labels[i])
-  
-  if(region_plot_dt$meanFC[i] > 0){
-    mylab <-bquote(.(label_part1)~.(label_part2)~' vs. '~bold(.(label_part3)))  
-  }else {
-    mylab <- bquote(.(label_part1)~bold(.(label_part2))~' vs. '~.(label_part3))
-  }
-         # cat(mylab,"\n")
-  
-  text(
-    x = region_plot_dt$start[i],
-    y = dsPos[i] + textOffset,
-    # labels = colnames(all_regions_starts_ends),
-    # labels = paste0(region_plot_dt$hicds_lab, " - ", region_plot_dt$exprds_lab) , #dirname(colnames(all_regions_starts_ends)),
-    labels = mylab,
-    # cex = 0.5,
-    cex = 0.7,
-    pos=2,
-    col = tad_col
-  ) 
-  
-  
-}
-
-
-
-
-
+text(
+  x = region_plot_dt$start,
+  y = dsPos + textOffset,
+  # labels = colnames(all_regions_starts_ends),
+  labels = paste0(region_plot_dt$hicds_lab, " - ", region_plot_dt$exprds_lab) , #dirname(colnames(all_regions_starts_ends)),
+  # cex = 0.5,
+  cex = 0.7,
+  pos=2,
+  col = tad_col
+)
 segments(
   x0 = gene_plot_dt$start,
   y0 = genePos,
