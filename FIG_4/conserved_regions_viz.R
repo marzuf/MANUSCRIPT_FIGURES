@@ -156,6 +156,8 @@ region_plot_dt$exprds_lab <- exprds_names[paste0(region_plot_dt$exprds)]
 stopifnot(!is.na(region_plot_dt$hicds_lab))
 stopifnot(!is.na(region_plot_dt$exprds_lab))
 
+
+
 region_plot_dt$raw_labels <- paste0(as.character(region_plot_dt$hicds_lab), " - ", as.character(region_plot_dt$exprds_lab))
 
 save(all_regions_starts_ends,file= "all_regions_starts_ends.Rdata", version=2)
@@ -167,6 +169,8 @@ save(all_genes_starts_ends,file= "all_genes_starts_ends.Rdata", version=2)
 cat(nrow(region_plot_dt), "\n")
 
 region_plot_dt <- merge(region_plot_dt, cond_fc_dt[, c("hicds", "exprds","region", "meanFC") ], by=c("hicds", "exprds", "region"), all.x=T, all.y=F)
+
+region_plot_dt <- region_plot_dt[order(as.character(region_plot_dt$hicds_lab), as.character(region_plot_dt$exprds_lab), decreasing=T),]
 
 cat(nrow(region_plot_dt), "\n")
 
@@ -200,7 +204,7 @@ yEnd <- max(c(dsPos, genePos)) + yOffset
 subTit <- paste0("(# DS conserv. = ", nDScons, ")")
 
 outFile <- file.path(outFolder, paste0(maxConserved, "_viz.", plotType))
-do.call(plotType, list(outFile, height=myHeight, width=myWidth*2))
+do.call(plotType, list(outFile, height=myHeight*1.5, width=myWidth*2))
 dev.control(displaylist="enable")
 initMar <- par()$mar
 par(mar=initMar+c(0,10,0,0))
@@ -244,8 +248,12 @@ segments(
 
 cat(nrow(region_plot_dt), "\n")
 
+ds_offset <- 10000
+
 for(i in 1:nrow(region_plot_dt)) {
   
+cat(region_plot_dt$raw_labels[i], "\n")
+
   label_part1 <- gsub("(.+) (.+) vs. (.+)", "\\1", region_plot_dt$raw_labels[i])
   label_part2 <- gsub("(.+) (.+) vs. (.+)", "\\2", region_plot_dt$raw_labels[i])
   label_part3 <- gsub("(.+) (.+) vs. (.+)", "\\3", region_plot_dt$raw_labels[i])
@@ -258,7 +266,7 @@ for(i in 1:nrow(region_plot_dt)) {
          # cat(mylab,"\n")
   
   text(
-    x = region_plot_dt$start[i],
+    x = min(region_plot_dt$start)-ds_offset,
     y = dsPos[i] + textOffset,
     # labels = colnames(all_regions_starts_ends),
     # labels = paste0(region_plot_dt$hicds_lab, " - ", region_plot_dt$exprds_lab) , #dirname(colnames(all_regions_starts_ends)),
@@ -266,7 +274,8 @@ for(i in 1:nrow(region_plot_dt)) {
     # cex = 0.5,
     cex = 0.7,
     pos=2,
-    col = tad_col
+    col = tad_col,
+hjust=1, vjust=0.5
   ) 
   
   
