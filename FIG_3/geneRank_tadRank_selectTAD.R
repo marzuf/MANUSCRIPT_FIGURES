@@ -242,7 +242,13 @@ lab_dt_1$labCol <- "darkgrey"
 lab_dt_2$labSize <- rankLabSize
 lab_dt_2$labCol <- "black"
 
+save(ds_dt, file="ds_dt.Rdata", version=2)
+save(lab_dt_1, file="lab_dt_1.Rdata", version=2)
+save(lab_dt_2, file="lab_dt_2.Rdata", version=2)
+
+
 lab_dt_all <- rbind(lab_dt_1, lab_dt_2)
+lab_dt_all <- unique(lab_dt_all)
 
 all_p <- ranks_p +   
   geom_text_repel(data=lab_dt_all, aes(x=rank_x_rel, y=y_pos, label=rank_x),inherit.aes = F,

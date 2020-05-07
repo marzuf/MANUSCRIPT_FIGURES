@@ -76,6 +76,21 @@ stopifnot(agg_dt$conserved >= 2)
 #   type="b"
 # )
 
+inFile <- file.path(runFolder, 
+                    "TAD_MATCHING_SIGNIF_ACROSS_HICDS_ALLMATCH_v2",
+                    paste0("conserved_regions_with_genes_signif_tadsadjPvalComb", tad_pval, "_minBpRatio", minMatchBp_ratio, "_minInterGenes", minMatch_genes, ".Rdata"))
+content_dt <- get(load(inFile))
+agg_dt2 <- agg_dt
+colnames(agg_dt2)[colnames(agg_dt2) == "region"] <- "conserved_region"
+print_dt <- merge(content_dt, agg_dt2, by=c("conserved_region"), all.x=F, all.y=T)
+colnames(print_dt)[colnames(print_dt) == "conserved"] <- "nConserved"
+print_dt <- print_dt[order(print_dt$nConserved, decreasing = T),]
+
+outFile <- file.path(outFolder, paste0("conserved_regions_table.txt"))
+write.table(print_dt, file = outFile, sep="\t", col.names =T, row.names = F, quote=F)
+cat(paste0("... written: ", outFile, "\n"))
+
+
 agg_cmp_dt <- aggregate(conserved ~ region + cmpType, data=m_dt, FUN=sum)
 agg_cmp_dt$cmpCol <- all_cols[agg_cmp_dt$cmpType]
 
