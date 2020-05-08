@@ -29,9 +29,20 @@ log10_offset <- 0.01
 # Rscript look_TAD_expression_withRank_v2.R ENCSR489OCU_NCI-H460_40kb TCGAlusc_norm_lusc chr11_TAD390
 # Rscript look_TAD_expression_withRank_v2.R ENCSR489OCU_NCI-H460_40kb TCGAlusc_norm_lusc chr10_TAD268
 # 
+# FOR CONSERVED REGION 130 - top1 all (GIMAP)
+# Rscript look_TAD_expression_withRank_v2.R ENCSR312KHQ_SK-MEL-5_40kb TCGAskcm_lowInf_highInf chr7_TAD568
+# FOR CONSERVED REGION 42 - top 2 all (AKR1C)
+# Rscript look_TAD_expression_withRank_v2.R LG2_40kb TCGAluad_mutKRAS_mutEGFR chr10_TAD15
+# FOR CONSERVED REGION 11 - top3 all (CD8)
+# Rscript look_TAD_expression_withRank_v2.R Panc1_rep12_40kb TCGApaad_wt_mutKRAS chr1_TAD544
 
 
-
+# FOR CONSERVED REGION 22 - top1 norm_tumor GIMAP
+# Rscript look_TAD_expression_withRank_v2.R ENCSR444WCZ_A549_40kb TCGAlusc_norm_lusc chr7_TAD553
+# FOR CONSERVED REGION 9 - top2 norm_tumor M1T
+# Rscript look_TAD_expression_withRank_v2.R GSE118514_RWPE1_40kb TCGAprad_norm_prad chr16_TAD163
+# FOR CONSERVED REGION 10 - top3 norm_tumor KRT
+# Rscript look_TAD_expression_withRank_v2.R ENCSR346DCU_LNCaP_40kb TCGAprad_norm_prad chr17_TAD146
 
 hicds="ENCSR489OCU_NCI-H460_40kb"
 exprds="TCGAlusc_norm_lusc"
@@ -48,15 +59,6 @@ hicds <- args[1]
 exprds <- args[2]
 tad_to_plot <- args[3]
 
-cat("load inDT \n")
-inDT <- get(load("../../v2_Yuanlong_Cancer_HiC_data_TAD_DA/GENE_RANK_TAD_RANK/all_gene_tad_signif_dt.Rdata"))
-inDT <- inDT[inDT$hicds == hicds & inDT$exprds == exprds,]
-
-tad_plot_rank <- unique(inDT$tad_rank[inDT$hicds == hicds & inDT$exprds == exprds & inDT$region == tad_to_plot])
-stopifnot(!is.na(tad_plot_rank))
-stopifnot(length(tad_plot_rank) == 1)
-
-plotSub <- paste0(tad_to_plot, " - rank: ", tad_plot_rank)
 
 my_xlab <- "TAD genes (ordered by start positions)"
 my_ylab <- "RNA-seq TPM [log10]"
@@ -70,11 +72,28 @@ myWidthGG <- 7.5
 
 source("../settings.R")
 
+cat("load inDT \n")
+inDT <- get(load(file.path(runFolder, "/GENE_RANK_TAD_RANK/all_gene_tad_signif_dt.Rdata")))
+inDT <- inDT[inDT$hicds == hicds & inDT$exprds == exprds,]
+
+tad_plot_rank <- unique(inDT$tad_rank[inDT$hicds == hicds & inDT$exprds == exprds & inDT$region == tad_to_plot])
+stopifnot(!is.na(tad_plot_rank))
+stopifnot(length(tad_plot_rank) == 1)
+
+plotSub <- paste0(tad_to_plot, " - rank: ", tad_plot_rank)
+
+
+stopifnot(hicds %in% names(hicds_names))
+hicds_lab <- hicds_names[paste0(hicds)]
+
+stopifnot(exprds %in% names(exprds_names))
+exprds_lab <- exprds_names[paste0(exprds)]
+
 SSHFS <- FALSE
 setDir <- ifelse(SSHFS, "/media/electron", "")
 registerDoMC(ifelse(SSHFS, 2, 80))
 
-mainFolder <- file.path("../../v2_Yuanlong_Cancer_HiC_data_TAD_DA")
+mainFolder <- file.path(runFolder)
 pipFolder <- file.path(mainFolder, "PIPELINE", "OUTPUT_FOLDER")
 settingFolder <- file.path(mainFolder, "PIPELINE", "INPUT_FILES")
 
@@ -222,7 +241,7 @@ p_var_boxplot <-  ggplot(withRank_toplot_dt2, aes(x = symbol_lab, y = value_log1
   
   
  
-  ggtitle(paste0(hicds, " - ", exprds), subtitle = paste0(subTit))+
+  ggtitle(paste0(hicds_lab, " - ", exprds_lab), subtitle = paste0(subTit))+
   scale_x_discrete(name=my_xlab)+
   scale_y_continuous(name=paste0(my_ylab),
                      breaks = scales::pretty_breaks(n = 20))+

@@ -6,6 +6,8 @@ nCpu <- 40
 # V3
 labsymbol <- "\u25A0" # squares
 
+source("../full_dataset_names.R")
+
 runFolder <-  "../../v2_Yuanlong_Cancer_HiC_data_TAD_DA/"
 
 pipFolder <- file.path(runFolder, "PIPELINE/OUTPUT_FOLDER")
@@ -87,13 +89,24 @@ my_box_theme <- theme(
   panel.background = element_rect(fill = "transparent"),
 
   axis.title.x = element_text(size=14, hjust=0.5, vjust=0.5),
+  axis.title.y = element_text(size=14, hjust=0.5, vjust=0.5),
+  axis.text.y = element_text(size=12, hjust=0.5, vjust=0.5),
+  axis.text.x = element_text(size=12, hjust=0.5, vjust=0.5),
   plot.title = element_text(hjust=0.5, size = 16, face="bold"),
   plot.subtitle = element_text(hjust=0.5, size = 14, face="italic"),
   legend.title = element_text(face="bold")
 ) 
   
-
-
+require(scales)
+noZero_breaks <- function (n = 5, ...) {
+  scales:::force_all(n, ...)
+  function(x) {
+    breaks <- pretty(x, n, ...)
+    breaks <- breaks[breaks > 0]
+    names(breaks) <- c(attr(breaks, "labels"))
+    c(1,breaks)
+  }
+}
 
 
 

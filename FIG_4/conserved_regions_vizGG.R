@@ -13,8 +13,6 @@ startTime <- Sys.time()
 
 plotType <- "svg"
 
-
-
 source("../settings.R")
 
 require(ggrepel)
@@ -116,8 +114,6 @@ for(maxConserved in conserved_regions_to_plot) {
   
   nDScons <- length(all_max_regions)
   
-  myTit <- paste0(maxConserved , " - ", cmpTit , " datasets (n=", nCmps, ")")
-  subTit <- paste0("conserved in ", nDScons, " datasets")
   
   
   colConsThresh <- ceiling(nDScons/2)
@@ -222,6 +218,11 @@ for(maxConserved in conserved_regions_to_plot) {
   chromo <- unique(as.character(all_regions_starts_ends["chromo",]))
   stopifnot(length(chromo) == 1)
   
+  
+  myTit <- paste0(chromo, ": ", maxConserved , " - ", cmpTit , " datasets (n=", nCmps, ")")
+  subTit <- paste0("conserved in ", nDScons, " datasets")
+  
+  
   tad_gene_space <- 0.5
   gene_line_offset <- 0.1
   
@@ -315,8 +316,11 @@ for(maxConserved in conserved_regions_to_plot) {
       mylab <- gsub(" ","~", paste0(label_part1, "~bold(", label_part2, ")~vs.~", label_part3))
     }
     
-    mylab <- gsub("_", "[{\"-\"}]*", mylab)
+    mylab <- gsub("_", "[{\"-\"}]*", mylab)  # underscore are not recognize -> replace with dash lowerscript
     
+    # if the first caracter are numbers -> need to separate !
+    
+    mylab <- gsub("^(\\d+)", "\\1*", mylab)
     mylab
   })
   
@@ -324,7 +328,13 @@ for(maxConserved in conserved_regions_to_plot) {
   # region_plot_dt$ds_lab[27]="786[{\"-\"}]*O~-~KICH~bold(normal)~vs.~tumor"
   # region_plot_dt$ds_lab[1:26]="."
   
+  # region_plot_dt$ds_lab[6]="22Rv1~-~PRAD~bold(normal)~vs.~tumor"
+  # should be 
+  # region_plot_dt$ds_lab[6]="22*Rv1~-~PRAD~bold(normal)~vs.~tumor"
+  
   axisOffset <- min(region_plot_dt$end-region_plot_dt$start)#90000
+  
+  region_plot_dt$ds_lab[6]
   
   region_p3 <- region_p2 + xlim(min(c(region_plot_dt$start, gene_plot_dt$start)- axisOffset), NA) +
           geom_text_repel(
@@ -346,10 +356,13 @@ for(maxConserved in conserved_regions_to_plot) {
     # theme(axis.line.x = element_()) +
     expand_limits(x = c(NA, max(xscale)+10000))+
   geom_segment(aes(x=min(xscale), xend=max(xscale),y=0, yend=0), lineend="round", colour="darkgrey", size=2)+  
-  annotate("text", x=c(range(xscale)), y = -0.8, vjust=1, 
-           size=5,
-           label=range(xscale) , colour="darkgrey", fontface="italic") +
-  
+  # annotate("text", x=c(range(xscale)), y = -0.8, vjust=1, 
+  #          size=5,
+  #          label=range(xscale) , colour="darkgrey", fontface="italic") +
+    annotate("text", x=c(min(xscale), 0.5*(min(xscale)+max(xscale)), max(xscale)), y = -0.8, vjust=1, 
+             size=5,
+             label=c(min(xscale), chromo, max(xscale)) , colour="darkgrey", fontface="italic") 
+    
   # region_p3+scale_color_manual(values= c(consAll_col, consAbove_col, consBelow_col),  guide = 'legend')
     
   save(gene_plot_dt, file="gene_plot_dt.Rdata", version=2)

@@ -61,20 +61,6 @@ if(gene_to_plot %in% gff_dt$entrezID) {
 stopifnot(!is.na(entrez_to_plot))
 stopifnot( length(entrez_to_plot) == 1)
 
-cat("load inDT \n")
-inDT <- get(load("../../v2_Yuanlong_Cancer_HiC_data_TAD_DA/GENE_RANK_TAD_RANK/all_gene_tad_signif_dt.Rdata"))
-inDT <- inDT[inDT$hicds == hicds & inDT$exprds == exprds,]
-
-stopifnot(entrez_to_plot %in% inDT$entrezID)
-tad_to_plot <- inDT$region[inDT$entrezID == entrez_to_plot]
-stopifnot(!is.na(tad_to_plot))
-stopifnot( length(tad_to_plot) == 1)
-
-
-tad_plot_rank <- unique(inDT$tad_rank[inDT$hicds == hicds & inDT$exprds == exprds & inDT$region == tad_to_plot])
-stopifnot(!is.na(tad_plot_rank))
-stopifnot(length(tad_plot_rank) == 1)
-
 my_xlab <- "TAD genes (ordered by start positions)"
 my_ylab <- "RNA-seq TPM [log10]"
 
@@ -87,11 +73,33 @@ myWidthGG <- 7.5
 
 source("../settings.R")
 
+
+cat("load inDT \n")
+inDT <- get(load(file.path(runFolder, "GENE_RANK_TAD_RANK/all_gene_tad_signif_dt.Rdata")))
+inDT <- inDT[inDT$hicds == hicds & inDT$exprds == exprds,]
+
+stopifnot(entrez_to_plot %in% inDT$entrezID)
+tad_to_plot <- inDT$region[inDT$entrezID == entrez_to_plot]
+stopifnot(!is.na(tad_to_plot))
+stopifnot( length(tad_to_plot) == 1)
+
+
+tad_plot_rank <- unique(inDT$tad_rank[inDT$hicds == hicds & inDT$exprds == exprds & inDT$region == tad_to_plot])
+stopifnot(!is.na(tad_plot_rank))
+stopifnot(length(tad_plot_rank) == 1)
+
+stopifnot(hicds %in% names(hicds_names))
+hicds_lab <- hicds_names[paste0(hicds)]
+
+stopifnot(exprds %in% names(exprds_names))
+exprds_lab <- exprds_names[paste0(exprds)]
+
+
 SSHFS <- FALSE
 setDir <- ifelse(SSHFS, "/media/electron", "")
 registerDoMC(ifelse(SSHFS, 2, 80))
 
-mainFolder <- file.path("../../v2_Yuanlong_Cancer_HiC_data_TAD_DA")
+mainFolder <- file.path(runFolder)
 pipFolder <- file.path(mainFolder, "PIPELINE", "OUTPUT_FOLDER")
 settingFolder <- file.path(mainFolder, "PIPELINE", "INPUT_FILES")
 
@@ -239,7 +247,7 @@ p_var_boxplot <-  ggplot(withRank_toplot_dt2, aes(x = symbol_lab, y = value_log1
   
   
  
-  ggtitle(paste0(hicds, " - ", exprds), subtitle = paste0(subTit))+
+  ggtitle(paste0(hicds_lab, " - ", exprds_lab), subtitle = paste0(subTit))+
   scale_x_discrete(name=my_xlab)+
   scale_y_continuous(name=paste0(my_ylab),
                      breaks = scales::pretty_breaks(n = 20))+
