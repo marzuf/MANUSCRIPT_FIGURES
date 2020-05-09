@@ -1,7 +1,7 @@
 # output format for juicebox should be:
 
-#chr1  x1	 x2	    chr2   y1	      y2	  name	score  strand1  strand2	color [optional fields]
-chr5   85000000  89000000   chr5   85000000   89000000    .     .      .        .       255,0,0
+# #chr1  x1	 x2	    chr2   y1	      y2	  name	score  strand1  strand2	color [optional fields]
+# chr5   85000000  89000000   chr5   85000000   89000000    .     .      .        .       255,0,0
 
 
 ########################################################################################################################################################################################
@@ -11,25 +11,29 @@ chr5   85000000  89000000   chr5   85000000   89000000    .     .      .        
 # should be normalized sample-wise to sum up to 1 !!!
 
 startTime <- Sys.time()
-cat(paste0("> Rscript look_geneTAD_expression_withRank_v2_noFilter.R\n"))
+cat(paste0("> Rscript prep_juicebox_annotations.R\n"))
 
-script_name <- "look_geneTAD_expression_withRank_v2_noFilter.R"
+script_name <- "prep_juicebox_annotations.R"
 
 suppressPackageStartupMessages(library(foreach, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
 suppressPackageStartupMessages(library(doMC, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
 suppressPackageStartupMessages(library(dplyr, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
 suppressPackageStartupMessages(library(ggpubr, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
 suppressPackageStartupMessages(library(reshape2, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
-require(ggsci)
-ggsci_pal <- "d3"
-ggsci_subpal <- ""
-require(reshape2)
-log10_offset <- 0.01
-
-# Rscript look_geneTAD_expression_withRank_v2.R ENCSR312KHQ_SK-MEL-5_40kb TCGAskcm_wt_mutCTNNB1 IFIT3
-# Rscript look_geneTAD_expression_withRank_v2.R ENCSR312KHQ_SK-MEL-5_40kb TCGAskcm_wt_mutBRAF HLA-DQA1
 
 
+# Rscript prep_juicebox_annotations.R <hicds> <features_to_plot>
+
+# Rscript prep_juicebox_annotations.R K562_40kb GIMAP1 GIMAP2 GIMAP4 GIMAP5 GIMAP6 GIMAP7
+
+plotType <- "foo"
+
+source("../settings.R")
+
+outFolder <- "PREP_JUICEBOX_ANNOTATIONS"
+dir.create(outFolder, recursive = TRUE)
+
+setDir <- "/media/electron"
 setDir <- ""
 entrezDT_file <- paste0(setDir, "/mnt/ed4/marie/entrez2synonym/entrez/ENTREZ_POS/gff_entrez_position_GRCh37p13_nodup.txt")
 gff_dt <- read.delim(entrezDT_file, header = TRUE, stringsAsFactors = FALSE)
@@ -38,97 +42,149 @@ stopifnot(!duplicated(gff_dt$entrezID))
 entrez2symb <- setNames(gff_dt$symbol, gff_dt$entrezID)
 gff_dt <- gff_dt[order(gff_dt$chromo, gff_dt$start, gff_dt$end, gff_dt$entrezID),]
 
-hicds="ENCSR489OCU_NCI-H460_40kb"
-exprds="TCGAlusc_norm_lusc"
-gene_to_plot="IFIT3"
-
-col1 <- pal_futurama()(5)[1]
-col2 <- pal_futurama()(5)[5]
-col1 <- pal_aaas()(5)[4]
-col2 <- pal_npg()(5)[5]
 
 args <- commandArgs(trailingOnly = TRUE)
-stopifnot(length(args) >= 3)
-hicds <- args[1]
-exprds <- args[2]
-gene_to_plot <- as.character(args[3])
 
-entrez_to_plot <- NA
+tads_to_plot <- args[grepl("_TAD", args)]
+hicds <- args[args %in% all_obs_hicds]
+symbol_to_plot <- args[args %in% gff_dt$symbol]
+entrez_to_plot <- args[args %in% gff_dt$entrezID]
 
-if(!gene_to_plot %in% gff_dt$entrezID) stopifnot(gene_to_plot %in% gff_dt$symbol)
-
-if(gene_to_plot %in% gff_dt$symbol) {
-  entrez_to_plot <- gff_dt$entrezID[gff_dt$symbol == gene_to_plot]
+if(length(symbol_to_plot) > 0) {
+  stopifnot(symbol_to_plot %in% gff_dt$symbol)
 }
-if(gene_to_plot %in% gff_dt$entrezID) {
-  entrez_to_plot <- gene_to_plot
-  gene_to_plot <- gff_dt$symbol[gff_dt$entrezID == entrez_to_plot]
+
+if(length(entrez_to_plot) > 0) {
+  stopifnot(entrez_to_plot %in% gff_dt$entrezID)
+  newsymb <- gff_dt$symbol[gff_dt$entrezID == entrez_to_plot]
+  symbol_to_plot <- c(symbol_to_plot, entrez_to_plot)
 }
-stopifnot(!is.na(entrez_to_plot))
-stopifnot( length(entrez_to_plot) == 1)
 
-my_xlab <- "TAD genes (ordered by start positions)"
-my_ylab <- "RNA-seq TPM [log10]"
+symbol_to_plot <- unique(symbol_to_plot)
+entrez_to_plot <- unique(entrez_to_plot)
+tads_to_plot <- unique(tads_to_plot)
 
-plotType <- "svg"
-myHeight <- ifelse(plotType=="png", 500, 7)
-myWidth <- myHeight
-plotCex <- 1.4
-myHeightGG <- 6
-myWidthGG <- 7.5
-
-source("../settings.R")
+tad_color <- "255,0,0"
+gene_color <- "0,255,0"
 
 
-cat("load inDT \n")
-inDT <- get(load(file.path(runFolder, "GENE_RANK_TAD_RANK/all_gene_tad_signif_dt.Rdata")))
-inDT <- inDT[inDT$hicds == hicds & inDT$exprds == exprds,]
+plot_dt_2d <- data.frame(
+  chr1=character(),
+  x1=numeric(),
+  x2=numeric(),
+  chr2=character(),
+  y1=numeric(),
+  y2=numeric(),
+  name=character(),
+  score=character(),
+  strand1=character(),
+  strand2=character(),
+  color=character(),
+  stringsAsFactors = FALSE
+)
 
-stopifnot(entrez_to_plot %in% inDT$entrezID)
-tad_to_plot <- inDT$region[inDT$entrezID == entrez_to_plot]
-stopifnot(!is.na(tad_to_plot))
-stopifnot( length(tad_to_plot) == 1)
+plot_dt_1d <- data.frame(
+  chr=character(),
+  start=numeric(),
+  end=numeric(),
+  color=character(),
+  stringsAsFactors = FALSE
+)
+
+if(length(tads_to_plot) > 0) {
+  for(p_tad in tads_to_plot) {
+    
+    stopifnot(!is.na(hicds))
+    
+    tad_file <- file.path(runFolder, hicds, "genes2tad", "all_assigned_regions.txt")
+    stopifnot(file.exists(tad_file))
+    
+    tad_dt <- read.delim(tad_file, header=FALSE, stringsAsFactors = FALSE, col.names = c("chromo", "region", "start", "end"))
+    stopifnot(p_tad %in% tad_dt$region)
+    
+    tad_start <- tad_dt$start[tad_dt$region == p_tad]
+    stopifnot(!is.na(tad_start))
+    stopifnot(length(tad_start) == 1)
+    tad_start <- tad_start - 1
+    
+    tad_end <- tad_dt$end[tad_dt$region == p_tad]
+    stopifnot(!is.na(tad_end))
+    stopifnot(length(tad_end) == 1)
+    
+    tad_chr <- tad_dt$chromo[tad_dt$region == p_tad]
+    stopifnot(!is.na(tad_chr))
+    stopifnot(length(tad_chr) == 1)
+    
+    chromo <- gsub("(chr.+?)_.+", "\\1", p_tad)
+    
+    stopifnot(chromo == tad_chr)
+    
+    # #chr1  x1	 x2	    chr2   y1	      y2	  name	score  strand1  strand2	color [optional fields]
+    # chr5   85000000  89000000   chr5   85000000   89000000    .     .      .        .       255,0,0
+    new_plot_dt_2d <- data.frame(
+      chr1=chromo,
+      x1=tad_start,
+      x2=tad_end,
+      chr2=chromo,
+      y1=tad_start,
+      y2=tad_end,
+      name=p_tad,
+      score= ".",
+      strand1=".",
+      strand2=".",
+      color=tad_color,
+      stringsAsFactors = FALSE
+    )
+    
+    plot_dt_2d <- rbind(plot_dt_2d, new_plot_dt_2d)
+    
+  }
+  
+  outFile <- file.path(outFolder, paste0(hicds, "_", paste0(tads_to_plot, collapse="_"), "_juicebox_2d_annot.txt"))
+  write.table(plot_dt_2d, col.names = TRUE, row.names = FALSE, sep="\t", quote=FALSE, file = outFile)
+  cat(paste0("... written: ", outFile, "\n"))
+  
+}
 
 
-tad_plot_rank <- unique(inDT$tad_rank[inDT$hicds == hicds & inDT$exprds == exprds & inDT$region == tad_to_plot])
-stopifnot(!is.na(tad_plot_rank))
-stopifnot(length(tad_plot_rank) == 1)
 
-stopifnot(hicds %in% names(hicds_names))
-hicds_lab <- hicds_names[paste0(hicds)]
+if(length(symbol_to_plot) > 0) {
+  for(p_symb in symbol_to_plot) {
+    
+    
+    symb_start <- gff_dt$start[gff_dt$symbol == p_symb]
+    stopifnot(!is.na(symb_start))
+    stopifnot(length(symb_start) == 1)
+    symb_start <- symb_start - 1
+    
+    symb_end <- gff_dt$end[gff_dt$symbol == p_symb]
+    stopifnot(!is.na(symb_end))
+    stopifnot(length(symb_end) == 1)
+    
+    symb_chr <- gff_dt$chromo[gff_dt$symbol == p_symb]
+    stopifnot(!is.na(symb_chr))
+    stopifnot(length(symb_chr) == 1)
+    
+    # BED format
+    # #chr start end color
+    # chr5   85000000  89000000 0,255,0
+    new_plot_dt_1d <- data.frame(
+      chr=symb_chr,
+      start=symb_start,
+      end=symb_end,
+      color=gene_color,
+      stringsAsFactors = FALSE
+    )
+    
+    plot_dt_1d <- rbind(plot_dt_1d, new_plot_dt_1d)
+    
+  }
+  
+  outFile <- file.path(outFolder, paste0(hicds, "_", paste0(symbol_to_plot, collapse="_"), "_juicebox_1d_annot.txt"))
+  write.table(plot_dt_1d, col.names = FALSE, row.names = FALSE, sep="\t", quote=FALSE, file = outFile)
+  cat(paste0("... written: ", outFile, "\n"))
+  
+}
 
-stopifnot(exprds %in% names(exprds_names))
-exprds_lab <- exprds_names[paste0(exprds)]
 
 
-SSHFS <- FALSE
-setDir <- ifelse(SSHFS, "/media/electron", "")
-registerDoMC(ifelse(SSHFS, 2, 80))
-
-mainFolder <- file.path(runFolder)
-pipFolder <- file.path(mainFolder, "PIPELINE", "OUTPUT_FOLDER")
-settingFolder <- file.path(mainFolder, "PIPELINE", "INPUT_FILES")
-
-outFolder <- file.path("LOOK_GENETAD_EXPRESSION_WITH_RANK_V2")
-dir.create(outFolder, recursive = TRUE)
-
-entrezDT_file <- paste0(setDir, "/mnt/ed4/marie/entrez2synonym/entrez/ENTREZ_POS/gff_entrez_position_GRCh37p13_nodup.txt")
-gff_dt <- read.delim(entrezDT_file, header = TRUE, stringsAsFactors = FALSE)
-gff_dt$entrezID <- as.character(gff_dt$entrezID)
-stopifnot(!duplicated(gff_dt$entrezID))
-entrez2symb <- setNames(gff_dt$symbol, gff_dt$entrezID)
-gff_dt <- gff_dt[order(gff_dt$chromo, gff_dt$start, gff_dt$end, gff_dt$entrezID),]
-
-g2t_file <- file.path(mainFolder, hicds, "genes2tad", "all_genes_positions.txt")
-g2t_dt <- read.delim(g2t_file, col.names=c("entrezID", "chromo", "start", "end", "region"), header=FALSE, stringsAsFactors = FALSE)
-g2t_dt$entrezID <- as.character(g2t_dt$entrezID)
-stopifnot(!duplicated(g2t_dt$entrezID))
-
-stopifnot(tad_to_plot %in% g2t_dt$region)
-
-settingFile <- file.path(settingFolder, hicds, paste0("run_settings_", exprds, ".R"))
-stopifnot(file.exists(settingFile))
-source(settingFile)
-
-samp1 <- get(load(file.path(setDir, sample1_file)))
-samp2 <- get(load(file.path(setDir, sample2_file)))

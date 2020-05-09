@@ -1,6 +1,6 @@
 
 
-# Rscript tad_vs_gene_signif_all_ds.R
+# Rscript tad_gene_signif_all_ds.R
 
 require(doMC)
 require(foreach)
@@ -43,10 +43,12 @@ tads_nTop <- 10
 topGenes <- 100
 lastGenes <- 100
 
-yOffset <- 0.2 # for the balloonplot
+yOffset <- 0.4 # for the balloonplot
 
 inDT <- get(load(file.path(runFolder, "GENE_RANK_TAD_RANK/all_gene_tad_signif_dt.Rdata")))
 
+baloonMin <- 3
+baloonMax <- 15
 
 ##############################################################
 ############################### PREP DATA FOR ALL CATEGORIES
@@ -116,7 +118,7 @@ agg_dt <- agg_dt[order(as.numeric(agg_dt$gene_rank_cat), as.numeric(agg_dt$tad_r
 balloon_p1 <- ggballoonplot(agg_dt, x="gene_rank_cat", y ="tad_rank_cat", fill = "nGenes")+
   ggtitle(myTit, subtitle = paste0("# datasets = ", nDS))+
   scale_fill_viridis_c(option = "C", trans="log10") +
-  scale_size( trans="log10") +
+  scale_size( trans="log10", range=c(baloonMin, baloonMax)) +
   labs(size = "# genes", fill = "# genes")+
   theme(
     plot.title = element_text(size = 18, face ="bold", hjust=0.5),
@@ -142,6 +144,25 @@ outFile <- file.path(outFolder,
 ggsave(plot = balloon_p1b, filename = outFile, height=myHeightGG, width = myWidthGG)
 cat(paste0("... written: ", outFile, "\n"))
 
+stopifnot(sum(agg_dt$nGenes) == nrow(inDT))
+
+agg_dt$nGenesPct <- paste0(round(agg_dt$nGenes/nrow(inDT)*100, 2), "%")
+
+balloon_p1b <- balloon_p1 + annotate("text",
+                                     x=as.numeric(agg_dt$gene_rank_cat),
+                                     y=as.numeric(agg_dt$tad_rank_cat)+yOffset,
+                                     label = agg_dt$nGenesPct,
+                                     size = annotateSize
+)
+
+outFile <- file.path(outFolder, 
+                     paste0("nSignifGenes_topGenes",genes_nTop, "_vs_topTADs", tads_nTop, "_balloonplotWithTextPct.", plotType))
+ggsave(plot = balloon_p1b, filename = outFile, height=myHeightGG, width = myWidthGG)
+cat(paste0("... written: ", outFile, "\n"))
+
+
+
+
 outFile <- file.path(outFolder, 
                      paste0("nSignifGenes_topGenes",genes_nTop, "_vs_topTADs", tads_nTop, "_table.txt"))
 write.table(agg_dt, file=outFile, col.names = T, row.names = F, sep="\t", quote=F)
@@ -151,10 +172,11 @@ cat(paste0("... written: ", outFile, "\n"))
 agg_dt2 <- agg_dt[!(agg_dt$gene_rank_cat=="other" & agg_dt$tad_rank_cat=="other"),] 
 balloon_p2 <- ggballoonplot(agg_dt2, x="gene_rank_cat", y ="tad_rank_cat", 
                             fill = "nGenes", size="nGenes", 
+                            size.range = c(baloonMin, baloonMax),
                             font.label=c(14, "bold", "red"), 
                             show.label=FALSE)+
   ggtitle(myTit, subtitle = paste0("# datasets = ", nDS))+
-  scale_size( trans="log10")+
+  scale_size( trans="log10", range=c(baloonMin, baloonMax))+
   scale_fill_viridis_c(option = "C", trans="log10")+
   # scale_fill_viridis_c(option = 'C', trans = "log10",  breaks = trans_breaks("log10", function(x) 10^x)) +
   labs(size = "# genes", fill = "# genes")+
@@ -168,6 +190,10 @@ outFile <- file.path(outFolder,
                      paste0("nSignifGenes_topGenes",genes_nTop, "_vs_topTADs", tads_nTop, "_balloonplot_noOther.", plotType))
 ggsave(plot = balloon_p2, filename = outFile, height=myHeightGG, width = myWidthGG)
 cat(paste0("... written: ", outFile, "\n"))
+
+stopifnot(nrow(agg_dt2$nGenes) == nrow(inDT))
+
+agg_dt2$nGenesPct <- paste0(round(100*agg_dt2$nGenes/nrow(inDT), 2), "%")
 
 balloon_p2b <- balloon_p2 + annotate("text",
                                      x=as.numeric(agg_dt2$gene_rank_cat),
@@ -186,6 +212,23 @@ outFile <- file.path(outFolder,
 ggsave(plot = balloon_p2b, filename = outFile, height=myHeightGG, width = myWidthGG)
 cat(paste0("... written: ", outFile, "\n"))
 
+
+balloon_p2b <- balloon_p2 + annotate("text",
+                                     x=as.numeric(agg_dt2$gene_rank_cat),
+                                     y=as.numeric(agg_dt2$tad_rank_cat)+yOffset,
+                                     label = agg_dt2$nGenesPct,
+                                     size = annotateSize)+
+  annotate("text",
+           x=as.numeric(agg_dt$gene_rank_cat[(agg_dt$gene_rank_cat=="other" & agg_dt$tad_rank_cat=="other")] ),
+           y=as.numeric(agg_dt$tad_rank_cat[(agg_dt$gene_rank_cat=="other" & agg_dt$tad_rank_cat=="other")] ),
+           label = agg_dt$nGenesPct[(agg_dt$gene_rank_cat=="other" & agg_dt$tad_rank_cat=="other")],
+           size = annotateSizeL)
+
+
+outFile <- file.path(outFolder, 
+                     paste0("nSignifGenes_topGenes",genes_nTop, "_vs_topTADs", tads_nTop, "_balloonplot_noOtherWithTextPct.", plotType))
+ggsave(plot = balloon_p2b, filename = outFile, height=myHeightGG, width = myWidthGG)
+cat(paste0("... written: ", outFile, "\n"))
 
 rank_hex_p <- ggplot(inDT_dt, aes(x = gene_rank, y = tad_rank)) +
   ggtitle("TAD rank vs. gene rank") +

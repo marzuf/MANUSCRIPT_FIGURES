@@ -62,4 +62,10 @@ exprds_names <- c(
  "TCGAlaml_wt_mutFLT3" = "LAML FLT3wt vs. FLT3mut"
 )
 
+cond1_names <- sapply(exprds_names, function(x) gsub(".+ (.+) vs. (.+)", "\\1", x))
+names(cond1_names) <- sapply(names(exprds_names), function(x) gsub("TCGA.+_(.+)_(.+)", "\\1", x))
+cond2_names <- sapply(exprds_names, function(x) gsub(".+ (.+) vs. (.+)", "\\2", x))
+names(cond2_names) <- sapply(names(exprds_names), function(x) gsub("TCGA.+_(.+)_(.+)", "\\2", x))
+
+
 

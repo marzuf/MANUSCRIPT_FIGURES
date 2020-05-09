@@ -4,12 +4,12 @@ SSHFS=F
 
 buildData <- TRUE
 
-# Rscript go_signif_across_hicds_v2.R
-# Rscript go_signif_across_hicds_v2.R norm_vs_tumor
-# Rscript go_signif_across_hicds_v2.R subtypes
-# Rscript go_signif_across_hicds_v2.R wt_vs_mut
+# Rscript go_signif_across_hicds_v2_randommidposstrict.R
+# Rscript go_signif_across_hicds_v2_randommidposstrict.R norm_vs_tumor
+# Rscript go_signif_across_hicds_v2_randommidposstrict.R subtypes
+# Rscript go_signif_across_hicds_v2_randommidposstrict.R wt_vs_mut
 
-script_name <- "go_signif_across_hicds_v2.R"
+script_name <- "go_signif_across_hicds_v2_randommidposstrict.R"
 
 startTime <- Sys.time()
 
@@ -84,7 +84,7 @@ pipFolder <- file.path(mainFolder, "PIPELINE", "OUTPUT_FOLDER")
 stopifnot(dir.exists(pipFolder))
 all_hicds <- list.files(pipFolder)
 
-all_hicds <- all_hicds[!grepl("RANDOM", all_hicds) & !grepl("PERMUT", all_hicds)]
+all_hicds <- all_hicds[grepl("RANDOMMIDPOSSTRICT", all_hicds)]
 
 file.path(mainFolder, all_hicds)[!dir.exists(file.path(mainFolder, all_hicds))]
 stopifnot(dir.exists(file.path(mainFolder, all_hicds)))
@@ -92,7 +92,7 @@ stopifnot(dir.exists(file.path(mainFolder, all_hicds)))
 all_exprds <- lapply(all_hicds, function(x) list.files(file.path(pipFolder, x)))
 names(all_exprds) <- all_hicds
 
-outFolder <- file.path("GO_SIGNIF_ACROSS_HICDS_v2", data_cmpType)
+outFolder <- file.path("GO_SIGNIF_ACROSS_HICDS_v2_RANDOMMIDPOSSTRICT", data_cmpType)
 dir.create(outFolder, recursive = TRUE)
 
 all_datasets <- unlist(lapply(1:length(all_exprds), function(x) file.path(names(all_exprds)[x], all_exprds[[x]])))
@@ -104,9 +104,9 @@ cat(paste0("n allDS = ", length(all_datasets), "\n"))
 # in # of genes
 # in bp
 
-plotOnly <- FALSE
+plotOnly <- TRUE
 
-final_dt_file <- file.path(runFolder, "CREATE_FINAL_TABLE", "all_result_dt.Rdata")
+final_dt_file <- file.path(runFolder, "CREATE_FINAL_TABLE_RANDOM", "all_result_dt.Rdata")
 stopifnot(file.exists(final_dt_file))
 final_dt <- get(load(final_dt_file))
 
@@ -131,7 +131,7 @@ cat(paste0("> minIntersectGenes\t=\t", minIntersectGenes, "\n"))
 cat(paste0("> nRegionLolli\t=\t", nRegionLolli, "\n"))
 
 
-inFolder <- file.path(runFolder, "TAD_MATCHING_SIGNIF_ACROSS_HICDS_ALLMATCH_v2", data_cmpType)
+inFolder <- file.path(runFolder, "TAD_MATCHING_SIGNIF_ACROSS_HICDS_ALLMATCH_v2_RANDOMMIDPOSSTRICT", data_cmpType)
 stopifnot(dir.exists(inFolder))
 
 inFile <- file.path(inFolder, paste0(file_prefix, "conserved_signif_tads", signif_column, signifThresh, "_minBpRatio", minOverlapBpRatio, "_minInterGenes", minIntersectGenes, ".Rdata"))
