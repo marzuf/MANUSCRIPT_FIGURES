@@ -44,6 +44,8 @@ log10_offset <- 0.01
 # FOR CONSERVED REGION 10 - top3 norm_tumor KRT
 # Rscript look_TAD_expression_withRank_v2.R ENCSR346DCU_LNCaP_40kb TCGAprad_norm_prad chr17_TAD146
 
+
+
 hicds="ENCSR489OCU_NCI-H460_40kb"
 exprds="TCGAlusc_norm_lusc"
 tad_to_plot="chr11_TAD390"
@@ -161,9 +163,20 @@ m_fpkm_dt <- melt(fpkm_plot_dt, id="entrezID")
 stopifnot(m_fpkm_dt$entrezID %in% toplot_dt$entrezID)
 
 toplot_dt <- merge(m_fpkm_dt, toplot_dt, merge="entrezID", all.x=TRUE, all.y=FALSE)
+
+stopifnot(cond1 %in% names(cond1_names))
+cond1_lab <- cond1_names[paste0(cond1)]
+stopifnot(cond2 %in% names(cond2_names))
+cond2_lab <- cond2_names[paste0(cond2)]
+stopifnot(!is.na(cond1_lab))
+stopifnot(!is.na(cond2_lab))
+
+
 stopifnot(!is.na(toplot_dt))
 toplot_dt$cond <- ifelse(toplot_dt$variable %in% samp1, cond1, 
                          ifelse(toplot_dt$variable %in% samp2, cond2, NA ))
+#toplot_dt$cond <- ifelse(toplot_dt$variable %in% samp1, cond1_lab, 
+#                         ifelse(toplot_dt$variable %in% samp2, cond2_lab, NA ))
 
 check_dt <- toplot_dt[,c("variable", "cond")]
 cat("table(check_dt$cond)\n")
@@ -230,7 +243,14 @@ stopifnot(sum(table(check_dt$cond) [grepl(paste0("^", cond1, "$"), names(table(c
 stopifnot(sum(table(check_dt$cond) [grepl(paste0("^", cond1, "$"), names(table(check_dt$cond)))]) == length(samp1))
 stopifnot(sum(table(check_dt$cond) [grepl(paste0("^", cond2, "$"), names(table(check_dt$cond)))]) == length(samp2))
 
-cond_labels <- paste0(all_conds, " (n=" , table(check_dt$cond) [all_conds], ")")
+
+check_dt$cond_labels <- ifelse(as.character(check_dt$cond) == cond1, cond1_lab, 
+                                    ifelse(as.character(check_dt$cond) == cond2, cond2_lab, NA))
+stopifnot(!is.na(check_dt$cond_labels))
+
+all_conds <- c(cond1_lab, cond2_lab)
+
+cond_labels <- paste0(all_conds, " (n=" , table(check_dt$cond_labels) [all_conds], ")")
 
 
 p_var_boxplot <-  ggplot(withRank_toplot_dt2, aes(x = symbol_lab, y = value_log10, fill = cond)) + 
