@@ -282,6 +282,25 @@ cat(paste0("... written: ", outFile, "\n"))
 ################################
 # Boxplot 3: actual number of missed genes with lowFCsameDir per dataset
 ################################
+ratioMissedLowFC_dt <- aggregate(missedLowFC ~ hicds + exprds + rD_range, FUN=mean, data=all_dt)
+
+plot_dt <- "ratioMissedLowFC_dt"
+plot_var <- "missedLowFC"
+
+plotDesc <- "ratio missedLowFC genes (by dataset)"
+subTit <- paste0("gene-level adj. p-val > ",  geneSignifThresh, "; TAD-level adj. p-val <= ",  tadSignifThresh,
+                 "; abs(logFC) <= ", lowFC_thresh)
+
+outFile <- file.path(outFolder, paste0(plot_var, "_ratio.", plotType))
+do.call(plotType, list(outFile, height=myHeight, width=myWidth))
+boxplot(as.formula(paste0(plot_var, "~ ", "rD_range")), ylab=paste0(plot_var, " (ratio)"), cex.main=plotCex, cex.lab=plotCex, cex.axis=plotCex, main = plotDesc, xlab="ratioDown range",data = get(plot_dt))
+mtext(side=3, text = subTit)
+foo <- dev.off()
+cat(paste0("... written: ", outFile, "\n"))
+
+
+
+
 nMissedLowFC_dt <- aggregate(missedLowFC ~ hicds + exprds + rD_range, FUN=sum, data=all_dt)
 
 plot_dt <- "nMissedLowFC_dt"

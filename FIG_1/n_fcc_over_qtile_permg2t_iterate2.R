@@ -18,12 +18,14 @@ require(doMC)
 registerDoMC(40)
 require(ggplot2)
 require(ggpubr)
-
+require(reshape2)
 
 buildData <- FALSE
 
 all_fccThresh <- seq(from = -1, to = 1, by = 0.05)
 
+myHeightGG <- 0.8*myHeightGG
+myWidthGG <- 1.2*myWidthGG
 
 keepPermut <- 1000
 
@@ -31,7 +33,7 @@ keepPermut <- 1000
 rd_type <- "PERMG2T"
 
 buildData1 <- FALSE
-buildData2 <- TRUE
+buildData2 <- FALSE
 
 all_hicds <- all_obs_hicds
 
@@ -74,17 +76,27 @@ if(buildData1){
   outFile <- file.path(outFolder, "all_fcc_dt.Rdata")
   save(all_fcc_dt, file=outFile, version=2)
   cat(paste0("... written: ", outFile, "\n"))
+  
+  overall_min_fcc <- min(all_fcc_dt$fcc_value) # -0.61
+  outFile <- file.path(outFolder, "overall_min_fcc.Rdata")
+  save(overall_min_fcc, file=outFile, version=2)
+  cat(paste0("... written: ", outFile, "\n"))
+  
 } else {
-  cat(paste0("... load all_fcc_dt\n"))
-  outFile <- file.path(outFolder, "all_fcc_dt.Rdata")
-  all_fcc_dt <- get(load(outFile))
-  cat(paste0("... done\n"))
+  if(buildData2) {
+    cat(paste0("... load all_fcc_dt\n"))
+    outFile <- file.path(outFolder, "all_fcc_dt.Rdata")
+    all_fcc_dt <- get(load(outFile))
+    cat(paste0("... done\n"))  
+    all_fcc_dt$dataset <- file.path(all_fcc_dt$hicds, all_fcc_dt$exprds)
+    
+  } else {
+    outFile <- file.path(outFolder, "overall_min_fcc.Rdata")
+    overall_min_fcc <- get(load(outFile))
+    
+  }
+  
 }
-
-all_fcc_dt$dataset <- file.path(all_fcc_dt$hicds, all_fcc_dt$exprds)
-
-overall_min_fcc <- min(all_fcc_dt$fcc_value) # -0.61
-
 
 all_fccThresh <- all_fccThresh[all_fccThresh >= overall_min_fcc] 
 
@@ -135,12 +147,13 @@ if(buildData2){
 
 plotTit <- paste0("PERMG2T (keepPermut=", keepPermut, ")")
 
-
 nOverThresh_dt$obs_over_rd <- nOverThresh_dt$ratioOverThresh_obs/nOverThresh_dt$ratioOverThresh_rd
 
 save_dt <- nOverThresh_dt
 
-nOverThresh_dt <- nOverThresh_dt[nOverThresh_dt$fccThresh >= -0.5,]
+# all_fccThresh <- all_fccThresh[all_fccThresh >= overall_min_fcc] 
+
+nOverThresh_dt <- nOverThresh_dt[nOverThresh_dt$fccThresh >= overall_min_fcc,]
 
 nOverThresh_dt$fccThresh <- round(nOverThresh_dt$fccThresh, 2)
 
@@ -174,7 +187,8 @@ nOverThresh_dt$cmp <- all_cmps[paste0(nOverThresh_dt$exprds)]
 box_p_cond <- ggboxplot(data = nOverThresh_dt,
                         x = "fccThresh", y = "obs_over_rd", 
                         color = "cmp",fill = "cmp",
-                        xlab="FCC threshold", ylab="Ratio TADs FCC >= thresh. obs/permut",
+                        xlab="FCC threshold", 
+                        ylab="Ratio TADs FCC >= thresh. obs/permut",
                         title = paste0(plotTit))+
   scale_y_continuous(breaks = scales::pretty_breaks(n = 10))+
   geom_hline(yintercept=1, linetype=2, color="red")+
@@ -201,31 +215,139 @@ mOverThresh_dt <- melt(nOverThresh_dt[,c("hicds", "exprds", "fccThresh", "ratioO
                        id=c("hicds", "exprds", "fccThresh"))
 
 mOverThresh_dt$variable <- gsub("ratioOverThresh_", "", mOverThresh_dt$variable)
+mOverThresh_dt$variable <- gsub("rd", "random", mOverThresh_dt$variable)
+mOverThresh_dt$variable <- gsub("obs", "observed", mOverThresh_dt$variable)
+
 
 nDS <- length(unique(file.path(mOverThresh_dt$hicds, mOverThresh_dt$exprds)))
 
 myTit <- paste0("Ratio of TADs over FCC thresh. (obs and permut)")
-subTit <- paste0("(# datasets = ",  nDS)
+subTit <- paste0("(# datasets = ",  nDS, "; PERMUTG2T - # permut=", keepPermut, ")")
 
 my_xlab <- "FCC threshold"
 my_ylab <- "Ratio TADs FCC >= thresh."
 
-line_p <- ggplot(mOverThresh_dt,aes(x = fccThresh, y = value, col = variable)) +
+require(ggsci)
+ggsci_pal <- "lancet"
+ggsci_subpal <- ""
+
+all_th <- setNames(rank(unique(as.numeric(as.character(mOverThresh_dt$fccThresh)))), unique(mOverThresh_dt$fccThresh))
+
+mOverThresh_dt$thresh_rank <- all_th[paste0(mOverThresh_dt$fccThresh)]
+stopifnot(!is.na(mOverThresh_dt$thresh_rank))
+
+head(mOverThresh_dt)
+
+
+cor(mOverThresh_dt$thresh_rank, mOverThresh_dt$value) 
+cor(as.numeric(as.character(mOverThresh_dt$fccThresh)), mOverThresh_dt$value)
+# stopifnot(cor(mOverThresh_dt$thresh_rank, mOverThresh_dt$value) == 
+#             cor(as.numeric(as.character(mOverThresh_dt$fccThresh)), mOverThresh_dt$value))
+
+mOverThresh_dt$fccThresh <- as.numeric(as.character(mOverThresh_dt$fccThresh))
+format_pval <- function(pval){
+  pval <- scales::pvalue(pval, accuracy= 0.0001, add_p = TRUE)
+  gsub(pattern = "(=|<)", replacement = " \\1 ", x = pval)
+}
+
+x_breaks <- sort(unique(mOverThresh_dt$fccThresh))
+x_breaks2 <- x_breaks[seq(1, length(x_breaks), by = 2)]
+
+point_p <- ggplot(mOverThresh_dt,aes(x=fccThresh, y = value, col = variable)) +
   geom_point()+
   ggtitle(myTit, subtitle=subTit)+
   # stat_summary(fun.data=mean_cl_normal) + 
-  geom_smooth(method='lm', formula= y~x, se=TRUE)  +
-  labs(xlab = my_xlab, ylab = my_ylab, color = "")+
+  geom_smooth(method='lm', formula= y~x, se=F)  +
+  labs(x = my_xlab, y = my_ylab, color = "")+
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 10))+
+  scale_x_continuous(breaks = x_breaks2,
+                     labels = format(x_breaks2, nsmall=2))+
   my_box_theme+
+  eval(parse(text=paste0("scale_color_", ggsci_pal, "(", ggsci_subpal, ")")))+
   theme(
     panel.grid.major.x =  element_line(colour = "grey", size = 0.5, linetype=1),
     panel.grid.minor.x =  element_line(colour = "grey", size = 0.5, linetype=1),
+    legend.key = element_rect(fill = NA),
+    legend.text = element_text(size=10),
+    axis.text.x = element_text(size=10, angle=90, hjust=1, vjust=0.5),
+    axis.line =  element_line()
+  )+
+  stat_cor(
+    # aes(label = ifelse(..p.value.. < 0.05, formatC(..p.value.., format = "e", digits = 2),
+    #                    ..p.value..)), 
+    aes(label = paste(..r.label.., format_pval(..p..), sep = "~`,`~")),
+    # aes(label = ifelse(p < 0.05,sprintf("p = %2.1e", as.numeric(..p.value..)), ..p.value..)),
+    # aes(label=sprintf("p = %5.4f", as.numeric(..p.value..))),
+    # aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~")),
+                   
+method = "pearson", label.x.npc = "left", label.y.npc = "bottom", p.digits=2)
+
+outFile <- file.path(outFolder, paste0("ratioObsAndPermut_overThresh_pointLine.", plotType))
+ggsave(point_p, file=outFile, height=myHeightGG, width=myWidthGG)
+cat(paste0("... written: ", outFile, "\n"))
+
+
+box_p <- ggplot(mOverThresh_dt,aes( x= factor(thresh_rank), y = value, col = variable)) +
+  geom_boxplot()+
+  ggtitle(myTit, subtitle=subTit)+
+  labs(x = my_xlab, y = my_ylab, color = "")+
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 10))+
+  scale_x_discrete(breaks = all_th[seq(1, length(all_th), by = 2)], labels=names(all_th)[seq(1, length(all_th), by = 2)])+
+  my_box_theme+
+  eval(parse(text=paste0("scale_color_", ggsci_pal, "(", ggsci_subpal, ")")))+
+  theme(
+    # axis.text.x = element_text(angle=90),
+    panel.grid.major.x =  element_line(colour = "grey", size = 0.5, linetype=1),
+    panel.grid.minor.x =  element_line(colour = "grey", size = 0.5, linetype=1),
+    axis.text.x = element_text(size=10, angle=90, hjust=1, vjust=0.5),
+    legend.key = element_rect(fill = NA),
+    legend.text = element_text(size=10),
+    axis.line =  element_line()
+  )
+outFile <- file.path(outFolder, paste0("ratioObsAndPermut_overThresh_boxplot.", plotType))
+ggsave(box_p, file=outFile, height=myHeightGG, width=myWidthGG)
+cat(paste0("... written: ", outFile, "\n"))
+
+#***********************************************************************************
+nOverThresh_dt$nOverThresh_rd_mean <- nOverThresh_dt$nOverThresh_rd/keepPermut
+
+cOverThresh_dt <- melt(nOverThresh_dt[,c("hicds", "exprds", "fccThresh", "nOverThresh_obs", "nOverThresh_rd_mean")],
+                       id=c("hicds", "exprds", "fccThresh"))
+cOverThresh_dt$thresh_rank <- all_th[paste0(cOverThresh_dt$fccThresh)]
+stopifnot(!is.na(cOverThresh_dt$thresh_rank))
+
+cOverThresh_dt$variable <- gsub("nOverThresh_", "", cOverThresh_dt$variable)
+cOverThresh_dt$variable <- gsub("rd_mean", "random (mean)", cOverThresh_dt$variable)
+cOverThresh_dt$variable <- gsub("obs", "observed", cOverThresh_dt$variable)
+
+myTit <- paste0("# of TADs over FCC thresh. (obs and permut)")
+subTit <- paste0("(# datasets = ",  nDS, ")")
+
+my_ylab <- "# TADs FCC >= thresh."
+
+box_c <- ggplot(cOverThresh_dt,aes( x= factor(thresh_rank), y = value, col = variable)) +
+  geom_boxplot()+
+  ggtitle(myTit, subtitle=subTit)+
+  labs(x = my_xlab, y = my_ylab, color = "")+
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 10))+
+  scale_x_discrete(breaks = all_th[seq(1, length(all_th), by = 2)], labels=names(all_th)[seq(1, length(all_th), by = 2)])+
+  my_box_theme+
+  eval(parse(text=paste0("scale_color_", ggsci_pal, "(", ggsci_subpal, ")")))+
+  theme(
+    # axis.text.x = element_text(angle=90),
+    panel.grid.major.x =  element_line(colour = "grey", size = 0.5, linetype=1),
+    panel.grid.minor.x =  element_line(colour = "grey", size = 0.5, linetype=1),
+    axis.text.x = element_text(size=10, angle=90, hjust=1, vjust=0.5),
+    legend.text = element_text(size=10),
+    legend.key = element_rect(fill = NA),
     axis.line =  element_line()
   )
 
+outFile <- file.path(outFolder, paste0("nbrObsAndPermutMean_overThresh_boxplot.", plotType))
+ggsave(box_c, file=outFile, height=myHeightGG, width=myWidthGG)
+cat(paste0("... written: ", outFile, "\n"))
 
 
-
-
+stop("-ok\n")
 
 
