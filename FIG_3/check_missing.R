@@ -95,26 +95,34 @@ outFile <- file.path("CHECK_MISSING", "plot_dt.Rdata")
 save(plot_dt, file=outFile, version=2)
 cat(paste0("... written: ", outFile, "\n"))
 
-stop("_ok")
+# stop("_ok")
 
-plot_dt <- get(load("CHECK_MISSING/plot_dt.Rdata"))
+# plot_dt <- get(load("CHECK_MISSING/plot_dt.Rdata"))
 
 
-boxplot(nSampMinCount ~ exprds + symbol, data=plot_dt)
+# boxplot(nSampMinCount ~ exprds + symbol, data=plot_dt)
 
 require(ggplot2)
-ggplot(data= plot_dt, aes( x= symbol, y = nSampMinCount, color = exprds)) + 
-  geom_bar(stat="identity", position="dodge")
+# p1 <- ggplot(data= plot_dt, aes( x= symbol, y = nSampMinCount, color = exprds)) + 
+#   geom_bar(stat="identity", position="dodge")
 
 anyKept <- unique(plot_dt$symbol[plot_dt$kept])
 
-ggplot(data= plot_dt[plot_dt$symbol %in% anyKept,], aes( x= symbol, y = nSampMinCount, color = kept, fill  = exprds)) + 
-  geom_bar(stat="identity", position="dodge")+
-  scale_fill_manual(values=c("red", "blue")) +
-  scale_color_manual(values=c("green", "yellow"))
+# p2 <- ggplot(data= plot_dt[plot_dt$symbol %in% anyKept,], aes( x= symbol, y = nSampMinCount, color = kept, fill  = exprds)) + 
+#   geom_bar(stat="identity", position="dodge")+
+#   scale_fill_manual(values=c("red", "blue")) +
+#   scale_color_manual(values=c("green", "yellow"))
 
-ggplot(data= plot_dt[plot_dt$symbol %in% anyKept,], aes( x= symbol, y = nSampMinRatio, color = kept, fill  = exprds)) + 
+p3 <- ggplot(data= plot_dt[plot_dt$symbol %in% anyKept,], aes( x= symbol, y = nSampMinRatio, color = kept, fill  = exprds)) + 
   geom_bar(stat="identity", position="dodge")+
   scale_fill_manual(values=c("red", "blue")) +
   scale_color_manual(values=c("green", "yellow")) +
-  geom_hline(yintercept=0.8)
+  geom_hline(yintercept=0.8)+
+  theme(
+    axis.text.x = element_text(angle=90, hjust=1, vjust=0.5),
+    axis.title.x=element_blank()
+  )
+outFile <- file.path(outFolder, paste0("nSampMinRatio_", hicds, "_luad_lusc.svg"))
+ggsave(p3, filename = outFile , height=5, width=7)
+cat(paste0("... written: ", outFile, "\n"))
+

@@ -336,6 +336,15 @@ for(maxConserved in conserved_regions_to_plot) {
   
   region_plot_dt$ds_lab[6]
   
+
+
+#  geom_label_repel(
+#    arrow = arrow(length = unit(0.03, "npc"), type = "closed", ends = "first"),
+#    force = 10,
+#    xlim  = x_limits  ### => all labels start at 3 if x_limits = c(3, NA)
+#  ) +
+
+
   region_p3 <- region_p2 + xlim(min(c(region_plot_dt$start, gene_plot_dt$start)- axisOffset), NA) +
           geom_text_repel(
             aes(x = region_plot_dt$start, y =  region_plot_dt$ds_rank, label = region_plot_dt$ds_lab), inherit.aes = F,
