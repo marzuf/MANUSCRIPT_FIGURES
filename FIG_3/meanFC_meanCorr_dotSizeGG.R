@@ -3,10 +3,10 @@
 options(scipen=100)
 
 
-# Rscript meanFC_meanCorr_dotSize.R ENCSR489OCU_NCI-H460_40kb TCGAlusc_norm_lusc chr11_TAD390 chr10_TAD268
-# Rscript meanFC_meanCorr_dotSize.R ENCSR489OCU_NCI-H460_40kb TCGAluad_norm_luad chr11_TAD390 chr10_TAD268
-# Rscript meanFC_meanCorr_dotSize.R ENCSR489OCU_NCI-H460_40kb TCGAluad_mutKRAS_mutEGFR chr10_TAD16 chr17_TAD162
-# Rscript meanFC_meanCorr_dotSize.R ENCSR489OCU_NCI-H460_40kb TCGAluad_nonsmoker_smoker chr10_TAD16 chr17_TAD162
+# Rscript meanFC_meanCorr_dotSizeGG.R ENCSR489OCU_NCI-H460_40kb TCGAlusc_norm_lusc chr11_TAD390 chr10_TAD268
+# Rscript meanFC_meanCorr_dotSizeGG.R ENCSR489OCU_NCI-H460_40kb TCGAluad_norm_luad chr11_TAD390 chr10_TAD268
+# Rscript meanFC_meanCorr_dotSizeGG.R ENCSR489OCU_NCI-H460_40kb TCGAluad_mutKRAS_mutEGFR chr10_TAD16 chr17_TAD162
+# Rscript meanFC_meanCorr_dotSizeGG.R ENCSR489OCU_NCI-H460_40kb TCGAluad_nonsmoker_smoker chr10_TAD16 chr17_TAD162
 # 
 
 script_name <- "meanFC_meanCorr_dotSizeGG.R"
@@ -116,6 +116,9 @@ subTit <- paste0("# TADs = ", nrow(ex_DT), "; # signif. TADs = ", nrow(ex_DT_sig
 ex_DT$adjPvalComb_log10_col <- ex_DT$adjPvalComb_log10
 ex_DT$adjPvalComb_log10_col[ex_DT$adjPvalComb_log10_col <= -log10(0.05)] <- -log10(0.05)
 
+ex_DT$adjPvalComb_crop <- ex_DT$adjPvalComb 
+ex_DT$adjPvalComb_crop[ex_DT$adjPvalComb_crop >= 0.05] <- 0.05
+
 ex_DT$adjPvalCombSignif <- ex_DT$adjPvalComb <= signifThresh
 
 fc_corr_p <- ggplot(ex_DT, aes(x=meanLogFC, y = meanCorr, fill = adjPvalCombSignif )) +
@@ -127,7 +130,9 @@ fc_corr_p <- ggplot(ex_DT, aes(x=meanLogFC, y = meanCorr, fill = adjPvalCombSign
   #            aes(size = adjPvalComb_log10_col)
   #            ) +
   # 
-  scale_fill_manual(values=c("FALSE"="grey50", "TRUE"="red"), labels=c("signif.", "not signif."))+
+  scale_fill_manual(values=c("FALSE"="grey50", "TRUE"="red"), 
+                    labels=c("TRUE"=paste0("<=", signifThresh), "FALSE"=paste0(">", signifThresh)))+
+                    # labels=c("TRUE"=paste0("signif."), "FALSE"="not signif."))+
   
   guides(fill = guide_legend(override.aes = list(color="white", size=4), order=1))+
   
@@ -140,7 +145,8 @@ fc_corr_p <- ggplot(ex_DT, aes(x=meanLogFC, y = meanCorr, fill = adjPvalCombSign
   ) +
   # labs(size="TAD adj. p-val\n[-log10]", fill = "TAD adj. p-val")+
   # labs(size="[-log10]", fill = "TAD adj. p-val")+
-  labs( fill = "TAD adj. p-val",size="[-log10]")+
+  # labs( fill = "TAD adj. p-val",size="[-log10]")+
+  labs( fill = "TAD adj. p-val",size="")+
   geom_label_repel(data = ex_DT[ex_DT$region %in% tads_to_annot,],
     aes(x= meanLogFC, 
         y=meanCorr, label=region),
@@ -160,7 +166,7 @@ fc_corr_p <- ggplot(ex_DT, aes(x=meanLogFC, y = meanCorr, fill = adjPvalCombSign
   
   scale_size(range=c(0.5,8),#expand=c(2,0),
              breaks=c(-log10(0.05), -log10(0.01), -log10(0.005), -log10(0.001)),
-             labels=c("<= 0.05","0.01"," 0.005","0.001"),
+             labels=c(">= 0.05","0.01"," 0.005","0.001"),
              guide="legend") +
   
   # scale_color_manual(values=c(col1, col2), labels=cond_labels)+
@@ -185,6 +191,63 @@ ggsave(fc_corr_p, filename = outFile, height=myHeightGG, width=myWidthGG)
 cat(paste0("... written: ", outFile, "\n"))
 
 
+fc_corr_p <- ggplot(ex_DT, aes(x=meanLogFC, y = meanCorr, fill = adjPvalCombSignif )) +
+  ggtitle(plotTit, subtitle = subTit)+
+  scale_fill_manual(values=c("FALSE"="grey50", "TRUE"="red"), 
+                    labels=c("TRUE"=paste0("<=", signifThresh), "FALSE"=paste0(">", signifThresh)))+
+  # labels=c("TRUE"=paste0("signif."), "FALSE"="not signif."))+
+  
+  guides(fill = guide_legend(override.aes = list(color="white", size=4), order=1))+
+  
+  geom_point(#color = ifelse(ex_DT$adjPvalComb <= signifThresh, "red", "grey50"),
+    # fill = ifelse(ex_DT$adjPvalComb <= signifThresh, "red", "grey50"),
+    color = ifelse(ex_DT$region %in% tads_to_annot , "blue",
+                   ifelse(ex_DT$adjPvalComb <= signifThresh, "red", "grey50")),
+    shape=21,
+    aes(size = adjPvalComb_crop), stroke=1
+  ) +
+  labs( fill = "TAD adj. p-val",size="")+
+  geom_label_repel(data = ex_DT[ex_DT$region %in% tads_to_annot,],
+                   aes(x= meanLogFC, 
+                       y=meanCorr, label=region),
+                   inherit.aes = F,
+                   min.segment.length = unit(0, 'lines'),
+                   force = 10,
+                   segment.size = 0.5,
+                   nudge_y = 0.1
+                   # xlim  = x_limits
+  ) + 
+  scale_x_continuous(name=paste0(x_lab),
+                     breaks = scales::pretty_breaks(n = 10))+
+  scale_y_continuous(name=paste0(y_lab),
+                     breaks = scales::pretty_breaks(n = 10))+
+  
+  scale_size(range=c(0.5,8),#expand=c(2,0),
+             breaks=rev(c((0.05),(0.01),(0.005),(0.001))),
+             labels=rev(c(">= 0.05","0.01"," 0.005","0.001")),
+             trans="reverse",
+             guide="legend") +
+  
+  my_box_theme + 
+  theme(axis.line = element_line(),
+        axis.text.y = element_text(size=12, hjust=0.5, vjust=0.5, color="black"),
+        axis.text.x = element_text(size=12, hjust=0.5, vjust=0.5, color="black"),
+        panel.grid = element_blank(),
+        legend.key = element_rect(fill = NA),
+        legend.text =  element_text(size=10),
+        legend.title =  element_text(size=12,face="bold"),
+        panel.grid.major.y =  element_blank(),
+        panel.grid.minor.y =  element_blank()
+  ) +
+  geom_hline(yintercept = 0, linetype=2, color="darkgrey")+
+  geom_vline(xintercept = 0, linetype=2, color="darkgrey")
+
+
+outFile <- file.path(outFolder, paste0(ex_hicds, "_", ex_exprds, "_meanIntraCorr_meanLogFC_dotplot_with_signifGG_vCheck.", plotType))
+ggsave(fc_corr_p, filename = outFile, height=myHeightGG, width=myWidthGG)
+cat(paste0("... written: ", outFile, "\n"))
+
+
 fc_corr_p_polar <- ggplot(ex_DT, aes(x=meanLogFC, y = meanCorr, fill = adjPvalCombSignif)) +
   ggtitle(plotTit, subtitle = subTit)+
   coord_polar(theta = "x") +
@@ -197,7 +260,9 @@ fc_corr_p_polar <- ggplot(ex_DT, aes(x=meanLogFC, y = meanCorr, fill = adjPvalCo
     aes(size = adjPvalComb_log10_col), stroke=1
   ) +
   
-  scale_fill_manual(values=c("FALSE"="grey50", "TRUE"="red"), labels=c("signif.", "not signif."))+
+  scale_fill_manual(values=c("FALSE"="grey50", "TRUE"="red"), 
+                    labels=c( "TRUE"=paste0("<=", signifThresh), "FALSE"=paste0(">", signifThresh)))+
+                    # labels=c("signif.", "not signif."))+
   
   # guides(fill = 
   
@@ -205,7 +270,9 @@ fc_corr_p_polar <- ggplot(ex_DT, aes(x=meanLogFC, y = meanCorr, fill = adjPvalCo
     size = guide_legend(order = 0),
     fill = guide_legend(override.aes = list(color="white", size=4), order=1))+
   
-  labs( fill = "TAD adj. p-val",size="[-log10]")+
+  # labs( fill = "TAD adj. p-val",size="[-log10]")+
+  labs( fill = "TAD adj. p-val",size="")+
+  
   
   # labs(size="TAD adj. p-val\n[-log10]")+
   geom_label_repel(data = ex_DT[ex_DT$region %in% tads_to_annot,],
@@ -226,7 +293,7 @@ fc_corr_p_polar <- ggplot(ex_DT, aes(x=meanLogFC, y = meanCorr, fill = adjPvalCo
   
   scale_size(range=c(0.5,8),#expand=c(2,0),
              breaks=c(-log10(0.05), -log10(0.01), -log10(0.005), -log10(0.001)),
-             labels=c("<= 0.05","0.01"," 0.005","0.001"),
+             labels=c(">=0.05","0.01"," 0.005","0.001"),
              guide="legend") +
   theme_bw(base_size = 12) +
   theme(

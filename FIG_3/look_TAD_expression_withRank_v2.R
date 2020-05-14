@@ -44,6 +44,29 @@ log10_offset <- 0.01
 # FOR CONSERVED REGION 10 - top3 norm_tumor KRT
 # Rscript look_TAD_expression_withRank_v2.R ENCSR346DCU_LNCaP_40kb TCGAprad_norm_prad chr17_TAD146
 
+# TAD with highest number of missed low fc same dir
+# Rscript look_TAD_expression_withRank_v2.R LG1_40kb TCGAluad_nonsmoker_smoker chr19_TAD43
+# example of TAD with recurrently missed
+# Rscript look_TAD_expression_withRank_v2.R LG1_40kb TCGAluad_nonsmoker_smoker chr10_TAD313
+
+# example for 1 dataset
+#missedLowFCdiffDir: "chr4_TAD635"
+#missedLowFCsameDir:  "chr10_TAD313"
+#highFCsameDir  & ex_dt$tadSignifOnly ][1]  "chr10_TAD16"
+## ex_dt$region[ex_dt$highFCdiffDir & ex_dt$tadSignifOnly][1]
+# chr1_TAD566  ENCSR079VIJ_G401_40kb/TCGAkich_norm_kich
+#ex_dt[ex_dt$region == "chr4_TAD635", c("ds_id", "geneSignif", "tadSignif", "symbol")]
+#ex_dt[ex_dt$region == "chr10_TAD313", c("ds_id", "geneSignif", "tadSignif", "symbol")]
+#ex_dt[ex_dt$region == "chr10_TAD16", c("ds_id", "geneSignif", "tadSignif", "symbol")]
+
+#all_dt3[all_dt3$ds_id == "ENCSR079VIJ_G401_40kb/TCGAkich_norm_kich/chr1_TAD566", c("ds_id", "geneSignif", "tadSignif", "symbol")]
+
+#Rscript look_TAD_expression_withRank_v2.R LG1_40kb TCGAluad_nonsmoker_smoker chr19_TAD43
+#Rscript look_TAD_expression_withRank_v2.R LG1_40kb TCGAluad_nonsmoker_smoker chr10_TAD313
+#Rscript look_TAD_expression_withRank_v2.R LG1_40kb TCGAluad_nonsmoker_smoker chr4_TAD635
+#Rscript look_TAD_expression_withRank_v2.R LG1_40kb TCGAluad_nonsmoker_smoker chr10_TAD16
+#Rscript look_TAD_expression_withRank_v2.R ENCSR079VIJ_G401_40kb ENCSR079VIJ_G401_40kb chr1_TAD566
+
 
 
 hicds="ENCSR489OCU_NCI-H460_40kb"

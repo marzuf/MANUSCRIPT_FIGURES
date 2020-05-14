@@ -17,6 +17,11 @@ require(flux)
 require(foreach)
 require(doMC)
 registerDoMC(nCpu)
+require(reshape2)
+require(ggpubr)
+ggsci_pal <- "nejm"
+ggsci_subpal <- ""
+require(ggsci)
 
 geneSignifThresh <- 0.01
 tadSignifThresh <- 0.01
@@ -31,7 +36,7 @@ options(scipen=100)
 
 startTime <- Sys.time()
 
-buildData <- TRUE
+buildData <- FALSE
 
 hicds <- "ENCSR489OCU_NCI-H460_40kb"
 exprds <- "TCGAlusc_norm_lusc"
@@ -131,6 +136,7 @@ pval_ranges <- c(seq(0,0.05,by=0.01), 1)
 lowFC_thresh <- 0.5
 rD_lowThresh <- 1/3
 rD_highThresh <- 2/3
+highFC_thresh <- 1
 
 all_dt$geneSignif <- all_dt$adj.P.Val <= geneSignifThresh
 all_dt$tadSignif <- all_dt$tad_adjCombPval <= tadSignifThresh
@@ -154,6 +160,280 @@ all_dt$pvalCorr_range <- cut(all_dt$TAD_meanCorrPval, breaks=pval_ranges, includ
 stopifnot(!is.na(all_dt$pvalCorr_range))
 
 save(all_dt, file=file.path(outFolder, "all_dt2.Rdata"), version=2)
+
+all_dt3 <- all_dt
+all_dt3$highFC <- abs(all_dt3$logFC) >= highFC_thresh
+all_dt3$highFCsameDir <-  all_dt3$sameDirFC & all_dt3$highFC
+all_dt3$highFCdiffDir <-  !all_dt3$sameDirFC & all_dt3$highFC
+all_dt3$lowFCsameDir <- all_dt3$sameDirFC & all_dt3$lowFC
+all_dt3$lowFCdiffDir <- !all_dt3$sameDirFC & all_dt3$lowFC
+all_dt3$otherFC <- abs(all_dt3$logFC)< highFC_thresh & abs(all_dt3$logFC) > lowFC_thresh
+
+stopifnot(sum(all_dt3$highFC)+sum(all_dt3$lowFC) + sum(all_dt3$otherFC) == nrow(all_dt3))
+stopifnot(sum(all_dt3$highFCsameDir) + sum(all_dt3$highFCdiffDir) == sum(all_dt3$highFC))
+stopifnot(sum(all_dt3$lowFCsameDir) + sum(all_dt3$lowFCdiffDir) == sum(all_dt3$lowFC))
+  
+stopifnot(sum(all_dt3$highFCsameDir) + sum(all_dt3$highFCdiffDir)+
+  sum(all_dt3$lowFCsameDir) + sum(all_dt3$lowFCdiffDir) + sum(all_dt3$otherFC) == nrow(all_dt3))
+
+
+all_dt3$geneSignifOnly <- all_dt3$geneSignif & !all_dt3$tadSignif
+all_dt3$tadSignifOnly <- !all_dt3$geneSignif & all_dt3$tadSignif
+all_dt3$bothSignif <- all_dt3$geneSignif & all_dt3$tadSignif
+all_dt3$neverSignif <- ! all_dt3$geneSignif & ! all_dt3$tadSignif
+sum(all_dt3$geneSignifOnly) + sum(all_dt3$tadSignifOnly) + sum(all_dt3$bothSignif) + sum(all_dt3$neverSignif) == nrow(all_dt3)
+
+
+all_dt_a <- all_dt3[,c("hicds", "exprds", "region", "rD_range", "geneSignifOnly", "tadSignifOnly", "bothSignif", "neverSignif")]
+all_dt_a <- all_dt_a[!all_dt_a$neverSignif,]
+
+all_dt_b <- all_dt3[,c("hicds", "exprds", "region", "rD_range", "highFCsameDir", "highFCdiffDir", "lowFCsameDir", "lowFCdiffDir", "otherFC")]
+
+all_dt_ab <- merge(all_dt_a, all_dt_b, by=c("hicds", "exprds", "region", "rD_range"), all.x=T, all.y=F)
+
+all_dt_ab$var1 <- ifelse(all_dt_ab$geneSignifOnly, "geneSignifOnly",
+                         ifelse(all_dt_ab$tadSignifOnly, "tadSignifOnly",
+                                ifelse(all_dt_ab$bothSignif, "bothSignif", NA)))
+stopifnot(!is.na(all_dt_ab$var1))
+
+all_dt_ab$var2 <- ifelse(all_dt_ab$highFCsameDir, "highFCsameDir",
+                         ifelse(all_dt_ab$highFCdiffDir, "highFCdiffDir",
+                                ifelse(all_dt_ab$lowFCsameDir, "lowFCsameDir",
+                                  ifelse(all_dt_ab$lowFCdiffDir, "lowFCdiffDir", 
+                                         ifelse(all_dt_ab$otherFC, "otherFC",NA)))))
+stopifnot(!is.na(all_dt_ab$var2))
+
+
+plot_dt_ab <- all_dt_ab[,c("hicds", "exprds", "rD_range", "var1", "var2")]
+
+agg_ab_dt <- aggregate(hicds ~ rD_range+var1+var2, FUN=length, data=plot_dt_ab)
+colnames(agg_ab_dt)[colnames(agg_ab_dt) == "hicds"] <- "nGenes"
+
+agg_ab_ratio_dt <- do.call(rbind, by(agg_ab_dt, list(agg_ab_dt$var1, agg_ab_dt$var2), function(x){
+  x$ratioGenes <- x$nGenes/sum(x$nGenes)
+  x
+}))
+
+
+agg_ab_ratio_dt$rD_range2 <- as.character(agg_ab_ratio_dt$rD_range)
+agg_ab_ratio_dt$rD_range2[ agg_ab_ratio_dt$rD_range2 %in% c("[0,0.1]", "(0.1,0.2]","(0.8,0.9]", "(0.9,1]")] <- "<=0.2 | > 0.8"
+agg_ab_ratio_dt$rD_range2[ agg_ab_ratio_dt$rD_range2 %in% c("(0.4,0.5]", "(0.5,0.6]")] <- ">0.4 & <= 0.6"
+agg_ab_ratio_dt$rD_range2[ agg_ab_ratio_dt$rD_range2 %in% c("(0.2,0.3]", "(0.3,0.4]",  "(0.6,0.7]", "(0.7,0.8]")] <- "other"
+
+
+rd_rangeRatio_p <- ggplot(agg_ab_ratio_dt, aes(x=var2, y = ratioGenes, fill = rD_range2)) + 
+  geom_bar(stat="identity", position="stack")+
+  labs(x="", y="Ratio of genes",  fill="ratioDown range")+
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 10))+
+  eval(parse(text=paste0("scale_fill_", ggsci_pal, "(", ggsci_subpal, ")"))) +
+  facet_wrap(~var1) +
+  my_box_theme +
+  theme(
+    strip.text.x = element_text(size=14),
+    legend.text = element_text(size=12),
+    legend.title = element_text(size=12, face="bold"),
+    axis.text.x = element_text(angle=90, hjust=1, vjust=0.5)
+  )
+
+outFile <- file.path(outFolder, paste0("ratioGenes_FCdir_byFCCrange_barplot.", plotType))
+ggsave(rd_rangeRatio_p, filename = outFile, height=myHeight, width=myWidth)
+cat(paste0("... written: ", outFile, "\n"))
+
+rd_range_p <- ggplot(agg_ab_ratio_dt, aes(x=var2, y = nGenes, fill = rD_range2)) + 
+  geom_bar(stat="identity", position="stack")+
+  labs(x="", y="# of genes",  fill="ratioDown range")+
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 10))+
+  eval(parse(text=paste0("scale_fill_", ggsci_pal, "(", ggsci_subpal, ")"))) +
+  facet_wrap(~var1, scales="free") +
+  my_box_theme +
+  theme(
+    panel.grid.minor.x  = element_blank(),
+    panel.grid.major.x  = element_blank(),
+    strip.text.x = element_text(size=14),
+    legend.text = element_text(size=12),
+    legend.title = element_text(size=12, face="bold"),
+    
+    axis.text.x = element_text(angle=90, hjust=1, vjust=0.5)
+  )
+
+outFile <- file.path(outFolder, paste0("nbrGenes_FCdir_byFCCrange_barplot.", plotType))
+ggsave(rd_range_p, filename = outFile, height=myHeight, width=myWidth*1.2)
+cat(paste0("... written: ", outFile, "\n"))
+
+
+
+
+plot_dt3 <- all_dt3[,c("rD_range", "geneSignifOnly", "tadSignifOnly", "bothSignif", "neverSignif")]
+plot_dt3b <- all_dt3[,c("rD_range", "geneSignifOnly", "tadSignifOnly", "bothSignif")]
+
+signifSum_dt <- do.call(rbind, 
+        by(plot_dt3, plot_dt3$rD_range, function(x) {tmp <- x ; tmp$rD_range <- NULL; colSums(tmp)}))
+
+signifSumRatio_dt <- do.call(rbind, 
+                        by(plot_dt3, plot_dt3$rD_range, function(x) {tmp <- x ; tmp$rD_range <- NULL; colSums(tmp)/sum(colSums(tmp))}))
+
+
+
+signifSumNotNever_dt <- do.call(rbind, 
+                        by(plot_dt3b, plot_dt3$rD_range, function(x) {tmp <- x ; tmp$rD_range <- NULL; colSums(tmp)}))
+
+signifSumNotNeverRatio_dt <- do.call(rbind, 
+                             by(plot_dt3b, plot_dt3$rD_range, function(x) {tmp <- x ; tmp$rD_range <- NULL; colSums(tmp)/sum(colSums(tmp))}))
+
+
+all_dt3$dataset <- file.path(all_dt3$hicds, all_dt3$exprds)
+nDS <- length(unique(all_dt3$dataset))
+
+myTit <- paste0("all datasets (n=", nDS, ")")
+subTit <- paste0("abs. lowFC thresh.=", lowFC_thresh, "; abs. highFC thresh.=", highFC_thresh)
+
+
+m_signifSum_dt <- melt(signifSum_dt)
+colnames(m_signifSum_dt) <- c("rD_range", "signifType", "nGenes")
+m_signifSumRatio_dt <- melt(signifSumRatio_dt)
+colnames(m_signifSumRatio_dt) <- c("rD_range", "signifType", "nGenes")
+
+m_signifSumNotNever_dt <- melt(signifSumNotNever_dt)
+colnames(m_signifSumNotNever_dt) <- c("rD_range", "signifType", "nGenes")
+m_signifSumNotNeverRatio_dt <- melt(signifSumNotNeverRatio_dt)
+colnames(m_signifSumNotNeverRatio_dt) <- c("rD_range", "signifType", "nGenes")
+
+
+my_box_theme2 <- my_box_theme + theme(axis.title = element_text(size=14, face="bold"))
+  
+
+p_sum <- ggbarplot(m_signifSum_dt, x="rD_range", y="nGenes",
+          fill = "signifType", orientation="horizontal") +
+  ggtitle(paste0(myTit), subtitle = paste0("tadSignifThresh=", tadSignifThresh, "; geneSignifThresh=", geneSignifThresh))+
+  labs(x="FCC range", y="# Genes", fill="")+ 
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 10))+
+  my_box_theme2 +
+  eval(parse(text=paste0("scale_fill_", ggsci_pal, "(", ggsci_subpal, ")"))) 
+
+outFile <- file.path(outFolder, paste0("nbrGenes_byFCCrange_barplot.", plotType))
+ggsave(p_sum, filename = outFile, height=myHeight, width=myWidth)
+cat(paste0("... written: ", outFile, "\n"))
+
+p_sumRatio <- ggbarplot(m_signifSumRatio_dt, x="rD_range", y="nGenes",
+          fill = "signifType", orientation="horizontal") +
+  ggtitle(paste0(myTit), subtitle = paste0("tadSignifThresh=", tadSignifThresh, "; geneSignifThresh=", geneSignifThresh))+
+  labs(x="FCC range", y="Ratio genes", fill="")+
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 10))+
+  my_box_theme2 +
+  eval(parse(text=paste0("scale_fill_", ggsci_pal, "(", ggsci_subpal, ")")))
+
+outFile <- file.path(outFolder, paste0("ratioGenes_byFCCrange_barplot.", plotType))
+ggsave(p_sumRatio, filename = outFile, height=myHeight, width=myWidth)
+cat(paste0("... written: ", outFile, "\n"))
+
+
+p_sumNotNever <- ggbarplot(m_signifSumNotNever_dt, x="rD_range", y="nGenes",
+          fill = "signifType", orientation="horizontal") +
+  ggtitle(paste0(myTit), subtitle = paste0("tadSignifThresh=", tadSignifThresh, "; geneSignifThresh=", geneSignifThresh))+
+  my_box_theme2 +
+  labs(x="FCC range", y="# Genes", fill="")+
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 10))+
+  eval(parse(text=paste0("scale_fill_", ggsci_pal, "(", ggsci_subpal, ")")))
+
+outFile <- file.path(outFolder, paste0("nbrGenesSignif_byFCCrange_barplot.", plotType))
+ggsave(p_sumNotNever, filename = outFile, height=myHeight, width=myWidth)
+cat(paste0("... written: ", outFile, "\n"))
+
+p_sumNotNeverRatio <- ggbarplot(m_signifSumNotNeverRatio_dt, x="rD_range", y="nGenes",
+          fill = "signifType", orientation="horizontal") +
+  ggtitle(paste0(myTit), subtitle = paste0("tadSignifThresh=", tadSignifThresh, "; geneSignifThresh=", geneSignifThresh))+
+  labs(x="FCC range", y="Ratio genes", fill="")+
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 10))+
+  my_box_theme2 +
+  eval(parse(text=paste0("scale_fill_", ggsci_pal, "(", ggsci_subpal, ")")))
+
+outFile <- file.path(outFolder, paste0("ratioGenesSignif_byFCCrange_barplot.", plotType))
+ggsave(p_sumNotNeverRatio, filename = outFile, height=myHeight, width=myWidth)
+cat(paste0("... written: ", outFile, "\n"))
+
+for(i_signif in c("tadSignifOnly", "geneSignifOnly", "neverSignif", "bothSignif")) {
+  
+  
+  tmp_dt3 <- all_dt3[all_dt3[,i_signif],]
+  
+  plot_dt4 <- tmp_dt3[,c("rD_range", "highFCsameDir", "highFCdiffDir", "lowFCsameDir", "lowFCdiffDir")]
+  
+  fcdirSum_dt <-  do.call(rbind, 
+                          by(plot_dt4, plot_dt4$rD_range, function(x) {tmp <- x ; tmp$rD_range <- NULL; colSums(tmp)}))
+  
+  m_fcdirSum_dt <- melt(fcdirSum_dt)
+  colnames(m_fcdirSum_dt) <- c("rD_range", "dirType", "nGenes")
+  
+  p_sum <- ggbarplot(m_fcdirSum_dt, x="rD_range", y="nGenes",
+            fill = "dirType", orientation="horizontal") +
+    ggtitle(paste0(myTit, " - ", i_signif), subtitle = paste0(subTit))+
+    labs(x="FCC range", y="# Genes", fill="")+
+    scale_y_continuous(breaks = scales::pretty_breaks(n = 10))+
+    my_box_theme2 +
+    eval(parse(text=paste0("scale_fill_", ggsci_pal, "(", ggsci_subpal, ")")))
+  
+  outFile <- file.path(outFolder, paste0("nbrGenes_", i_signif, "_fcdir_byFCCrange_barplot.", plotType))
+  ggsave(p_sum, filename = outFile, height=myHeight, width=myWidth)
+  cat(paste0("... written: ", outFile, "\n"))
+  
+  fcdirSumRatio_dt <-  do.call(rbind, 
+                               by(plot_dt4, plot_dt4$rD_range, function(x) {tmp <- x ; tmp$rD_range <- NULL; colSums(tmp)/sum(colSums(tmp))}))
+  
+  m_fcdirSumRatio_dt <- melt(fcdirSumRatio_dt)
+  colnames(m_fcdirSumRatio_dt) <- c("rD_range", "dirType", "nGenes")
+  
+  p_sumRatio <- ggbarplot(m_fcdirSumRatio_dt, x="rD_range", y="nGenes",
+            fill = "dirType", orientation="horizontal") +
+    ggtitle(paste0(myTit, " - ", i_signif), subtitle = paste0(subTit))+
+    labs(x="FCC range", y="Ratio genes", fill="")+
+    scale_y_continuous(breaks = scales::pretty_breaks(n = 10))+
+    my_box_theme2 +
+    eval(parse(text=paste0("scale_fill_", ggsci_pal, "(", ggsci_subpal, ")")))
+  
+  outFile <- file.path(outFolder, paste0("ratioGenes_", i_signif, "_fcdir_byFCCrange_barplot.", plotType))
+  ggsave(p_sumRatio, filename = outFile, height=myHeight, width=myWidth)
+  cat(paste0("... written: ", outFile, "\n"))
+  
+}
+
+
+
+stop("--ok\n")
+
+
+all_dt3$ds_id <- file.path(all_dt3$hicds, all_dt3$exprds, all_dt3$region)
+
+hicds="LG1_40kb" 
+exprds="TCGAluad_nonsmoker_smoker"
+ex_dt <- all_dt3[all_dt3$hicds == hicds & all_dt3$exprds == exprds,]
+
+setDir <- "/media/electron"
+setDir <- ""
+entrezDT_file <- paste0(setDir, "/mnt/ed4/marie/entrez2synonym/entrez/ENTREZ_POS/gff_entrez_position_GRCh37p13_nodup.txt")
+gff_dt <- read.delim(entrezDT_file, header = TRUE, stringsAsFactors = FALSE)
+gff_dt$entrezID <- as.character(gff_dt$entrezID)
+stopifnot(!duplicated(gff_dt$entrezID))
+entrez2symb <- setNames(gff_dt$symbol, gff_dt$entrezID)
+
+stopifnot(all_dt3$entrezID %in% names(entrez2symb))
+all_dt3$symbol <- entrez2symb[paste0(all_dt3$entrezID)]
+all_dt3$ds_id <- file.path(all_dt3$hicds, all_dt3$exprds, all_dt3$region)
+
+stopifnot(ex_dt$entrezID %in% names(entrez2symb))
+ex_dt$symbol <- entrez2symb[paste0(ex_dt$entrezID)]
+ex_dt <- ex_dt[order(ex_dt$tad_adjCombPval),]
+
+ex_dt$region[ex_dt$missedLowFCdiffDir][1] "chr4_TAD635"
+ex_dt$region[ex_dt$missedLowFCsameDir][1]  "chr10_TAD313"
+ex_dt$region[ex_dt$highFCsameDir  & ex_dt$tadSignifOnly ][1]  "chr10_TAD16"
+# ex_dt$region[ex_dt$highFCdiffDir & ex_dt$tadSignifOnly][1]
+# chr1_TAD566  ENCSR079VIJ_G401_40kb/TCGAkich_norm_kich
+
+ex_dt[ex_dt$region == "chr4_TAD635", c("ds_id", "geneSignif", "tadSignif", "symbol")]
+ex_dt[ex_dt$region == "chr10_TAD313", c("ds_id", "geneSignif", "tadSignif", "symbol")]
+ex_dt[ex_dt$region == "chr10_TAD16", c("ds_id", "geneSignif", "tadSignif", "symbol")]
+
+all_dt3[all_dt3$ds_id == "ENCSR079VIJ_G401_40kb/TCGAkich_norm_kich/chr1_TAD566", c("ds_id", "geneSignif", "tadSignif", "symbol")]
 
 
 
