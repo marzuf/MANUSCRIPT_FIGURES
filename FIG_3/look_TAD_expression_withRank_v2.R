@@ -59,13 +59,12 @@ log10_offset <- 0.01
 #ex_dt[ex_dt$region == "chr10_TAD313", c("ds_id", "geneSignif", "tadSignif", "symbol")]
 #ex_dt[ex_dt$region == "chr10_TAD16", c("ds_id", "geneSignif", "tadSignif", "symbol")]
 
-#all_dt3[all_dt3$ds_id == "ENCSR079VIJ_G401_40kb/TCGAkich_norm_kich/chr1_TAD566", c("ds_id", "geneSignif", "tadSignif", "symbol")]
 
 #Rscript look_TAD_expression_withRank_v2.R LG1_40kb TCGAluad_nonsmoker_smoker chr19_TAD43
 #Rscript look_TAD_expression_withRank_v2.R LG1_40kb TCGAluad_nonsmoker_smoker chr10_TAD313
 #Rscript look_TAD_expression_withRank_v2.R LG1_40kb TCGAluad_nonsmoker_smoker chr4_TAD635
 #Rscript look_TAD_expression_withRank_v2.R LG1_40kb TCGAluad_nonsmoker_smoker chr10_TAD16
-#Rscript look_TAD_expression_withRank_v2.R ENCSR079VIJ_G401_40kb ENCSR079VIJ_G401_40kb chr1_TAD566
+#Rscript look_TAD_expression_withRank_v2.R ENCSR079VIJ_G401_40kb TCGAkich_norm_kich chr1_TAD566
 
 
 

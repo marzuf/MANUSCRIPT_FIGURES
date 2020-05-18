@@ -354,15 +354,27 @@ cat(paste0("... written: ", outFile, "\n"))
 # refConst_geneSignif_dt <- get(load(file.path(outFolder, "refConst_geneSignif_dt.Rdata")))
 
 
-plot_dt2 <- melt(refConst_geneSignif_dt, id=c("hicds", "exprds") )
-plot_dt2 <- merge(plot_dt[,c("hicds", "exprds", "sampLab")], plot_dt2, by=c("hicds", "exprds"), all.x=F, all.y=T)
-stopifnot(!is.na(plot_dt2))
+foo_dt  <- plot_dt
+foo_dt$dataset <- file.path(foo_dt$hicds, foo_dt$exprds)
+getSampLab <- setNames(as.character(foo_dt$sampLab), as.character(foo_dt$dataset))
 
-plot_dt2$sampLab <- factor(plot_dt2$sampLab, levels=labLevels)
+plot_dt2 <- melt(refConst_geneSignif_dt, id=c("hicds", "exprds") )
+# plot_dt2$dataset <- file.path(plot_dt2$hicds, plot_dt2$exprds)
+# stopifnot(table(plot_dt2$dataset) == 2)
+# plot_dt2$dataset <- NULL
+# plot_dt2$variable <- as.character(plot_dt2$variable)
+# plot_dt2 <- merge(plot_dt[,c("hicds", "exprds", "sampLab")], plot_dt2, by=c("hicds", "exprds"), all.x=F, all.y=T)
+# stopifnot(!is.na(plot_dt2))
+# plot_dt2$dataset <- NULL
+plot_dt2$dataset <- file.path(plot_dt2$hicds, plot_dt2$exprds)
+stopifnot(table(plot_dt2$dataset) == 2)
+plot_dt2$sampLab <- getSampLab[paste0(plot_dt2$dataset)]
+plot_dt2$sampLab <- factor(as.character(plot_dt2$sampLab), levels=labLevels)
+stopifnot(table(plot_dt2$dataset) == 2)
 
 plot_dt2$variable <- as.character(plot_dt2$variable)
-plot_dt2$variable[plot_dt2$variable == "ratioGeneRefSignif"] <- paste0("TADs\n(adj. p-val<=", tadSignifThresh, ")")
-plot_dt2$variable[plot_dt2$variable == "ratioTadRefSignif"] <- paste0("genes\n(adj. p-val<=", geneSignifThresh, ")")
+plot_dt2$variable[plot_dt2$variable == "ratioGeneRefSignif"] <- paste0("genes\n(adj. p-val<=", geneSignifThresh, ")")
+plot_dt2$variable[plot_dt2$variable == "ratioTadRefSignif"] <- paste0("TADs\n(adj. p-val<=", tadSignifThresh, ")")
 
 init_p2 <- custom_plot(ggplot(data = plot_dt2,aes_string(x="sampLab",y="value", fill = "variable", color="variable"))+
                          ggtitle("Ratio of ref. signif. and sample size", subtitle = subTit)+
@@ -452,8 +464,8 @@ plot_dt3 <- melt(acrossConst_geneSignif_dt, id=c("hicds", "exprds", "sampLab") )
 stopifnot(!is.na(plot_dt3))
 
 plot_dt3$variable <- as.character(plot_dt3$variable)
-plot_dt3$variable[plot_dt3$variable == "geneConsistRatio"] <- paste0("TADs\n(adj. p-val<=", tadSignifThresh, ")")
-plot_dt3$variable[plot_dt3$variable == "tadConsistRatio "] <- paste0("genes\n(adj. p-val<=", geneSignifThresh, ")")
+plot_dt3$variable[plot_dt3$variable == "geneConsistRatio"] <- paste0("genes\n(adj. p-val<=", geneSignifThresh, ")")
+plot_dt3$variable[plot_dt3$variable == "tadConsistRatio"] <- paste0("TADs\n(adj. p-val<=", tadSignifThresh, ")")
 
 plot_dt3$sampLab <- factor(plot_dt3$sampLab, levels=labLevels)
 
