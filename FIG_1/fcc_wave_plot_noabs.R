@@ -41,7 +41,7 @@ pointObsCol <- colObs
 
 # all_obs_hicds=all_obs_hicds[1]
 
-all_obs_hicds="LG1_40kb"
+#all_obs_hicds="LG1_40kb"
 
 
 all_fcc_dt <- foreach(hicds = all_obs_hicds, .combine='rbind') %dopar% {
@@ -49,7 +49,7 @@ all_fcc_dt <- foreach(hicds = all_obs_hicds, .combine='rbind') %dopar% {
     hicds_dt <- foreach(exprds = all_obs_exprds[[paste0(hicds)]], .combine='rbind') %do% {
 
 
-if(exprds != "TCGAluad_mutKRAS_mutEGFR") return(NULL)
+#if(exprds != "TCGAluad_mutKRAS_mutEGFR") return(NULL)
 
 		stopifnot(hicds %in% names(hicds_names))
 		stopifnot(exprds %in% names(exprds_names))
