@@ -16,8 +16,11 @@ dir.create(outFolder, recursive = TRUE)
 ggsci_pal <- "d3"
 ggsci_subpal <- ""
 
+mycols <- setNames(pal_d3()(3), c("<=0.5", "]0.5, 1[", "1"))
+mycols <- mycols[2:3]
+
 myHeight <- 5
-myWidth <- 7
+myWidth <- 8
 
 plotCex <- 1.4
 
@@ -25,7 +28,7 @@ interval_fcc <- c("]0.5, 1[", "1")
 
 dt2 <- get(load("BARPLOT_WITH_TOPFCC_FRACT/all_dt.Rdata"))
 dt2$dataset <- file.path(dt2$hicds, dt2$exprds)
-dt2$intervalFCC <- factor(dt2$intervalFCC, levels=interval_fcc)
+dt2$intervalFCC <- factor(dt2$intervalFCC, levels=rev(interval_fcc))
 stopifnot(!is.na(dt2$intervalFCC))
 
 
@@ -75,8 +78,6 @@ dt1$cmp <- all_cmps[basename(as.character(dt1$dataset))]
 stopifnot(!is.na(dt1$cmp))
 
 
-
-
 p1_aucRatio_plot <- ggplot(dt1, aes(x=dataset, y = fcc_auc_minus1, color=cmp, fill=cmp))+ 
   ggtitle(p1_tit, subtitle = p1_sub)+
   scale_y_continuous(breaks = y_range, labels = y_labs, name=p1_ylab)+
@@ -97,10 +98,10 @@ p1_aucRatio_plot <- ggplot(dt1, aes(x=dataset, y = fcc_auc_minus1, color=cmp, fi
 p2_fccFract_plot <- ggplot(dt2, aes(x=dataset, y = ratioFCC, color = intervalFCC, fill = intervalFCC))+ 
   ggtitle(p2_tit, subtitle = p2_sub)+
   geom_bar(stat="identity") + 
-  #scale_fill_d3()+
-  #scale_color_d3() + 
-  eval(parse(text=paste0("scale_color_", ggsci_pal, "(", ggsci_subpal, ")")))+
-  eval(parse(text=paste0("scale_fill_", ggsci_pal, "(", ggsci_subpal, ")")))+
+  scale_fill_manual(values=mycols)+
+  scale_color_manual(values=mycols) +
+  # eval(parse(text=paste0("scale_color_", ggsci_pal, "(", ggsci_subpal, ")")))+
+  # eval(parse(text=paste0("scale_fill_", ggsci_pal, "(", ggsci_subpal, ")")))+
   scale_y_continuous(breaks = scales::pretty_breaks(n = 10), name=p2_ylab)+
   scale_x_discrete(labels=rep(labsymbol, length(dt2$dataset)), name=p2_xlab)+
   labs(fill=p2_legTitle) +
