@@ -121,6 +121,10 @@ outFile <- file.path(outFolder, paste0("FCC_aucRatio_topFract.", plotType))
 ggsave(plot = out_p, filename = outFile, height=myHeightGG, width=myWidth)
 cat(paste0("... written: ", outFile, "\n"))
 
+
+write.table(dt1, file=file.path(outFolder, "fcc_auc_dt.txt"), col.names=T, row.names=F, sep="\t", quote=F)
+write.table(dt2, file=file.path(outFolder, "fcc_range_dt.txt"), col.names=T, row.names=F, sep="\t", quote=F)
+
 # library(gtable)
 # g1 <- ggplotGrob(p1_aucRatio_plot)
 # g2 <- ggplotGrob(p2_fccFract_plot)

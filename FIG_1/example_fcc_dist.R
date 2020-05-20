@@ -1,8 +1,9 @@
 
 # Rscript example_fcc_dist.R ENCSR489OCU_NCI-H460_40kb TCGAluad_norm_luad
 # Rscript example_fcc_dist.R ENCSR079VIJ_G401_40kb TCGAkich_norm_kich
-# Rscript example_fcc_dist.R LG1_40kb TCGAluad_mutKRAS_mutEGFR
+# Rscript example_fcc_dist.R LG1_40kb TCGAluad_mutKRAS_mutEGFR # highest FCC AUC
 # Rscript example_fcc_dist.R GSE105381_HepG2_40kb TCGAlihc_wt_mutCTNNB1
+# Rscript example_fcc_dist.R ENCSR312KHQ_SK-MEL-5_40kb TCGAskcm_lowInf_highInf # lowest FCC AUC
 
 
 require(doMC)

@@ -5,12 +5,12 @@ SSHFS=F
 setDir <- "/media/electron"
 setDir <- ""
 
-# Rscript ds_conservation_acrossDS.R
+# Rscript ds_conservation_acrossDS_countExprds.R
 
 hicds="K562_40kb"
 exprds="TCGAlaml_wt_mutFLT3"
 
-script_name <- "ds_conservation_acrossDS.R"
+script_name <- "ds_conservation_acrossDS_countExprds.R"
 
 startTime <- Sys.time()
 
@@ -39,7 +39,7 @@ if(length(args) == 0){
   stopifnot(cmpType %in% c("subtypes", "wt_vs_mut", "norm_vs_tumor"))
 }
 
-outFolder <- file.path("DS_CONSERVATION_ACROSSDS", cmpType)
+outFolder <- file.path("DS_CONSERVATION_ACROSSDS_COUNTEXPRDS", cmpType)
 dir.create(outFolder, recursive=TRUE)
 
 entrez2symb_dt <- read.delim(file.path(setDir,
@@ -66,11 +66,10 @@ tad_pval <- 0.01
 minMatchBp_ratio <- 0.8
 minMatch_genes <- 3
 
-atLeast <- 10
 atMin <- 2
+atLeast <- 10
 
-
-inFile <- file.path(runFolder,
+inFile <- file.path(runFolder, 
                     "TAD_MATCHING_SIGNIF_ACROSS_HICDS_ALLMATCH_v2",
                     cmpType,
                     paste0("plot_matching_dt_tadsadjPvalComb", tad_pval, "_minBpRatio", minMatchBp_ratio, "_minInterGenes", minMatch_genes, ".Rdata"))
@@ -86,19 +85,41 @@ m_dt$exprds <- basename(m_dt$dataset)
 m_dt$cmpType <- all_cmps[paste0(m_dt$exprds)]
 m_dt$cmpCol <- all_cols[m_dt$cmpType]
 
+tmp_dt <- m_dt[m_dt$conserved == 1,]
+agg_dt_ds <- aggregate(dataset ~ region, data=tmp_dt, FUN=function(x)length(unique(x)))
+agg_dt_ds <- agg_dt_ds[order(agg_dt_ds$dataset),]
 agg_dt <- aggregate(conserved ~ region, data=m_dt, FUN=sum)
 agg_dt <- agg_dt[order(agg_dt$conserved),]
 reg_levels <- as.character(agg_dt$region)
+stopifnot(agg_dt$conserved >= 2)
+# agg_dt$region_rank <- 
+stopifnot(all.equal(agg_dt_ds, agg_dt, check.attributes=F))
+
+tmp_dt <- m_dt[m_dt$conserved == 1,]
+agg_dt_exprds <- aggregate(exprds ~ region, data=tmp_dt, FUN=function(x)length(unique(x)))
+agg_dt_exprds <- agg_dt_exprds[order(agg_dt_exprds$exprds),]
+colnames(agg_dt_exprds)[colnames(agg_dt_exprds) == "exprds"] <- "conserved"
+agg_dt <- aggregate(conserved ~ region, data=m_dt, FUN=sum)
+agg_dt <- agg_dt[order(agg_dt$conserved),]
 stopifnot(agg_dt$conserved >= atMin)
-# agg_dt$region_rank <-
+# agg_dt$region_rank <- 
+stopifnot(all.equal(agg_dt_exprds, agg_dt, check.attributes=F) != FALSE)
+stopifnot(agg_dt_exprds$conserved <= agg_dt_ds$conserved)
+
+agg_dt <- agg_dt_exprds
+agg_dt <- agg_dt[order(agg_dt$conserved),]
+stopifnot(!duplicated(agg_dt$region))
+reg_levels <- as.character(agg_dt$region)
+
+
 
 # plot(
-#   x = 1:nrow(agg_dt),
+#   x = 1:nrow(agg_dt), 
 #   y = agg_dt$conserved,
 #   type="b"
 # )
 
-inFile <- file.path(runFolder,
+inFile <- file.path(runFolder, 
                     "TAD_MATCHING_SIGNIF_ACROSS_HICDS_ALLMATCH_v2",
                     paste0("conserved_regions_with_genes_signif_tadsadjPvalComb", tad_pval, "_minBpRatio", minMatchBp_ratio, "_minInterGenes", minMatch_genes, ".Rdata"))
 content_dt <- get(load(inFile))
@@ -112,19 +133,25 @@ outFile <- file.path(outFolder, paste0(filePrefix, "conserved_regions_table.txt"
 write.table(print_dt, file = outFile, sep="\t", col.names =T, row.names = F, quote=F)
 cat(paste0("... written: ", outFile, "\n"))
 
-
-agg_cmp_dt <- aggregate(conserved ~ region + cmpType, data=m_dt, FUN=sum)
+# CHANGED HERE FOR EXPRDS COUNT
+tmp_dt <- m_dt[m_dt$conserved == 1,]
+agg_cmp_dt <- aggregate(exprds ~ region+cmpType, data=tmp_dt, FUN=function(x)length(unique(x)))
+colnames(agg_cmp_dt)[colnames(agg_cmp_dt) =="exprds"] <- "conserved"
 agg_cmp_dt$cmpCol <- all_cols[agg_cmp_dt$cmpType]
 
 
-conserv_atLeast <- agg_dt$region[agg_dt$conserved >= atLeast]
+conserv_atLeast <- agg_dt$region[agg_dt$conserved >= atLeast] 
 reg_levels2 <- reg_levels[reg_levels %in% conserv_atLeast]
 
-#######################################################
+######################################################
 # plot all
-#######################################################
+######################################################
 
 plot_dt <- agg_cmp_dt
+
+save(plot_dt, file="plot_dt.Rdata", version = 2)
+plot_dt <- plot_dt[plot_dt$conserved >= atMin,]
+nCons <- length(plot_dt$region)
 
 plot_dt$region <- factor(plot_dt$region, levels = reg_levels)
 stopifnot(!is.na(plot_dt$region))
@@ -139,16 +166,13 @@ cmp_levels <- sort(cmp_names)
 
 stopifnot(cmp_levels %in% names(all_cols_lab))
 
-plot_dt$region_rank <- as.numeric(plot_dt$region)
+plot_dt$region_rank <- rank(as.numeric(plot_dt$region))
 
-nCons <- length(unique(plot_dt$region))
-
-my_ylab <- "# datasets conserved"
-# my_xlab <- "Ranked conserved regions"
-my_xlab <- paste0("Ranked conserved regions (", nCons, " with >= ", atMin, " DS cons.)")
+my_ylab <- "# exprds conserved"
+my_xlab <- paste0("Ranked conserved regions (", nCons, " with >= ", atMin, " exprds cons.)")
 myTit <- "Signif. conserved regions"
 subTit <- paste0("TAD adj. p-val <= ", tad_pval, "\nconserv. match ratio bp >= ", minMatchBp_ratio, " and match genes >= ", minMatch_genes)
-
+   
 
 plot_dt$cmpType_lab <- factor(plot_dt$cmpType_lab, levels=cmp_levels)
 stopifnot(!is.na(plot_dt$cmpType_lab))
@@ -157,13 +181,13 @@ save(plot_dt, file=file.path(outFolder, "plot_dt.Rdata"), version=2)
 
 bar_p <- ggplot(plot_dt, aes(x=region_rank, y=conserved, fill = cmpType_lab, color=cmpType_lab)) +
   ggtitle(myTit, subtitle = subTit)+
-  geom_bar(stat="identity") +
+  geom_bar(stat="identity") + 
   scale_y_continuous(name=my_ylab, breaks= scales::pretty_breaks(n = 5))+
-  scale_x_continuous(name=my_xlab, breaks= noZero_breaks(n=10), expand=c(0,0))+
+  scale_x_continuous(name=my_xlab, breaks= noZero_breaks(n=5), expand=c(0,0))+
   scale_fill_manual(values=all_cols_lab[cmp_levels], labels=cmp_levels)+
   scale_color_manual(values=all_cols_lab[cmp_levels], labels=cmp_levels)+
   labs(x=my_xlab, y=my_ylab, color="", fill="")+
-  my_box_theme +
+  my_box_theme + 
   theme(
     panel.grid.major.x =  element_blank(),
     panel.grid.minor.x  =  element_blank(),
@@ -178,10 +202,13 @@ outFile <- file.path(outFolder, paste0(filePrefix, "nConserved_byRegion_allCond.
 ggsave(bar_p, filename = outFile, height=myHeightGG, width=myWidthGG)
 cat(paste0("... written: ", outFile, "\n"))
 
-#######################################################
+######################################################
 # plot only from at least top 10
-#######################################################
+######################################################
+
 plot_dt <- agg_cmp_dt[agg_cmp_dt$region %in% conserv_atLeast,]
+nCons <- length(unique(plot_dt$region))
+# stopifnot(nCons == sum(plot_dt$conserved >= atLeast))
 
 plot_dt$region <- factor(plot_dt$region, levels = reg_levels2)
 stopifnot(!is.na(plot_dt$region))
@@ -198,11 +225,8 @@ stopifnot(cmp_levels %in% names(all_cols_lab))
 
 plot_dt$region_rank <- as.numeric(plot_dt$region)
 
-nCons <- length(unique(plot_dt$region))
-
-my_ylab <- "# datasets conserved"
-# my_xlab <- "Ranked conserved regions"
-my_xlab <- paste0("Ranked conserved regions (", nCons, " with >= ", atLeast, " DS cons.)")
+my_ylab <- "# exprds conserved"
+my_xlab <- paste0("Ranked conserved regions (", nCons, " with >= ", atLeast, " exprds cons.)")
 myTit <- "Signif. conserved regions"
 subTit <- paste0("TAD adj. p-val <= ", tad_pval, "\nconserv. match ratio bp >= ", minMatchBp_ratio, " and match genes >= ", minMatch_genes)
 
@@ -210,17 +234,17 @@ subTit <- paste0("TAD adj. p-val <= ", tad_pval, "\nconserv. match ratio bp >= "
 plot_dt$cmpType_lab <- factor(plot_dt$cmpType_lab, levels=cmp_levels)
 stopifnot(!is.na(plot_dt$cmpType_lab))
 
-save(plot_dt, file=file.path(outFolder, "plot_dt.Rdata"), version=2)
+save(plot_dt, file=file.path(outFolder, "plot_dt2.Rdata"), version=2)
 
 bar_p <- ggplot(plot_dt, aes(x=region_rank, y=conserved, fill = cmpType_lab, color=cmpType_lab)) +
   ggtitle(myTit, subtitle = subTit)+
-  geom_bar(stat="identity") +
+  geom_bar(stat="identity") + 
   scale_y_continuous(name=my_ylab, breaks= scales::pretty_breaks(n = 5))+
   scale_x_continuous(name=my_xlab, breaks= noZero_breaks(n=5), expand=c(0,0))+
   scale_fill_manual(values=all_cols_lab[cmp_levels], labels=cmp_levels)+
   scale_color_manual(values=all_cols_lab[cmp_levels], labels=cmp_levels)+
   labs(x=my_xlab, y=my_ylab, color="", fill="")+
-  my_box_theme +
+  my_box_theme + 
   theme(
     panel.grid.major.x =  element_blank(),
     panel.grid.minor.x  =  element_blank(),
@@ -242,7 +266,7 @@ cat(paste0("... written: ", outFile, "\n"))
 allCmpTypes <- unique(all_cmps)
 cmpT=allCmpTypes[1]
 byCmp_dt <- foreach(cmpT = allCmpTypes, .combine='rbind') %dopar% {
-  inFile <- file.path(runFolder,
+  inFile <- file.path(runFolder, 
                       "TAD_MATCHING_SIGNIF_ACROSS_HICDS_ALLMATCH_v2",
                       cmpT,
                       paste0("plot_matching_dt_tadsadjPvalComb", tad_pval, "_minBpRatio", minMatchBp_ratio, "_minInterGenes", minMatch_genes, ".Rdata"))
@@ -268,7 +292,7 @@ byCmp_dt <- foreach(cmpT = allCmpTypes, .combine='rbind') %dopar% {
 # byCmp_dt$reg_rank <- 1:nrow(byCmp_dt)
 # byCmp_dt$reg_rank <- factor(as.character(byCmp_dt$reg_rank))
 
-my_ylab <- "# datasets conserved"
+my_ylab <- "# exprds conserved"
 my_xlab <- "Ranked conserved regions"
 myTit <- "Signif. conserved regions"
 subTit <- paste0("TAD adj. p-val <= ", tad_pval, "\nconserv. match ratio bp >= ", minMatchBp_ratio, " and match genes >= ", minMatch_genes)
@@ -284,12 +308,12 @@ save(byCmp_dt, file=file.path(outFolder, "byCmp_dt.Rdata"), version=2)
 
 p_wrap <- ggplot(byCmp_dt, aes(x=reg_rank, y=conserved, group=1))+
   ggtitle(myTit, subtitle = subTit)+
-  geom_line()+
+  geom_line()+ 
   facet_wrap(. ~ cmpType_lab, scales="free") +
   # scale_y_continuous(name=my_ylab)+
   scale_y_continuous(name=my_ylab, breaks= scales::pretty_breaks(n = 5))+
   scale_x_continuous(name=my_xlab, breaks= noZero_breaks(n=5))+
-  my_box_theme +
+  my_box_theme + 
   theme(
     strip.text = element_text(size=10, face="bold"),# color=all_cols_lab),
     # strip.background = element_rect(color=all_cols_lab),
@@ -315,7 +339,7 @@ k <- 1
 for (i in stripr) {
   j <- which(grepl('rect', g$grobs[[i]]$grobs[[1]]$childrenOrder))
   g$grobs[[i]]$grobs[[1]]$children[[j]]$gp$fill <- fills[k]
-  # curr_sub <- g$grobs[[i]]$grobs[[1]]$children[[j]]$gp$fill
+  # curr_sub <- g$grobs[[i]]$grobs[[1]]$children[[j]]$gp$fill 
   # g$grobs[[i]]$grobs[[1]]$children[[j]]$gp$fill <- all_cols_lab[names(curr_sub)]
   k <- k+1
 }
@@ -334,5 +358,4 @@ cat(paste0("... written: ", outFile, "\n"))
 ######################################################################################
 cat("*** DONE\n")
 cat(paste0(startTime, "\n", Sys.time(), "\n"))
-
 

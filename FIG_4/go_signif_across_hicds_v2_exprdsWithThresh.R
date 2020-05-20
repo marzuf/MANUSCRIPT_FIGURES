@@ -4,12 +4,12 @@ SSHFS=F
 
 buildData <- TRUE
 
-# Rscript go_signif_across_hicds_v2.R
-# Rscript go_signif_across_hicds_v2.R norm_vs_tumor
-# Rscript go_signif_across_hicds_v2.R subtypes
-# Rscript go_signif_across_hicds_v2.R wt_vs_mut
+# Rscript go_signif_across_hicds_v2_withThresh.R
+# Rscript go_signif_across_hicds_v2_withThresh.R norm_vs_tumor
+# Rscript go_signif_across_hicds_v2_withThresh.R subtypes
+# Rscript go_signif_across_hicds_v2_withThresh.R wt_vs_mut
 
-script_name <- "go_signif_across_hicds_v2.R"
+script_name <- "go_signif_across_hicds_v2_withThresh.R"
 
 startTime <- Sys.time()
 
@@ -67,6 +67,8 @@ source(file.path(runFolder, "enricher_settings.R"))
 # enricher_qvalueCutoff <- 1
 # enricher_results_sortGOby <- "p.adjust"
 
+conservExprdsThresh <- 3
+
 
 script0_name <- "0_prepGeneData"
 
@@ -92,7 +94,7 @@ stopifnot(dir.exists(file.path(mainFolder, all_hicds)))
 all_exprds <- lapply(all_hicds, function(x) list.files(file.path(pipFolder, x)))
 names(all_exprds) <- all_hicds
 
-outFolder <- file.path("GO_SIGNIF_ACROSS_HICDS_v2", data_cmpType)
+outFolder <- file.path("GO_SIGNIF_ACROSS_HICDS_v2_EXPRDSWITHTHRESH", conservExprdsThresh, data_cmpType)
 dir.create(outFolder, recursive = TRUE)
 
 all_datasets <- unlist(lapply(1:length(all_exprds), function(x) file.path(names(all_exprds)[x], all_exprds[[x]])))
@@ -138,16 +140,26 @@ inFile <- file.path(inFolder, paste0(file_prefix, "conserved_signif_tads", signi
 stopifnot(file.exists(inFile))
 conserved_signif_tads <- get(load(inFile))
 
+## update here to filter: take only regions with conservThresh
+ds_signif_tads <- lapply(conserved_signif_tads, function(x) unique(dirname(x)))
+# CHECK: no duplicated datasets in the conserv. list
+stopifnot(lengths(conserved_signif_tads) == lengths(ds_signif_tads))
+
+exprds_signif_tads <- lapply(conserved_signif_tads, function(x) unique(basename(dirname(x))))
+conserved_signif_tads <- conserved_signif_tads[lengths(exprds_signif_tads) >= conservExprdsThresh]
+stopifnot(lengths(lapply(conserved_signif_tads, function(x) unique(basename(dirname(x))))) >= conservExprdsThresh)
+
+kept_conserved_signif_tads <- conserved_signif_tads
+outFile <- file.path(outFolder, paste0(file_prefix, "kept_conserved_signif_tads.Rdata"))
+save(kept_conserved_signif_tads, file = outFile, version=2)
+
+
 inFile <- file.path(inFolder, paste0(file_prefix, "signif_tads", signif_column, signifThresh, "_minBpRatio", minOverlapBpRatio, "_minInterGenes", minIntersectGenes, ".Rdata"))
 stopifnot(file.exists(inFile))
 signif_tads <- get(load(inFile))
 
 all_conserved_signif_tads <- unique(unlist(conserved_signif_tads))
 stopifnot(all_conserved_signif_tads %in% signif_tads)
-
-#checked: there is no duplicate in the conserved datasets
-ds_signif_tads <- lapply(conserved_signif_tads, function(x) unique(dirname(x)))
-stopifnot(lengths(conserved_signif_tads) == lengths(ds_signif_tads))
 
 all_not_conserved_signif_tads <- signif_tads[! signif_tads %in% all_conserved_signif_tads]
 
