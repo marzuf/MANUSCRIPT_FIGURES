@@ -72,7 +72,7 @@ atLeast <- 10
 inFile <- file.path(runFolder, 
                     "TAD_MATCHING_SIGNIF_ACROSS_HICDS_ALLMATCH_v2",
                     cmpType,
-                    paste0("plot_matching_dt_tadsadjPvalComb", tad_pval, "_minBpRatio", minMatchBp_ratio, "_minInterGenes", minMatch_genes, ".Rdata"))
+                    paste0("plot_matching_dt_signif_tadsadjPvalComb", tad_pval, "_minBpRatio", minMatchBp_ratio, "_minInterGenes", minMatch_genes, ".Rdata"))
 
 matching_dt <- get(load(inFile))
 
@@ -99,6 +99,10 @@ tmp_dt <- m_dt[m_dt$conserved == 1,]
 agg_dt_exprds <- aggregate(exprds ~ region, data=tmp_dt, FUN=function(x)length(unique(x)))
 agg_dt_exprds <- agg_dt_exprds[order(agg_dt_exprds$exprds),]
 colnames(agg_dt_exprds)[colnames(agg_dt_exprds) == "exprds"] <- "conserved"
+agg_dt_exprds <- agg_dt_exprds[agg_dt_exprds$conserved >= atMin,]
+agg_dt_exprds <- agg_dt_exprds[order(agg_dt_exprds$conserved),]
+stopifnot(!duplicated(agg_dt_exprds$region))
+
 agg_dt <- aggregate(conserved ~ region, data=m_dt, FUN=sum)
 agg_dt <- agg_dt[order(agg_dt$conserved),]
 stopifnot(agg_dt$conserved >= atMin)
@@ -110,14 +114,6 @@ agg_dt <- agg_dt_exprds
 agg_dt <- agg_dt[order(agg_dt$conserved),]
 stopifnot(!duplicated(agg_dt$region))
 reg_levels <- as.character(agg_dt$region)
-
-
-
-# plot(
-#   x = 1:nrow(agg_dt), 
-#   y = agg_dt$conserved,
-#   type="b"
-# )
 
 inFile <- file.path(runFolder, 
                     "TAD_MATCHING_SIGNIF_ACROSS_HICDS_ALLMATCH_v2",
@@ -137,8 +133,9 @@ cat(paste0("... written: ", outFile, "\n"))
 tmp_dt <- m_dt[m_dt$conserved == 1,]
 agg_cmp_dt <- aggregate(exprds ~ region+cmpType, data=tmp_dt, FUN=function(x)length(unique(x)))
 colnames(agg_cmp_dt)[colnames(agg_cmp_dt) =="exprds"] <- "conserved"
+# agg_cmp_dt <- agg_cmp_dt[agg_cmp_dt$conserved >= atMin,]
+agg_cmp_dt <- agg_cmp_dt[as.character(agg_cmp_dt$region) %in% as.character(reg_levels), ]
 agg_cmp_dt$cmpCol <- all_cols[agg_cmp_dt$cmpType]
-
 
 conserv_atLeast <- agg_dt$region[agg_dt$conserved >= atLeast] 
 reg_levels2 <- reg_levels[reg_levels %in% conserv_atLeast]
@@ -150,8 +147,7 @@ reg_levels2 <- reg_levels[reg_levels %in% conserv_atLeast]
 plot_dt <- agg_cmp_dt
 
 save(plot_dt, file="plot_dt.Rdata", version = 2)
-plot_dt <- plot_dt[plot_dt$conserved >= atMin,]
-nCons <- length(plot_dt$region)
+nCons <- length(unique(plot_dt$region))
 
 plot_dt$region <- factor(plot_dt$region, levels = reg_levels)
 stopifnot(!is.na(plot_dt$region))
@@ -166,7 +162,7 @@ cmp_levels <- sort(cmp_names)
 
 stopifnot(cmp_levels %in% names(all_cols_lab))
 
-plot_dt$region_rank <- rank(as.numeric(plot_dt$region))
+plot_dt$region_rank <- as.numeric(plot_dt$region)
 
 my_ylab <- "# exprds conserved"
 my_xlab <- paste0("Ranked conserved regions (", nCons, " with >= ", atMin, " exprds cons.)")
@@ -269,7 +265,7 @@ byCmp_dt <- foreach(cmpT = allCmpTypes, .combine='rbind') %dopar% {
   inFile <- file.path(runFolder, 
                       "TAD_MATCHING_SIGNIF_ACROSS_HICDS_ALLMATCH_v2",
                       cmpT,
-                      paste0("plot_matching_dt_tadsadjPvalComb", tad_pval, "_minBpRatio", minMatchBp_ratio, "_minInterGenes", minMatch_genes, ".Rdata"))
+                      paste0("plot_matching_dt_signif_tadsadjPvalComb", tad_pval, "_minBpRatio", minMatchBp_ratio, "_minInterGenes", minMatch_genes, ".Rdata"))
   
   matching_dt <- get(load(inFile))
   

@@ -73,7 +73,7 @@ atMin <- 2
 inFile <- file.path(runFolder,
                     "TAD_MATCHING_SIGNIF_ACROSS_HICDS_ALLMATCH_v2",
                     cmpType,
-                    paste0("plot_matching_dt_tadsadjPvalComb", tad_pval, "_minBpRatio", minMatchBp_ratio, "_minInterGenes", minMatch_genes, ".Rdata"))
+                    paste0("plot_matching_dt_signif_tadsadjPvalComb", tad_pval, "_minBpRatio", minMatchBp_ratio, "_minInterGenes", minMatch_genes, ".Rdata"))
 
 matching_dt <- get(load(inFile))
 
@@ -245,7 +245,7 @@ byCmp_dt <- foreach(cmpT = allCmpTypes, .combine='rbind') %dopar% {
   inFile <- file.path(runFolder,
                       "TAD_MATCHING_SIGNIF_ACROSS_HICDS_ALLMATCH_v2",
                       cmpT,
-                      paste0("plot_matching_dt_tadsadjPvalComb", tad_pval, "_minBpRatio", minMatchBp_ratio, "_minInterGenes", minMatch_genes, ".Rdata"))
+                      paste0("plot_matching_dt_signif_tadsadjPvalComb", tad_pval, "_minBpRatio", minMatchBp_ratio, "_minInterGenes", minMatch_genes, ".Rdata"))
   
   matching_dt <- get(load(inFile))
   
