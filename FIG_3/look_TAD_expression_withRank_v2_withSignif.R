@@ -5,9 +5,9 @@
 # should be normalized sample-wise to sum up to 1 !!!
 
 startTime <- Sys.time()
-cat(paste0("> Rscript look_TAD_expression_withRank_v2.R\n"))
+cat(paste0("> Rscript look_TAD_expression_withRank_v2_withSignif.R\n"))
 
-script_name <- "look_TAD_expression_withRank_v2.R"
+script_name <- "look_TAD_expression_withRank_v2_withSignif.R"
 
 suppressPackageStartupMessages(library(foreach, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
 suppressPackageStartupMessages(library(doMC, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
@@ -20,34 +20,34 @@ ggsci_subpal <- ""
 require(reshape2)
 log10_offset <- 0.01
 
-# Rscript look_TAD_expression_withRank_v2.R ENCSR489OCU_NCI-H460_40kb TCGAluad_mutKRAS_mutEGFR chr10_TAD16
-# Rscript look_TAD_expression_withRank_v2.R ENCSR489OCU_NCI-H460_40kb TCGAluad_mutKRAS_mutEGFR chr17_TAD162
-# Rscript look_TAD_expression_withRank_v2.R ENCSR489OCU_NCI-H460_40kb TCGAluad_nonsmoker_smoker chr10_TAD16
-# Rscript look_TAD_expression_withRank_v2.R ENCSR489OCU_NCI-H460_40kb TCGAluad_nonsmoker_smoker chr17_TAD162
-# Rscript look_TAD_expression_withRank_v2.R ENCSR489OCU_NCI-H460_40kb TCGAluad_norm_luad chr11_TAD390
-# Rscript look_TAD_expression_withRank_v2.R ENCSR489OCU_NCI-H460_40kb TCGAluad_norm_luad chr10_TAD268
-# Rscript look_TAD_expression_withRank_v2.R ENCSR489OCU_NCI-H460_40kb TCGAlusc_norm_lusc chr11_TAD390
-# Rscript look_TAD_expression_withRank_v2.R ENCSR489OCU_NCI-H460_40kb TCGAlusc_norm_lusc chr10_TAD268
+# Rscript look_TAD_expression_withRank_v2_withSignif.R ENCSR489OCU_NCI-H460_40kb TCGAluad_mutKRAS_mutEGFR chr10_TAD16
+# Rscript look_TAD_expression_withRank_v2_withSignif.R ENCSR489OCU_NCI-H460_40kb TCGAluad_mutKRAS_mutEGFR chr17_TAD162
+# Rscript look_TAD_expression_withRank_v2_withSignif.R ENCSR489OCU_NCI-H460_40kb TCGAluad_nonsmoker_smoker chr10_TAD16
+# Rscript look_TAD_expression_withRank_v2_withSignif.R ENCSR489OCU_NCI-H460_40kb TCGAluad_nonsmoker_smoker chr17_TAD162
+# Rscript look_TAD_expression_withRank_v2_withSignif.R ENCSR489OCU_NCI-H460_40kb TCGAluad_norm_luad chr11_TAD390
+# Rscript look_TAD_expression_withRank_v2_withSignif.R ENCSR489OCU_NCI-H460_40kb TCGAluad_norm_luad chr10_TAD268
+# Rscript look_TAD_expression_withRank_v2_withSignif.R ENCSR489OCU_NCI-H460_40kb TCGAlusc_norm_lusc chr11_TAD390
+# Rscript look_TAD_expression_withRank_v2_withSignif.R ENCSR489OCU_NCI-H460_40kb TCGAlusc_norm_lusc chr10_TAD268
 # 
 # FOR CONSERVED REGION 130 - top1 all (GIMAP)
-# Rscript look_TAD_expression_withRank_v2.R ENCSR312KHQ_SK-MEL-5_40kb TCGAskcm_lowInf_highInf chr7_TAD568
+# Rscript look_TAD_expression_withRank_v2_withSignif.R ENCSR312KHQ_SK-MEL-5_40kb TCGAskcm_lowInf_highInf chr7_TAD568
 # FOR CONSERVED REGION 42 - top 2 all (AKR1C)
-# Rscript look_TAD_expression_withRank_v2.R LG2_40kb TCGAluad_mutKRAS_mutEGFR chr10_TAD15
+# Rscript look_TAD_expression_withRank_v2_withSignif.R LG2_40kb TCGAluad_mutKRAS_mutEGFR chr10_TAD15
 # FOR CONSERVED REGION 11 - top3 all (CD8)
-# Rscript look_TAD_expression_withRank_v2.R Panc1_rep12_40kb TCGApaad_wt_mutKRAS chr1_TAD544
+# Rscript look_TAD_expression_withRank_v2_withSignif.R Panc1_rep12_40kb TCGApaad_wt_mutKRAS chr1_TAD544
 
 
 # FOR CONSERVED REGION 22 - top1 norm_tumor GIMAP
-# Rscript look_TAD_expression_withRank_v2.R ENCSR444WCZ_A549_40kb TCGAlusc_norm_lusc chr7_TAD553
+# Rscript look_TAD_expression_withRank_v2_withSignif.R ENCSR444WCZ_A549_40kb TCGAlusc_norm_lusc chr7_TAD553
 # FOR CONSERVED REGION 9 - top2 norm_tumor M1T
-# Rscript look_TAD_expression_withRank_v2.R GSE118514_RWPE1_40kb TCGAprad_norm_prad chr16_TAD163
+# Rscript look_TAD_expression_withRank_v2_withSignif.R GSE118514_RWPE1_40kb TCGAprad_norm_prad chr16_TAD163
 # FOR CONSERVED REGION 10 - top3 norm_tumor KRT
-# Rscript look_TAD_expression_withRank_v2.R ENCSR346DCU_LNCaP_40kb TCGAprad_norm_prad chr17_TAD146
+# Rscript look_TAD_expression_withRank_v2_withSignif.R ENCSR346DCU_LNCaP_40kb TCGAprad_norm_prad chr17_TAD146
 
 # TAD with highest number of missed low fc same dir
-# Rscript look_TAD_expression_withRank_v2.R LG1_40kb TCGAluad_nonsmoker_smoker chr19_TAD43
+# Rscript look_TAD_expression_withRank_v2_withSignif.R LG1_40kb TCGAluad_nonsmoker_smoker chr19_TAD43
 # example of TAD with recurrently missed
-# Rscript look_TAD_expression_withRank_v2.R LG1_40kb TCGAluad_nonsmoker_smoker chr10_TAD313
+# Rscript look_TAD_expression_withRank_v2_withSignif.R LG1_40kb TCGAluad_nonsmoker_smoker chr10_TAD313
 
 # example for 1 dataset
 #missedLowFCdiffDir: "chr4_TAD635"
@@ -60,11 +60,11 @@ log10_offset <- 0.01
 #ex_dt[ex_dt$region == "chr10_TAD16", c("ds_id", "geneSignif", "tadSignif", "symbol")]
 
 
-#Rscript look_TAD_expression_withRank_v2.R LG1_40kb TCGAluad_nonsmoker_smoker chr19_TAD43
-#Rscript look_TAD_expression_withRank_v2.R LG1_40kb TCGAluad_nonsmoker_smoker chr10_TAD313
-#Rscript look_TAD_expression_withRank_v2.R LG1_40kb TCGAluad_nonsmoker_smoker chr4_TAD635
-#Rscript look_TAD_expression_withRank_v2.R LG1_40kb TCGAluad_nonsmoker_smoker chr10_TAD16
-#Rscript look_TAD_expression_withRank_v2.R ENCSR079VIJ_G401_40kb TCGAkich_norm_kich chr1_TAD566
+#Rscript look_TAD_expression_withRank_v2_withSignif.R LG1_40kb TCGAluad_nonsmoker_smoker chr19_TAD43
+#Rscript look_TAD_expression_withRank_v2_withSignif.R LG1_40kb TCGAluad_nonsmoker_smoker chr10_TAD313
+#Rscript look_TAD_expression_withRank_v2_withSignif.R LG1_40kb TCGAluad_nonsmoker_smoker chr4_TAD635
+#Rscript look_TAD_expression_withRank_v2_withSignif.R LG1_40kb TCGAluad_nonsmoker_smoker chr10_TAD16
+#Rscript look_TAD_expression_withRank_v2_withSignif.R ENCSR079VIJ_G401_40kb TCGAkich_norm_kich chr1_TAD566
 
 
 
@@ -121,7 +121,7 @@ mainFolder <- file.path(runFolder)
 pipFolder <- file.path(mainFolder, "PIPELINE", "OUTPUT_FOLDER")
 settingFolder <- file.path(mainFolder, "PIPELINE", "INPUT_FILES")
 
-outFolder <- file.path("LOOK_TAD_EXPRESSION_WITH_RANK_V2")
+outFolder <- file.path("LOOK_TAD_EXPRESSION_WITH_RANK_V2_WITHSIGNIF")
 dir.create(outFolder, recursive = TRUE)
 
 entrezDT_file <- paste0(setDir, "/mnt/ed4/marie/entrez2synonym/entrez/ENTREZ_POS/gff_entrez_position_GRCh37p13_nodup.txt")
@@ -234,17 +234,21 @@ withRank_toplot_dt2$exprds <- exprds
 cat("merge withRank and inDT \n")
 
 withRank_toplot_dt2 <- merge(withRank_toplot_dt2, inDT, all.x=TRUE, all.y=FALSE, by=intersect(colnames(inDT), colnames(withRank_toplot_dt2)))
+withRank_toplot_dt2$pval_lab <- ifelse(withRank_toplot_dt2$adj.P.Val <= 0.001, "***", 
+                       ifelse(withRank_toplot_dt2$adj.P.Val <= 0.01, "**",
+                              ifelse(withRank_toplot_dt2$adj.P.Val <= 0.05, "*", "")))
 
 
-tmp <- withRank_toplot_dt2[,c("symbol", "start", "end", "gene_rank")]
+tmp <- withRank_toplot_dt2[,c("symbol", "start", "end", "gene_rank", "pval_lab")]
+stopifnot(!is.na(tmp$pval_lab))
 tmp <- unique(tmp)
 tmp <- tmp[order(tmp$start, tmp$end),]
-tmp$lab <- paste0(tmp$symbol, "\n(rank: ", tmp$gene_rank, ")")
+tmp$lab <- paste0(tmp$symbol, "\n(rank: ", tmp$gene_rank, ")\n", tmp$pval_lab)
 
 withRank_toplot_dt2$symbol <- factor(withRank_toplot_dt2$symbol, levels=tmp$symbol)
 withRank_toplot_dt2$cond <- factor(withRank_toplot_dt2$cond, levels = c(cond1,cond2))
 
-withRank_toplot_dt2$symbol_lab <- paste0(withRank_toplot_dt2$symbol, "\n(rank: ", withRank_toplot_dt2$gene_rank, ")")
+withRank_toplot_dt2$symbol_lab <- paste0(withRank_toplot_dt2$symbol, "\n(rank: ", withRank_toplot_dt2$gene_rank, ")\n", withRank_toplot_dt2$pval_lab )
 withRank_toplot_dt2$symbol_lab <- factor(withRank_toplot_dt2$symbol_lab, levels=tmp$lab)
 stopifnot(!is.na(withRank_toplot_dt2$symbol_lab))
 

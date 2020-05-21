@@ -11,6 +11,8 @@ require(ggsci)
 
 # Rscript nSignifGenes_nSignifTADs_sumSamp.R
 
+cmp_levels <- sort(cmp_names)
+
 outFolder <- file.path("NSIGNIFGENES_NSIGNIFTADS_SUMSAMP")
 dir.create(outFolder, recursive = TRUE)
 
@@ -42,10 +44,8 @@ colnames(nSignifTADs_dt)[colnames(nSignifTADs_dt) == "tad_adjCombPval"] <- "nSig
 ratioSignifTADs_dt <- aggregate(tad_adjCombPval~hicds + exprds, data = tadDT, FUN=function(x) mean(x<=tadSignifThresh))
 colnames(ratioSignifTADs_dt)[colnames(ratioSignifTADs_dt) == "tad_adjCombPval"] <- "ratioSignifTADs"
 
-
 ratioSignif_dt <- merge(ratioSignifGenes_dt, ratioSignifTADs_dt, by=c("hicds", "exprds"), all=TRUE)
 stopifnot(!is.na(ratioSignif_dt))
-
 
 nSignif_dt <- merge(nSignifGenes_dt, nSignifTADs_dt, by=c("hicds", "exprds"), all=TRUE)
 stopifnot(!is.na(nSignif_dt))
@@ -177,7 +177,10 @@ legend("bottom",
 )
 signifPlot <- recordPlot()
 
+mtext(side=1, col = labcols, text = paste0(labsymbol), at= 1:nrow(nSignif_dt),  las=2,cex = 0.9, line = 0)
+
 invisible(dev.off())
+
 cat(paste0("... written: ", outFile, "\n"))
 
 outFile <- file.path(outFolder, paste0("nSignifGenes_nSignifTADs_all_ds_withLeg_geneSignif",geneSignifThresh, "_tadSignif", tadSignifThresh, ".", plotType))
@@ -302,6 +305,11 @@ cat(paste0("... written: ", outFile, "\n"))
 
 nSignif_dt$nSignifGenes_log10 <- log10(nSignif_dt$nSignifGenes)
 
+nSignif_dt$cmpType <- all_cmps[paste0(nSignif_dt$exprds)]
+stopifnot(!is.na(nSignif_dt$cmpType))
+ratioSignif_dt$cmpType <- all_cmps[paste0(ratioSignif_dt$exprds)]
+stopifnot(!is.na(ratioSignif_dt$cmpType))
+
 sampBreaks <- c(150, 300, 450, 600)
 
 myHeightGG <- 5
@@ -330,18 +338,19 @@ subTit <- paste0("TAD signif. adj. p-val <= ", tadSignifThresh, "; gene signif. 
 #   )
 #   
   
-
-p_ratio <- ggplot(ratioSignif_dt, aes(x=ratioSignifTADs, y=ratioSignifGenes, size=sumSample))+
+p_ratio <-  ggplot(ratioSignif_dt, aes(x=ratioSignifTADs, y=ratioSignifGenes, size=sumSample, color=cmpType))+
   ggtitle(plotTit, subtitle = subTit)+
   scale_y_continuous( breaks = scales::pretty_breaks(n = 10))+
   scale_x_continuous( breaks = scales::pretty_breaks(n = 10))+
-  labs(size="# samples\n(samp1+samp2)", x = "Ratio signif. TADs", y="Ratio signif. genes")+
+  scale_color_manual(values=all_cols, labels=cmp_levels)+
+  labs(size="# samples\n(samp1+samp2)", x = "Ratio signif. TADs", y="Ratio signif. genes", color="")+
   scale_size_continuous(breaks = sampBreaks)+
-  geom_point() + 
+  geom_point(alpha=0.6) + 
   my_box_theme +
   theme(
     plot.subtitle = element_text(size=12, hjust=0.5, face="italic"),
     axis.line=element_line(),
+    legend.key = element_rect(fill = NA),
     legend.text=element_text(size=12),
     legend.title=element_text(size=14)
     )
@@ -351,16 +360,18 @@ ggsave(p_ratio, filename = outFile, height=myHeightGG, width=myWidthGG)
 cat(paste0("... written: ", outFile, "\n"))
 
 
-p_nbr <- ggplot(nSignif_dt, aes(x=nSignifTADs, y=nSignifGenes_log10, size=sumSample))+
+p_nbr <- ggplot(nSignif_dt, aes(x=nSignifTADs, y=nSignifGenes_log10, size=sumSample, color=cmpType))+
   ggtitle(plotTit, subtitle = subTit)+
-  geom_point() + 
+  scale_color_manual(values=all_cols, labels=cmp_levels)+
+  geom_point(alpha=0.6) + 
   scale_y_continuous( breaks = scales::pretty_breaks(n = 10))+
   scale_x_continuous( breaks = scales::pretty_breaks(n = 10))+
-  labs(size="# samples\n(samp1+samp2)", x = "# signif. TADs", y="# signif. genes [log10]")+
+  labs(size="# samples\n(samp1+samp2)", x = "# signif. TADs", y="# signif. genes [log10]", color="")+
   scale_size_continuous(breaks = sampBreaks)+
   my_box_theme+
   theme(
     plot.subtitle = element_text(size=12, hjust=0.5, face="italic"),
+    legend.key = element_rect(fill = NA),
     legend.text=element_text(size=12),
     legend.title=element_text(size=14),
     axis.line=element_line()
