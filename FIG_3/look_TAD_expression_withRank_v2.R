@@ -275,11 +275,11 @@ all_conds <- c(cond1_lab, cond2_lab)
 cond_labels <- paste0(all_conds, " (n=" , table(check_dt$cond_labels) [all_conds], ")")
 
 
-p_var_boxplot <-  ggplot(withRank_toplot_dt2, aes(x = symbol_lab, y = value_log10, fill = cond)) + 
+p_var_boxplot <-  ggplot(withRank_toplot_dt2, aes(x = symbol_lab, y = value_log10, color = cond)) + 
   # geom_boxplot(notch = TRUE, outlier.shape=NA)+
   # geom_jitter(aes(colour = cond), position=position_jitterdodge())+
   geom_boxplot(notch = TRUE, outlier.shape=NA)+
-  geom_point(aes(color=cond), position=position_jitterdodge(),  alpha=0.5) +
+  geom_point(aes(fill=cond), position=position_jitterdodge(),  alpha=0.5) +
   
   
  

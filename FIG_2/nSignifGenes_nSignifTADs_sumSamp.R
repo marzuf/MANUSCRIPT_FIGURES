@@ -31,10 +31,21 @@ geneDT <- unique(geneDT)
 nSignifGenes_dt <- aggregate(adj.P.Val~hicds + exprds, data = geneDT, FUN=function(x) sum(x<=geneSignifThresh))
 colnames(nSignifGenes_dt)[colnames(nSignifGenes_dt) == "adj.P.Val"] <- "nSignifGenes"
 
+ratioSignifGenes_dt <- aggregate(adj.P.Val~hicds + exprds, data = geneDT, FUN=function(x) mean(x<=geneSignifThresh))
+colnames(ratioSignifGenes_dt)[colnames(ratioSignifGenes_dt) == "adj.P.Val"] <- "ratioSignifGenes"
+
 tadDT <- inDT[,c("hicds", "exprds", "region", "tad_adjCombPval")]
 tadDT <- unique(tadDT)
 nSignifTADs_dt <- aggregate(tad_adjCombPval~hicds + exprds, data = tadDT, FUN=function(x) sum(x<=tadSignifThresh))
 colnames(nSignifTADs_dt)[colnames(nSignifTADs_dt) == "tad_adjCombPval"] <- "nSignifTADs"
+
+ratioSignifTADs_dt <- aggregate(tad_adjCombPval~hicds + exprds, data = tadDT, FUN=function(x) mean(x<=tadSignifThresh))
+colnames(ratioSignifTADs_dt)[colnames(ratioSignifTADs_dt) == "tad_adjCombPval"] <- "ratioSignifTADs"
+
+
+ratioSignif_dt <- merge(ratioSignifGenes_dt, ratioSignifTADs_dt, by=c("hicds", "exprds"), all=TRUE)
+stopifnot(!is.na(ratioSignif_dt))
+
 
 nSignif_dt <- merge(nSignifGenes_dt, nSignifTADs_dt, by=c("hicds", "exprds"), all=TRUE)
 stopifnot(!is.na(nSignif_dt))
@@ -42,9 +53,20 @@ stopifnot(!is.na(nSignif_dt))
 nSignif_dt <- nSignif_dt[order(nSignif_dt$nSignifTADs, decreasing = TRUE),]
 
 # retrieve the number of samples
+ratioSignif_dt$dataset <- file.path(ratioSignif_dt$hicds, ratioSignif_dt$exprds)
+ratioSignif_dt$sumSample <- sapply(ratioSignif_dt$dataset, function(x) {
+  settingFile <- file.path(settingFolder, dirname(x), paste0("run_settings_", basename(x), ".R"))
+  stopifnot(file.exists(settingFile))
+  source(settingFile)
+  samp1 <- get(load(file.path(setDir, sample1_file)))
+  samp2 <- get(load(file.path(setDir, sample2_file)))
+  sum(c(length(samp1), length(samp2)))
+})
+ratioSignif_dt$dataset <- paste0(ratioSignif_dt$hicds, "\n", ratioSignif_dt$exprds)
+ratioSignif_dt <- ratioSignif_dt[order(ratioSignif_dt$sumSample),]
+
 
 nSignif_dt$dataset <- file.path(nSignif_dt$hicds, nSignif_dt$exprds)
-
 nSignif_dt$sumSample <- sapply(nSignif_dt$dataset, function(x) {
   settingFile <- file.path(settingFolder, dirname(x), paste0("run_settings_", basename(x), ".R"))
   stopifnot(file.exists(settingFile))
@@ -53,12 +75,8 @@ nSignif_dt$sumSample <- sapply(nSignif_dt$dataset, function(x) {
   samp2 <- get(load(file.path(setDir, sample2_file)))
   sum(c(length(samp1), length(samp2)))
 })
-
 nSignif_dt$dataset <- paste0(nSignif_dt$hicds, "\n", nSignif_dt$exprds)
-
-
 nSignif_dt <- nSignif_dt[order(nSignif_dt$sumSample),]
-
 
 outFile <- file.path(outFolder, "nSignif_dt_sumSample.Rdata")
 save(nSignif_dt, file = outFile, version=2)
@@ -121,8 +139,6 @@ legend("topleft",
                 paste0("TAD signif.: adj. p-val <= ", tadSignifThresh)),
        bty="n")
 
-
-
 mtext(side=3, line=-1, text=paste0("all datasets - n= ", length(unique(nSignif_dt$dataset))))
 # mtext(side=1, col = labcols, text = nSignif_dt$dataset, at= 1:nrow(nSignif_dt), las=2, cex =0.5)
 axis(2, col = tad_signif_col, col.ticks = tad_signif_col, col.axis=tad_signif_col, at=seq(from=0, to = maxTADs, by=10))
@@ -161,8 +177,6 @@ legend("bottom",
 )
 signifPlot <- recordPlot()
 
-
-
 invisible(dev.off())
 cat(paste0("... written: ", outFile, "\n"))
 
@@ -174,9 +188,6 @@ mtext(side=1, col = labcols, text = nSignif_dt$dataset, at= 1:nrow(nSignif_dt), 
 foo <- dev.off()
 cat(paste0("... written: ", outFile, "\n"))
 
-
-
-
 outFile <- file.path(outFolder, paste0("nSignifGenes_nSignifTADs_all_ds_withNbrSamp_geneSignif",geneSignifThresh, "_tadSignif", tadSignifThresh, ".", plotType))
 do.call(plotType, list(outFile, height=myHeight*1.2, width=myWidth*2.5))
 par(mar = c(5,5,2,5))
@@ -184,7 +195,6 @@ replayPlot(signifPlot)
 mtext(side=1, col = labcols, text = paste0(nSignif_dt$sumSample, " ", labsymbol), at= 1:nrow(nSignif_dt),  las=2,cex = 0.9, line = 0)
 foo <- dev.off()
 cat(paste0("... written: ", outFile, "\n"))
-
 
 outFile <- file.path(outFolder, paste0("nSignifGenes_nSignifTADs_all_ds_withNbrSamp_geneSignif",geneSignifThresh, "_tadSignif", tadSignifThresh, ".", plotType))
 do.call(plotType, list(outFile, height=myHeight*1.2, width=myWidth*2.5))
@@ -284,5 +294,80 @@ addCorr(x=nSignif_dt$sumSample,y=nSignif_dt$nSignifGenes,bty="n")
 #)
 foo <- dev.off()
 cat(paste0("... written: ", outFile, "\n"))
+
+# save(nSignif_dt, version=2, file="nSignif_dt.Rdata")
+# save(ratioSignif_dt, version=2, file="ratioSignif_dt.Rdata")
+# load("nSignif_dt.Rdata")
+# load("ratioSignif_dt.Rdata")
+
+nSignif_dt$nSignifGenes_log10 <- log10(nSignif_dt$nSignifGenes)
+
+sampBreaks <- c(150, 300, 450, 600)
+
+myHeightGG <- 5
+myWidthGG <- 7
+
+plotTit <- paste0("# signif. features - all datasets - n= ", length(unique(nSignif_dt$dataset)))
+subTit <- paste0("TAD signif. adj. p-val <= ", tadSignifThresh, "; gene signif. adj. p-val <= ", geneSignifThresh)
+
+# 
+# ggplot(ratioSignif_dt, aes(y=ratioSignifTADs, x=ratioSignifGenes, size=sumSample))+
+#   coord_polar(theta = "x")+
+# # ggplot(ratioSignif_dt, aes(x=ratioSignifTADs, y=ratioSignifGenes, size=sumSample))+
+# #   coord_polar(theta = "x") +
+#   ggtitle(plotTit, subtitle = subTit)+
+#   scale_y_continuous( breaks = scales::pretty_breaks(n = 10))+
+#   scale_x_continuous( breaks = scales::pretty_breaks(n = 10))+
+#   labs(size="# samples\n(samp1+samp2)", x = "Ratio signif. TADs", y="Ratio signif. genes")+
+#   scale_size_continuous(breaks = sampBreaks)+
+#   geom_point() + 
+#   my_box_theme +
+#   theme(
+#     plot.subtitle = element_text(size=12, hjust=0.5, face="italic"),
+#     axis.line=element_line(),
+#     legend.text=element_text(size=12),
+#     legend.title=element_text(size=14)
+#   )
+#   
+  
+
+p_ratio <- ggplot(ratioSignif_dt, aes(x=ratioSignifTADs, y=ratioSignifGenes, size=sumSample))+
+  ggtitle(plotTit, subtitle = subTit)+
+  scale_y_continuous( breaks = scales::pretty_breaks(n = 10))+
+  scale_x_continuous( breaks = scales::pretty_breaks(n = 10))+
+  labs(size="# samples\n(samp1+samp2)", x = "Ratio signif. TADs", y="Ratio signif. genes")+
+  scale_size_continuous(breaks = sampBreaks)+
+  geom_point() + 
+  my_box_theme +
+  theme(
+    plot.subtitle = element_text(size=12, hjust=0.5, face="italic"),
+    axis.line=element_line(),
+    legend.text=element_text(size=12),
+    legend.title=element_text(size=14)
+    )
+
+outFile <- file.path(outFolder, paste0("ratioGenesSignif_ratioTADsSignif_dotSize_plot.", plotType))
+ggsave(p_ratio, filename = outFile, height=myHeightGG, width=myWidthGG)
+cat(paste0("... written: ", outFile, "\n"))
+
+
+p_nbr <- ggplot(nSignif_dt, aes(x=nSignifTADs, y=nSignifGenes_log10, size=sumSample))+
+  ggtitle(plotTit, subtitle = subTit)+
+  geom_point() + 
+  scale_y_continuous( breaks = scales::pretty_breaks(n = 10))+
+  scale_x_continuous( breaks = scales::pretty_breaks(n = 10))+
+  labs(size="# samples\n(samp1+samp2)", x = "# signif. TADs", y="# signif. genes [log10]")+
+  scale_size_continuous(breaks = sampBreaks)+
+  my_box_theme+
+  theme(
+    plot.subtitle = element_text(size=12, hjust=0.5, face="italic"),
+    legend.text=element_text(size=12),
+    legend.title=element_text(size=14),
+    axis.line=element_line()
+  )
+outFile <- file.path(outFolder, paste0("nbrGenesSignif_nbrTADsSignif_dotSize_plot.", plotType))
+ggsave(p_nbr, filename = outFile, height=myHeightGG, width=myWidthGG)
+cat(paste0("... written: ", outFile, "\n"))
+
 
 

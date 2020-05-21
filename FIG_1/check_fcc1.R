@@ -10,7 +10,7 @@ require(reshape2)
 
 require(ggpubr)
 
-registerDoMC(40)
+registerDoMC(50)
 
 plotType <- "svg"
 
@@ -23,7 +23,7 @@ myHeightGG <- 5
 outFolder <- "CHECK_FCC1"
 dir.create(outFolder, recursive = TRUE)
 
-buildData <- FALSE
+buildData <- TRUE
 
 ggsci_pal <- "lancet"
 ggsci_subpal <- ""
@@ -71,7 +71,8 @@ if(buildData){
       keepCols <- sample(x=1:ncol(fcc_perm_dt), size = keepPermut)
       stopifnot(length(keepCols) == keepPermut)
       fcc_perm_dt <- fcc_perm_dt[,keepCols ]
-      all_perm <- apply(fcc_perm_dt[,1:5], 2, function(x) {
+
+      all_perm <- apply(fcc_perm_dt, 2, function(x) {
         fcc1_idx <- which(x == 1)
         perm_tad_fcc1 <- rownames(fcc_perm_dt)[fcc1_idx]
         stopifnot(perm_tad_fcc1 %in% names(tad_size))
@@ -83,6 +84,8 @@ if(buildData){
         perm_meanSizeFCC1 = mean(perm_tadSize_fcc1),
         perm_medianSizeFCC1 = median(perm_tadSize_fcc1)))
       })
+      stopifnot(nrow(all_perm) == 4)
+      stopifnot(ncol(all_perm) == keepPermut)
       permMean_nFCC1 <- mean(all_perm[1,])
       permMean_nFCC1size3 <- mean(all_perm[2,])
       permMean_meanSizeFCC1 <- mean(all_perm[3,])

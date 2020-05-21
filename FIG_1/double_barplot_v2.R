@@ -19,6 +19,8 @@ ggsci_subpal <- ""
 mycols <- setNames(pal_d3()(3), c("<=0.5", "]0.5, 1[", "1"))
 mycols <- mycols[2:3]
 
+cmp_levels <- sort(cmp_names)
+
 myHeight <- 5
 myWidth <- 8
 
@@ -82,8 +84,8 @@ p1_aucRatio_plot <- ggplot(dt1, aes(x=dataset, y = fcc_auc_minus1, color=cmp, fi
   ggtitle(p1_tit, subtitle = p1_sub)+
   scale_y_continuous(breaks = y_range, labels = y_labs, name=p1_ylab)+
   scale_x_discrete(name="")+
-  scale_color_manual(values=all_cols)+
-  scale_fill_manual(values=all_cols)+
+  scale_color_manual(values=all_cols, labels=cmp_levels)+
+  scale_fill_manual(values=all_cols, labels=cmp_levels)+
   labs(fill=p1_legTitle) +
   my_box_theme+
   geom_bar(stat="identity")+
