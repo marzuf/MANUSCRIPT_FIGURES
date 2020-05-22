@@ -91,6 +91,8 @@ nDS <- length(unique(obsPerm_dt$dataset))
 
 obsPerm_dt$ratioFCC_obs_perm_log2 <- log2(obsPerm_dt$ratioFCC_obs_perm)
 
+obsPerm_dt$nFCC_obs_perm_log2 <- log2(obsPerm_dt$nFCC_obs_perm)
+
 cut_dt <- obsPerm_dt[as.character(obsPerm_dt$intervalFCC) %in% unique(as.character(obsPerm_dt$intervalFCC[obsPerm_dt$ratioFCC_obs > 0])),]
 
 curr_heat_theme <- theme(
@@ -108,7 +110,11 @@ curr_heat_theme <- theme(
 
 subTit <- "OBS/PERMG2T"
 
-densityRatio_plot <- ggplot(obsPerm_dt, aes(x = dataset, y = intervalFCC, fill = ratioFCC_obs_perm_log2))+
+#########################################
+######################################### ratio of ratio
+#########################################
+
+densityRatio_plot <- ggplot(obsPerm_dt, aes(x = dataset, y = intervalFCC, fill = nFCC_obs_perm_log2))+
   geom_tile() +
   ggtitle(paste0("FCC score distribution"),
           subtitle = subTit) +
@@ -123,13 +129,13 @@ densityRatio_plot <- ggplot(obsPerm_dt, aes(x = dataset, y = intervalFCC, fill =
   curr_heat_theme
 
 
-outFile <- file.path(outFolder, paste0("FCC_score_dist_allDS_obs_perm_ratio_heatmap.", plotType))
+outFile <- file.path(outFolder, paste0("FCC_score_dist_allDS_obs_perm_ratio_nbr_heatmap.", plotType))
 ggsave(densityRatio_plot, filename = outFile,  height=myHeightGG, width=myWidthGG)
 cat(paste0("... written: ", outFile, "\n"))
 
 
 
-densityRatio_plot_cut <- ggplot(cut_dt, aes(x = dataset, y = intervalFCC, fill = ratioFCC_obs_perm_log2))+
+densityRatio_plot_cut <- ggplot(cut_dt, aes(x = dataset, y = intervalFCC, fill = nFCC_obs_perm_log2))+
   geom_tile() +
   ggtitle(paste0("FCC score distribution"),
           subtitle = subTit) +
@@ -143,7 +149,51 @@ densityRatio_plot_cut <- ggplot(cut_dt, aes(x = dataset, y = intervalFCC, fill =
   theme(axis.line=element_line())+
   scale_fill_gradientn(colours=colorRamps::matlab.like2(20))
 
-outFile <- file.path(outFolder, paste0("FCC_score_dist_allDS_obs_perm_ratio_heatmap_cut.", plotType))
+outFile <- file.path(outFolder, paste0("FCC_score_dist_allDS_obs_perm_ratio_nbr_heatmap_cut.", plotType))
 ggsave(densityRatio_plot_cut, filename = outFile,  height=myHeightGG, width=myWidthGG)
 cat(paste0("... written: ", outFile, "\n"))
+
+#########################################
+######################################### ratio of nbr
+#########################################
+
+densityRatio_plot <- ggplot(obsPerm_dt, aes(x = dataset, y = intervalFCC, fill = ratioFCC_obs_perm_log2))+
+  geom_tile() +
+  ggtitle(paste0("FCC score distribution"),
+          subtitle = subTit) +
+  scale_x_discrete(name="Datasets ranked by decreasing AUC FCC ratio", labels = rep(labsymbol, nDS ), expand = c(0, 0))  +
+  scale_y_discrete(name="FCC score",  expand = c(0, 0))+
+  labs(fill = "Log2 obs./perm.\nratio TADs")+
+  # geom_vline(xintercept=seq(from=1.5, by=1, length.out = nDS-1), linetype=3) + 
+  geom_vline(xintercept=seq(from=0.5, by=1, length.out = nDS+1), linetype=1) + 
+  geom_hline(yintercept=seq(from=0.5, by=1, length.out = nDS+1), linetype=1) + 
+  theme(axis.line=element_line())+
+  scale_fill_gradientn(colours=colorRamps::matlab.like2(20))+
+  curr_heat_theme
+
+
+outFile <- file.path(outFolder, paste0("FCC_score_dist_allDS_obs_perm_ratio_ratio_heatmap.", plotType))
+ggsave(densityRatio_plot, filename = outFile,  height=myHeightGG, width=myWidthGG)
+cat(paste0("... written: ", outFile, "\n"))
+
+
+
+densityRatio_plot_cut <- ggplot(cut_dt, aes(x = dataset, y = intervalFCC, fill = ratioFCC_obs_perm_log2))+
+  geom_tile() +
+  ggtitle(paste0("FCC score distribution"),
+          subtitle = subTit) +
+  scale_x_discrete(name="Datasets ranked by decreasing AUC FCC ratio", labels = rep(labsymbol, nDS ), expand = c(0, 0))  +
+  scale_y_discrete(name="FCC score",  expand = c(0, 0))+
+  labs(fill = "Log2 obs./perm.\nratio TADs")+
+  curr_heat_theme+
+  # geom_vline(xintercept=seq(from=1.5, by=1, length.out = nDS-1), linetype=3) +
+  geom_vline(xintercept=seq(from=0.5, by=1, length.out = nDS+1), linetype=1) + 
+  geom_hline(yintercept=seq(from=0.5, by=1, length.out = nDS+1), linetype=1) + 
+  theme(axis.line=element_line())+
+  scale_fill_gradientn(colours=colorRamps::matlab.like2(20))
+
+outFile <- file.path(outFolder, paste0("FCC_score_dist_allDS_obs_perm_ratio_ratio_heatmap_cut.", plotType))
+ggsave(densityRatio_plot_cut, filename = outFile,  height=myHeightGG, width=myWidthGG)
+cat(paste0("... written: ", outFile, "\n"))
+
 

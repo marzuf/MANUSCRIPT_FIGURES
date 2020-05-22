@@ -53,18 +53,25 @@ tadSignifThresh <- 0.01
 ############################### barplot missed top TADs - top genes
 ##############################################################
 
+tmp_dt <- inDT[inDT$tad_rank <= nTopTADs,]
+ntoprank_dt <- aggregate(tad_id~hicds+exprds, data = tmp_dt, FUN=function(x)length(unique(x)))
+ntoprank_dt <- ntoprank_dt[order(ntoprank_dt$tad_id, decreasing = TRUE),]
+ntoprank_dt$dataset <- file.path(ntoprank_dt$hicds, ntoprank_dt$exprds)
+ntoptads_byDS <- setNames(ntoprank_dt$tad_id, ntoprank_dt$dataset)
+
 # found the top TADs that have no top 100 genes:
 
 # top 10 tads
-top10_tads <- inDT$tad_id[inDT$tad_rank <= nTopTADs]
+top10_tads <- unique(inDT$tad_id[inDT$tad_rank <= nTopTADs])
 
 # tads of the top 100 genes
-top100genes_tads <- inDT$tad_id[inDT$gene_rank <= nTopGenes]
+top100genes_tads <- unique(inDT$tad_id[inDT$gene_rank <= nTopGenes])
 
 top_missed_dt <- data.frame(missed_id=setdiff(top10_tads, top100genes_tads), stringsAsFactors=FALSE)
 top_missed_dt$dataset <- dirname(top_missed_dt$missed_id)
+stopifnot(!duplicated(top_missed_dt$missed_id))
 
-top_agg_missed_dt <- aggregate(missed_id ~ dataset, data=top_missed_dt, FUN=length)
+top_agg_missed_dt <- aggregate(missed_id ~ dataset, data=top_missed_dt, FUN=function(x)length(unique(x)))
 
 stopifnot(inDT$tad_rank[inDT$tad_id %in% top_missed_dt$missed_id] <= nTopTADs)
 stopifnot(inDT$gene_rank[inDT$tad_id %in% top_missed_dt$missed_id] > nTopGenes)
@@ -92,6 +99,138 @@ outFile <- file.path(outFolder,
                      paste0("topTADsWithoutTopGenes_nTopTADs", nTopTADs, "_nTopGenes", nTopGenes, "_barplot.", plotType))
 ggsave(plot = top_top_bar, filename = outFile, height=myHeightGG, width = myWidthGG)
 cat(paste0("... written: ", outFile, "\n"))
+
+save(top_agg_missed_dt, file="top_agg_missed_dt.Rdata", version=2)
+save(ntoptads_byDS, file="ntoptads_byDS", version=2)
+
+top_agg_missed_dt$nTopTADs <- ntoptads_byDS[paste0(top_agg_missed_dt$dataset)]
+stopifnot(!is.na(top_agg_missed_dt$nTopTADs))
+top_agg_missed_dt$missed_id_ratio <- top_agg_missed_dt$missed_id/top_agg_missed_dt$nTopTADs 
+
+save(top_agg_missed_dt, file="top_agg_missed_dt.Rdata", version=2)
+
+top_agg_missed_dt <- top_agg_missed_dt[order(top_agg_missed_dt$missed_id_ratio, decreasing = T),]
+top_agg_missed_dt$dataset <- factor(as.character(top_agg_missed_dt$dataset), levels=as.character(top_agg_missed_dt$dataset))
+
+top_top_bar <- ggbarplot(top_agg_missed_dt, x="dataset", y="missed_id_ratio", fill = "cmpType" ) + 
+  ggtitle(plotTit, subtitle = subTit)+
+  scale_y_continuous(name="Ratio \"missed\" TADs", breaks = scales::pretty_breaks(n = 8), expand=c(0,0))+
+  scale_fill_manual(values = all_cols, labels = cmp_names)+
+  labs(fill="", x="")+
+  my_box_theme + 
+  theme(
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank()
+  )
+
+outFile <- file.path(outFolder, 
+                     paste0("topTADsWithoutTopGenes_ratio_nTopTADs", nTopTADs, "_nTopGenes", nTopGenes, "_barplot.", plotType))
+ggsave(plot = top_top_bar, filename = outFile, height=myHeightGG, width = myWidthGG)
+cat(paste0("... written: ", outFile, "\n"))
+
+
+# 
+xxx=tmp_dt[tmp_dt$hicds=="ENCSR489OCU_NCI-H460_40kb" & tmp_dt$exprds=="TCGAluad_norm_luad",]
+unique(xxx[,c("tad_id", "tad_rank")])
+xxx= inDT[ inDT$hicds=="ENCSR489OCU_NCI-H460_40kb" &  inDT$exprds=="TCGAluad_norm_luad" &
+             inDT$tad_rank <= nTopTADs,]
+stopifnot(sum(aggregate(gene_rank ~ hicds+exprds+region, data=xxx, FUN=min)[,"gene_rank"] > nTopGenes) == 
+  top_agg_missed_dt$missed_id[top_agg_missed_dt$dataset==file.path("ENCSR489OCU_NCI-H460_40kb","TCGAluad_norm_luad")])
+
+##############################################################
+############################### min gene rank of signif. tads
+##############################################################
+top_inDT <- inDT[inDT$tad_rank <= nTopTADs,]
+min_rank_tad_dt <- aggregate(gene_rank~hicds+exprds+region+tad_id+tad_rank, data=top_inDT, FUN=min)
+min_rank_tad_dt$dataset <- file.path(min_rank_tad_dt$hicds, min_rank_tad_dt$exprds)
+
+tmp_mean <- aggregate(gene_rank~dataset, data=min_rank_tad_dt, FUN=mean)
+tmp_mean <- tmp_mean[order(tmp_mean$gene_rank, decreasing = TRUE),]
+
+min_rank_tad_dt$dataset <- factor(as.character(min_rank_tad_dt$dataset), levels=as.character(tmp_mean$dataset))
+min_rank_tad_dt$cmpType <- all_cmps[paste0(basename(as.character(min_rank_tad_dt$dataset)))]
+
+plotTit <- paste0("Gene best rank of top ", nTopTADs, " TADs")
+
+min_geneRank_box_byDS <- ggplot(min_rank_tad_dt, aes(x=dataset, y=gene_rank, fill = cmpType )) + 
+  geom_boxplot()+
+  ggtitle(plotTit, subtitle = subTit)+
+  scale_y_continuous(name="Min gene rank of top TADs", breaks = scales::pretty_breaks(n = 8))+
+  scale_fill_manual(values = all_cols, labels = cmp_names)+
+  labs(fill="", x="")+
+  my_box_theme + 
+  theme(
+    axis.line=element_line(),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank()
+  )
+
+outFile <- file.path(outFolder, 
+                     paste0("minGeneRankTopTADs_nTopTADs", nTopTADs, "_nTopGenes", nTopGenes, "_byDS_barplot.", plotType))
+ggsave(plot = min_geneRank_box_byDS, filename = outFile, height=myHeightGG, width = myWidthGG)
+cat(paste0("... written: ", outFile, "\n"))
+
+min_rank_tad_dt$tad_rank <- factor(as.character(min_rank_tad_dt$tad_rank), levels=as.character(1:nTopTADs))
+
+min_rank_tad_dt$gene_rank_log10 <- log10(min_rank_tad_dt$gene_rank)
+
+min_geneRank_box_byRank <- ggplot(min_rank_tad_dt, aes(x=tad_rank, y=gene_rank, fill = cmpType )) + 
+  geom_boxplot()+
+  ggtitle(plotTit, subtitle = subTit)+
+  scale_y_continuous(name="Min gene rank of top TADs", breaks = scales::pretty_breaks(n = 8))+
+  scale_fill_manual(values = all_cols, labels = cmp_names)+
+  labs(fill="", x="")+
+  my_box_theme + 
+  theme(
+    axis.line=element_line(),
+    # axis.text.x = element_blank(),
+    axis.ticks.x = element_blank()
+  )
+
+outFile <- file.path(outFolder, 
+                     paste0("minGeneRankTopTADs_nTopTADs", nTopTADs, "_nTopGenes", nTopGenes, "_byRank_barplot.", plotType))
+ggsave(plot = min_geneRank_box_byRank, filename = outFile, height=myHeightGG, width = myWidthGG)
+cat(paste0("... written: ", outFile, "\n"))
+
+
+min_geneRank_box_byRankLog10 <- ggplot(min_rank_tad_dt, aes(x=tad_rank, y=gene_rank_log10, fill = cmpType )) + 
+  geom_boxplot()+
+  ggtitle(plotTit, subtitle = subTit)+
+  scale_y_continuous(name="Min gene rank of top TADs", breaks = scales::pretty_breaks(n = 8))+
+  scale_fill_manual(values = all_cols, labels = cmp_names)+
+  labs(fill="", x="")+
+  my_box_theme + 
+  theme(
+    axis.line=element_line(),
+    # axis.text.x = element_blank(),
+    axis.ticks.x = element_blank()
+  )
+
+outFile <- file.path(outFolder, 
+                     paste0("minGeneRankTopTADs_nTopTADs", nTopTADs, "_nTopGenes", nTopGenes, "_byRank_log10_barplot.", plotType))
+ggsave(plot = min_geneRank_box_byRankLog10, filename = outFile, height=myHeightGG, width = myWidthGG)
+cat(paste0("... written: ", outFile, "\n"))
+
+plotTit <- paste0("Gene best rank of top ", nTopTADs, " TADs")
+
+min_geneRank_box_byDSLog10 <- ggplot(min_rank_tad_dt, aes(x=dataset, y=gene_rank_log10, fill = cmpType )) + 
+  geom_boxplot()+
+  ggtitle(plotTit, subtitle = subTit)+
+  scale_y_continuous(name="Min gene rank of top TADs", breaks = scales::pretty_breaks(n = 8))+
+  scale_fill_manual(values = all_cols, labels = cmp_names)+
+  labs(fill="", x="")+
+  my_box_theme + 
+  theme(
+    axis.line=element_line(),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank()
+  )
+
+outFile <- file.path(outFolder, 
+                     paste0("minGeneRankTopTADs_nTopTADs", nTopTADs, "_nTopGenes", nTopGenes, "_byDS_log10_barplot.", plotType))
+ggsave(plot = min_geneRank_box_byDSLog10, filename = outFile, height=myHeightGG, width = myWidthGG)
+cat(paste0("... written: ", outFile, "\n"))
+
 
 
 ##############################################################
