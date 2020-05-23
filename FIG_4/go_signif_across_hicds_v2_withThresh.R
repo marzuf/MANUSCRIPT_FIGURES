@@ -123,7 +123,7 @@ minIntersectGenes <- 3
 
 nRegionLolli <- 10
 
-strwdth <- 45
+strwdth <- 30
 
 
 cat(paste0("> signif_column\t=\t", signif_column, "\n"))
@@ -260,7 +260,7 @@ barplot_vars_tit <- setNames(c(paste0("-log10(", padjVarGO,  ")")), barplot_vars
 
 plotMaxBars <- 10
 
-par_bot <- 8
+par_bot <- 12
 
 padjVarGO_plotThresh <- 0.05
 

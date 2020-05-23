@@ -310,6 +310,9 @@ cat("... available annot. for all_not_conserved_signif_tads_genes:\t", length(go
 stopifnot(go_all_conserved_signif_tads_genes %in% go_all_universe_genes)
 stopifnot(go_all_not_conserved_signif_tads_genes %in% go_all_universe_genes)
 
+save(go_all_conserved_signif_tads_genes, file = file.path(outFolder, "go_all_conserved_signif_tads_genes.Rdata"), version=2)
+
+
 if(! plotOnly) {
   
   
@@ -327,6 +330,8 @@ if(! plotOnly) {
                                         maxGSSize = enricher_maxGSSize, 
                                         qvalueCutoff =enricher_qvalueCutoff)
     
+save(conserved_signif_enrich, version=2, file=file.path(outFolder, "conserved_signif_enrich.Rdata"))
+
     conserved_signif_enrich_resultDT <- conserved_signif_enrich@result
     conserved_signif_enrich_resultDT <- conserved_signif_enrich_resultDT[order(conserved_signif_enrich_resultDT[,enricher_results_sortGOby], decreasing=FALSE), ]
     conserved_signif_enrich_resultDT$log10_pval <- -log10(conserved_signif_enrich_resultDT[,paste0(padjVarGO)])
@@ -336,6 +341,10 @@ if(! plotOnly) {
       gr <- as.numeric(eval(parse(text = x ))); stopifnot(!is.na(gr)); gr})) 
     conserved_signif_enrich_resultDT$foldEnrichment <- conserved_signif_enrich_resultDT$geneRatio/conserved_signif_enrich_resultDT$bgRatio
     
+
+save(conserved_signif_enrich_resultDT, version=2, file=file.path(outFolder, "conserved_signif_enrich_resultDT_0.Rdata"))
+
+
     genes_signif_plotMax <- min(c(plotMaxBars, nrow(conserved_signif_enrich_resultDT)))
     if(genes_signif_plotMax > 0) {
       for(var_plot in barplot_vars) {
@@ -385,6 +394,8 @@ if(! plotOnly) {
     conserved_signif_enrich_resultDT <- NULL
   }
   
+
+save(conserved_signif_enrich_resultDT, version=2, file=file.path(outFolder, "conserved_signif_enrich_resultDT_1.Rdata"))
   
   #***** 2) not_conserved_signif
   
@@ -473,13 +484,15 @@ if(! plotOnly) {
   }
   
   
+save(conserved_signif_enrich_resultDT, version=2, file=file.path(outFolder, "conserved_signif_enrich_resultDT_2.Rdata"))
+
   outFile <- file.path(outFolder,paste0(file_prefix, "not_conserved_signif_enrich_resultDT.Rdata"))
-  save(not_conserved_signif_enrich_resultDT, file=outFile)
+  save(not_conserved_signif_enrich_resultDT, file=outFile, version=2)
   cat(paste0("... written: ", outFile, "\n"))
   
   
   outFile <- file.path(outFolder,paste0(file_prefix, "conserved_signif_enrich_resultDT.Rdata"))
-  save(conserved_signif_enrich_resultDT, file=outFile)
+  save(conserved_signif_enrich_resultDT, file=outFile, version=2)
   cat(paste0("... written: ", outFile, "\n"))
   
   
