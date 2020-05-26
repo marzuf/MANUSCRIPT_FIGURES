@@ -5,7 +5,8 @@ require(foreach)
 require(ggplot2)
 require(ggsci)
 require(colorRamps)
-
+require(ggcharts)
+require(reshape2)
 require(ggpubr)
 
 registerDoMC(40)
@@ -42,9 +43,11 @@ fractBarTitle <- "Fold-change concordance scores"
 
 plotMargin <- c(1,2,1,1)
 
-myWidthGG <- 10
-myHeightGG <- 6
+plotType <- "svg"
 
+myWidthGG <- 9
+myHeightGG <- 7
+ontFamily <- "Hershey"
 
 auc_ratio_file <- file.path("FCC_WAVE_PLOT_NOABS/all_fcc_dt.Rdata")
 stopifnot(file.exists(auc_ratio_file))
@@ -101,116 +104,85 @@ cut_dt$dataset <- file.path(cut_dt$hicds, cut_dt$exprds)
 plot_cut_dt <- cut_dt[,c("dataset","intervalFCC", "ratioFCC_obs", "ratioFCC_perm")]
 
 agg1 <- aggregate(ratioFCC_obs~intervalFCC, data =plot_cut_dt, FUN=mean)
-agg1 <- aggregate(ratioFCC_perm~intervalFCC, data =plot_cut_dt, FUN=mean)
+agg2 <- aggregate(ratioFCC_perm~intervalFCC, data =plot_cut_dt, FUN=mean)
+plot_cut_dt2 <- merge(agg1, agg2, by="intervalFCC", all=T)
+m_plot_dt <- melt(plot_cut_dt2, id=c("intervalFCC"))
+m_plot_dt$intervalFCC <- factor(m_plot_dt$intervalFCC, levels=fcc_fract_names)
+stopifnot(!is.na(m_plot_dt))
 
-m_plot_dt <- melt(plot_cut_dt, id=c("dataset", "intervalFCC"))
-m_plot_dt$dataset <- factor(m_plot_dt$dataset, levels = fcc_ds_order)
+m_plot_dt$variable <- as.character(m_plot_dt$variable)
 
-mean_dt <- aggregate()
+var1 <- "obs. data"
+var2 <- paste0("perm. data (mean", keepPermut, " permut)")
 
-pyramid_chart(data = m_plot_dt, x = value, y = intervalFCC, group = variable)
+m_plot_dt$variable[as.character(m_plot_dt$variable) == "ratioFCC_obs"] <- var1
+m_plot_dt$variable[as.character(m_plot_dt$variable) == "ratioFCC_perm"] <- var2
 
-
-
-curr_heat_theme <- theme(
-  text = element_text(family=fontFamily),
-  legend.title = element_text(face="bold"),
-  axis.text.x = element_text(colour = dsCols, size=12),
-  axis.text.y= element_text(colour = "black", size=12),
-  axis.title.x = element_text(colour = "black", size=14, face="bold"),
-  axis.title.y = element_text(colour = "black", size=14, face="bold"),
-  plot.title = element_text(hjust=0.5, size=16, face="bold"),
-  plot.subtitle = element_text(hjust=0.5, size=14, face="italic"),
-  panel.background = element_rect(fill = "transparent")
-  # legend.background =  element_rect()
-) 
-
-subTit <- "OBS/PERMG2T"
-
-#########################################
-######################################### ratio of ratio
-#########################################
-
-densityRatio_plot <- ggplot(obsPerm_dt, aes(x = dataset, y = intervalFCC, fill = nFCC_obs_perm_log2))+
-  geom_tile() +
-  ggtitle(paste0("FCC score distribution"),
-          subtitle = subTit) +
-  scale_x_discrete(name="Datasets ranked by decreasing AUC FCC ratio", labels = rep(labsymbol, nDS ), expand = c(0, 0))  +
-  scale_y_discrete(name="FCC score",  expand = c(0, 0))+
-  labs(fill = "Log2 obs./perm.\n# TADs")+
-  # geom_vline(xintercept=seq(from=1.5, by=1, length.out = nDS-1), linetype=3) + 
-  geom_vline(xintercept=seq(from=0.5, by=1, length.out = nDS+1), linetype=1) + 
-  geom_hline(yintercept=seq(from=0.5, by=1, length.out = nDS+1), linetype=1) + 
-  theme(axis.line=element_line())+
-  scale_fill_gradientn(colours=colorRamps::matlab.like2(20))+
-  curr_heat_theme
+m_plot_dt <- m_plot_dt[order(as.numeric(m_plot_dt$intervalFCC)),]
+  
+# pc_plot <- pyramid_chart(data = m_plot_dt, x = intervalFCC, y = value, group = variable, xlab="Ratio of TADs")
 
 
-outFile <- file.path(outFolder, paste0("FCC_score_dist_allDS_obs_perm_ratio_nbr_heatmap.", plotType))
-ggsave(densityRatio_plot, filename = outFile,  height=myHeightGG, width=myWidthGG)
-cat(paste0("... written: ", outFile, "\n"))
+bar_colors <-  c("steelblue3", "orangered")
+plot_limit <- abs(max(m_plot_dt$value))
+plots <- list()
+sides <- c("left", "right")
+
+mytit1 <- "Observed data."
+mytit2 <- "Permut. data."
+
+horiz1 <- "Ratio of TADs (mean all datasets)"
+horiz2 <- "Ratio of TADs(mean all permut mean)"
+horiz1 <- "(mean all datasets)"
+horiz2 <- paste0("(mean ", keepPermut, " permut mean)")
+
+plotTit <- "Distribution TAD FCC"
+subTit <- "Ratio of TADs"
+
+# draw the first plot
+
+y_scale1<- scale_y_reverse(limits = c(plot_limit, 0), name=paste0(horiz1),  # horizontal axis
+                           expand = expand_scale(mult = c(0.05, 0)))
+
+plots[[1]]<- ggplot(m_plot_dt[as.character(m_plot_dt$variable) == var1, ], aes(x = intervalFCC, y = value))+ 
+  geom_col(fill = bar_colors[1], width = 0.7) + 
+  y_scale1 + coord_flip() + ggcharts:::pyramid_theme(sides[1]) + 
+  scale_x_discrete(expand = expand_scale(add = 0.5)) + 
+  theme(
+    axis.title.x=element_text(),
+    axis.text.x=element_text(size=14),
+    axis.line.x = element_line()
+    )+
+  ggtitle(mytit1)
 
 
+y_scale2 <- scale_y_continuous(limits = c(0, plot_limit), name=paste0(horiz2),
+                               expand = expand_scale(mult = c(0, 0.05)))
 
-densityRatio_plot_cut <- ggplot(cut_dt, aes(x = dataset, y = intervalFCC, fill = nFCC_obs_perm_log2))+
-  geom_tile() +
-  ggtitle(paste0("FCC score distribution"),
-          subtitle = subTit) +
-  scale_x_discrete(name="Datasets ranked by decreasing AUC FCC ratio", labels = rep(labsymbol, nDS ), expand = c(0, 0))  +
-  scale_y_discrete(name="FCC score",  expand = c(0, 0))+
-  labs(fill = "Log2 obs./perm.\n# TADs")+
-  curr_heat_theme+
-  # geom_vline(xintercept=seq(from=1.5, by=1, length.out = nDS-1), linetype=3) +
-  geom_vline(xintercept=seq(from=0.5, by=1, length.out = nDS+1), linetype=1) + 
-  geom_hline(yintercept=seq(from=0.5, by=1, length.out = nDS+1), linetype=1) + 
-  theme(axis.line=element_line())+
-  scale_fill_gradientn(colours=colorRamps::matlab.like2(20))
+plots[[2]]<- ggplot(m_plot_dt[as.character(m_plot_dt$variable) == var2, ], aes(x = intervalFCC, y = value))+ 
+  geom_col(fill = bar_colors[2], width = 0.7) + scale_x_discrete(expand = expand_scale(add = 0.5)) + 
+  y_scale2 + 
+  labs(xlab="")+
+  theme(axis.title.x=element_text())+
+  coord_flip() + ggcharts:::pyramid_theme(sides[2]) + 
+  theme(
+    axis.title.x=element_text(),
+    axis.text.x=element_text(size=14),
+    axis.line.x = element_line()
+  )+
+  ggtitle(mytit2)
 
-outFile <- file.path(outFolder, paste0("FCC_score_dist_allDS_obs_perm_ratio_nbr_heatmap_cut.", plotType))
-ggsave(densityRatio_plot_cut, filename = outFile,  height=myHeightGG, width=myWidthGG)
-cat(paste0("... written: ", outFile, "\n"))
-
-#########################################
-######################################### ratio of nbr
-#########################################
-
-densityRatio_plot <- ggplot(obsPerm_dt, aes(x = dataset, y = intervalFCC, fill = ratioFCC_obs_perm_log2))+
-  geom_tile() +
-  ggtitle(paste0("FCC score distribution"),
-          subtitle = subTit) +
-  scale_x_discrete(name="Datasets ranked by decreasing AUC FCC ratio", labels = rep(labsymbol, nDS ), expand = c(0, 0))  +
-  scale_y_discrete(name="FCC score",  expand = c(0, 0))+
-  labs(fill = "Log2 obs./perm.\nratio TADs")+
-  # geom_vline(xintercept=seq(from=1.5, by=1, length.out = nDS-1), linetype=3) + 
-  geom_vline(xintercept=seq(from=0.5, by=1, length.out = nDS+1), linetype=1) + 
-  geom_hline(yintercept=seq(from=0.5, by=1, length.out = nDS+1), linetype=1) + 
-  theme(axis.line=element_line())+
-  scale_fill_gradientn(colours=colorRamps::matlab.like2(20))+
-  curr_heat_theme
+pc_plot <- plots[[1]] + plots[[2]] + patchwork::plot_annotation(caption = subTit, 
+                                                     title = plotTit, 
+                                                     theme = theme(plot.caption = element_text(hjust = 0.5, face="bold", family=fontFamily,
+                                                                                                              size = 16),
+                                                                   plot.title = element_text(hjust = 0.5, face="bold",family=fontFamily,
+                                                                                               size = 18)
+                                                                   ))
 
 
-outFile <- file.path(outFolder, paste0("FCC_score_dist_allDS_obs_perm_ratio_ratio_heatmap.", plotType))
-ggsave(densityRatio_plot, filename = outFile,  height=myHeightGG, width=myWidthGG)
-cat(paste0("... written: ", outFile, "\n"))
-
-
-
-densityRatio_plot_cut <- ggplot(cut_dt, aes(x = dataset, y = intervalFCC, fill = ratioFCC_obs_perm_log2))+
-  geom_tile() +
-  ggtitle(paste0("FCC score distribution"),
-          subtitle = subTit) +
-  scale_x_discrete(name="Datasets ranked by decreasing AUC FCC ratio", labels = rep(labsymbol, nDS ), expand = c(0, 0))  +
-  scale_y_discrete(name="FCC score",  expand = c(0, 0))+
-  labs(fill = "Log2 obs./perm.\nratio TADs")+
-  curr_heat_theme+
-  # geom_vline(xintercept=seq(from=1.5, by=1, length.out = nDS-1), linetype=3) +
-  geom_vline(xintercept=seq(from=0.5, by=1, length.out = nDS+1), linetype=1) + 
-  geom_hline(yintercept=seq(from=0.5, by=1, length.out = nDS+1), linetype=1) + 
-  theme(axis.line=element_line())+
-  scale_fill_gradientn(colours=colorRamps::matlab.like2(20))
-
-outFile <- file.path(outFolder, paste0("FCC_score_dist_allDS_obs_perm_ratio_ratio_heatmap_cut.", plotType))
-ggsave(densityRatio_plot_cut, filename = outFile,  height=myHeightGG, width=myWidthGG)
+outFile <- file.path(outFolder, paste0("FCC_score_mean_pyramidchart.", plotType))
+ggsave(pc_plot, filename = outFile,  height=myHeightGG, width=myWidthGG)
 cat(paste0("... written: ", outFile, "\n"))
 
 
