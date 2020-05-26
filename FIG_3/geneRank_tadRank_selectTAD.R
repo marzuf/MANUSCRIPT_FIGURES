@@ -320,7 +320,35 @@ outFile <- file.path(outFolder, paste0(hicds, "_", exprds, "_", tad_to_show, "_g
 ggsave(plot = all_p, filename = outFile, height=myHeightGG/2.5, width = myWidthGG*1.2)
 cat(paste0("... written: ", outFile, "\n"))
 
+require(ggstar)
+ranks_p_star <- ranks_p + 
+  geom_star(x=geneRankSignifLimit_resc, 
+				y=gene_y,
+              # xend=geneRankSignifLimit_resc, 
+#				y=gene_y-signif_bar_limit_offset, 
+#               yend=gene_y+signif_bar_limit_offset, 
+#				lineend="square",
+				 fill=signif_bar_col,color=signif_bar_col, alpha=0.2, size=5)+
+  geom_star(x=tadRankSignifLimit_resc, 
+				y=tad_y,
+               #xend=tadRankSignifLimit_resc, y=tad_y-signif_bar_limit_offset, 
+               #yend=tad_y+signif_bar_limit_offset, lineend="square", 
+				fill=signif_bar_col,color=signif_bar_col, alpha=0.2, size=5) +   
+  geom_text_repel(data=lab_dt_all, aes(x=rank_x_rel, y=y_pos, label=rank_x),inherit.aes = F,
+                  nudge_y      = lab_dt_all$y_nudge,
+                  direction    = "x",
+                  size = lab_dt_all$labSize,
+                  angle        = 0,
+                  vjust        = 0,
+                  hjust=0.5,
+                  segment.size = 0.3, 
+                  colour=lab_dt_all$labCol
+  ) 
 
+
+outFile <- file.path(outFolder, paste0(hicds, "_", exprds, "_", tad_to_show, "_geneRank_tadRank_showBars_segments_GG_withSignifStars.", plotType))
+ggsave(plot = ranks_p_star, filename = outFile, height=myHeightGG/2.5, width = myWidthGG*1.2)
+cat(paste0("... written: ", outFile, "\n"))
 
 
 stop("-ok\n")
