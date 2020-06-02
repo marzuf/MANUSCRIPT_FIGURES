@@ -1,0 +1,54 @@
+# require(shaman)
+
+matFile <- "k562_10kb.txt"
+
+chromo <- "chr7"
+start <- 149960000
+end <- 150600000
+
+
+require(sepc)
+data("rao_chr20_25_rep")
+
+
+
+plot_range <- data.frame(chromo=chromo, start=start, end=end)
+
+shaman_plot_map_score_with_annotations(genome="hg19", 
+                                       points_score=mat_dt, 
+                                       interval_range=plot_range)
+
+devtools::install_github("cresswellkg/SpectralTAD")
+library(SpectralTAD)
+
+sparse2full()
+
+
+infile3col <- "k562_10kb.txt"
+
+# Rscript sparse2full_convert.R
+
+$ hicConvertFormat -m k562_10kb_dense.txt --inputFormat homer --outputFormat h5 -o k562_10kb_dense.h5
+
+
+$ hicConvertFormat -m k562_10kb_dense.txt --inputFormat homer --outputFormat h5 -o Rao2014-K562-MboI-allreps-filtered.10kb.h5
+
+
+# cool format download from ftp://cooler.csail.mit.edu/coolers/hg19/
+
+
+$ hicConvertFormat -m matrix.homer --inputFormat homer --outputFormat cool -o matrix.cool
+
+
+https://pythonawesome.com/python-module-to-plot-beautiful-and-highly-customizable-genome-browser-tracks/
+  
+  
+pyGenomeTracks --tracks GIMAP_TAD.ini --region chr7:149,960,000-150,600,000 --outFileName nice_image.pdf
+  
+  
+  
+  
+  
+  
+  
+
