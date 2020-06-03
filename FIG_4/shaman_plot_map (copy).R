@@ -88,7 +88,7 @@ shaman_gplot_map <- function(points, interval_range=NA, rotate=TRUE, point_size=
 #' shaman_gplot_map_score(points)
 #' @export
 ##########################################################################################################
-shaman_gplot_map_score <- function(points_score, interval_range=NA, rotate=TRUE, point_size=7, add_axis=TRUE) { # size was 0.1
+shaman_gplot_map_score <- function(points_score, interval_range=NA, rotate=TRUE, point_size=0.1, add_axis=TRUE) {
   if (!all(c("start1", "start2", "score") %in% colnames(points_score))) {
     stop("points_score data frame must contain the following columns: start1, start2, score")
   }
@@ -115,7 +115,7 @@ save(col.scores, file="col.scores.Rdata", version=2)
   }
   map_gplot <- map_gplot +
     ggplot2::geom_point(size=point_size) +
-   ggplot2::scale_colour_manual(values=col.scores[101 + sort(unique(floor(points_score$score)))]) + # WAS COMMENTED HERE MZ
+#    ggplot2::scale_colour_manual(values=col.scores[101 + sort(unique(floor(points_score$score)))]) +  COMMENTED HERE MZ
     ggplot2::scale_x_continuous(expand=c(0,0)) +
     ggplot2::scale_y_continuous(expand=c(0,0)) +
     ggplot2::theme_bw() + ggplot2::theme( legend.position="none",
@@ -180,13 +180,6 @@ shaman_plot_tracks_and_annotations <- function(genome, interval_range,
   }
   if (add_genes) {
 	gene_track <- .shaman_get_ucsc(genome, interval_range, stacking=gene_stacking)
-	
-	# keep_idx <- grepl("GIMAP", as.character(gene_track@range@elementMetadata@listData$symbol))
-	# gene_track@range@elementMetadata@listData$symbol <- gene_track@range@elementMetadata@listData$symbol[keep_idx] 
-	
-	
-	save(gene_track, file="gene_track.Rdata", version=2)
-	
 	Gviz::displayPars(gene_track) <- list(size=gene_size)
 	tracks[[length(tracks)+1]] <- gene_track
   }
@@ -211,9 +204,6 @@ shaman_plot_tracks_and_annotations <- function(genome, interval_range,
   }
   if (add_ideogram) {
 	ideo_track <- Gviz::IdeogramTrack(genome=genome, chromosome=as.character(interval_range$chrom))
-
-	save(ideo_track, file="ideo_track.Rdata", version=2)	
-	
 	tracks[[length(tracks)+1]] <- ideo_track
   }
   Gviz::plotTracks(tracks, from=interval_range$start, to=interval_range$end, panel.only=T, labelPos="below")
@@ -256,16 +246,94 @@ shaman_plot_tracks_and_annotations <- function(genome, interval_range,
 #' @export
 ##########################################################################################################
 
-shaman_plot_map_score_with_annotations <- function(genome, points_score, interval_range, point_size=7, # was 0.1
-  misha_tracks=list(), mt_colors=getOption("shaman.track_colors"), mt_ylims=NULL,
-  annotations=list(), a_colors=getOption("shaman.annotation_colors"),
-  add_genes=T, add_ideogram=T, add_axis=T, gene_stacking="squish", gene_size=0.7,
-  track_size=0.8, annotation_size=0.7, fig_fn="", fig_width=900, fig_height=5/6*900)
-{
+#shaman_plot_map_score_with_annotations <- function(
+  
+  genome="hg19"
+  points_score=sparse_dt
+  interval_range=plot_range
+  point_size=0.1
+  misha_tracks=list()
+  mt_colors=getOption("shaman.track_colors")
+  mt_ylims=NULL
+  annotations=list()
+  a_colors=getOption("shaman.annotation_colors")
+  add_genes=T
+  add_ideogram=T
+  add_axis=T
+  gene_stacking="squish"
+  gene_size=0.7
+  track_size=0.8
+  annotation_size=0.7
+  fig_fn=""
+  fig_width=900
+  fig_height=5/6*900
+# {
   if (!all(c("start1", "start2", "score") %in% colnames(points_score))) {
     stop("points_score data frame must contain the following columns: start1, start2, score")
   }
-  map_score <- shaman_gplot_map_score(points_score, interval_range, rotate=TRUE, point_size=point_size, add_axis=FALSE)
+  # map_score <- shaman_gplot_map_score(points_score, interval_range, rotate=TRUE, point_size=point_size, add_axis=FALSE)
+  rotate=TRUE
+  point_size=0.1
+  add_axis=TRUE
+  
+
+    col.scores = shaman_score_pal()
+
+    
+      points_score = points_score[points_score$start2 > points_score$start1,]
+      
+      
+      points_score$new_x <- (points_score$start1+points_score$start2)/2
+      points_score$new_y <- (points_score$start2-points_score$start1)/2
+      
+      
+      map_gplot <- ggplot2::ggplot(points_score[order(points_score$score),],
+                                   ggplot2::aes(x=new_x, y=, color=factor(floor(score)))) +
+        ggplot2::coord_cartesian(xlim=c(interval_range$start, interval_range$end),
+                                 ylim=c(0, (interval_range$end-interval_range$start)/2)) +
+        ggplot2::theme (panel.grid.major = ggplot2::element_blank(),
+                        panel.grid.minor = ggplot2::element_blank())
+    
+    map_gplot <- map_gplot +
+      ggplot2::geom_point(size=point_size) +
+      # ggplot2::scale_colour_manual(values=col.scores[101 + sort(unique(floor(points_score$score)))]) +  #COMMENTED HERE MZ
+      ggplot2::scale_x_continuous(expand=c(0,0)) +
+      ggplot2::scale_y_continuous(expand=c(0,0)) +
+      ggplot2::theme_bw() + ggplot2::theme( legend.position="none",
+                                            panel.border = ggplot2::element_blank(),
+                                            axis.title.x = ggplot2::element_blank(),
+                                            axis.title.y = ggplot2::element_blank(),
+                                            axis.line.x = ggplot2::element_line(size=0.2))
+
+  
+    map_gplot
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   if (fig_fn != "") {
 	png(fig_fn, width=fig_width, height=fig_height)
   }
@@ -280,34 +348,7 @@ shaman_plot_map_score_with_annotations <- function(genome, points_score, interva
   if (fig_fn != "") {
 	dev.off()
   }
-}
-
-mzAnnotOnly_shaman_plot_map_score_with_annotations <- function(genome, points_score, interval_range, point_size=7, # was 0.1
-                                                   misha_tracks=list(), mt_colors=getOption("shaman.track_colors"), mt_ylims=NULL,
-                                                   annotations=list(), a_colors=getOption("shaman.annotation_colors"),
-                                                   add_genes=T, add_ideogram=T, add_axis=T, gene_stacking="squish", gene_size=0.7,
-                                                   track_size=0.8, annotation_size=0.7, fig_fn="", fig_width=900, fig_height=5/6*900)
-{
-  if (!all(c("start1", "start2", "score") %in% colnames(points_score))) {
-    stop("points_score data frame must contain the following columns: start1, start2, score")
-  }
-  # map_score <- shaman_gplot_map_score(points_score, interval_range, rotate=TRUE, point_size=point_size, add_axis=FALSE)
-  # if (fig_fn != "") {
-  #   png(fig_fn, width=fig_width, height=fig_height)
-  # }
-  # grid::grid.newpage()
-  # grid::pushViewport(grid::viewport(layout = grid::grid.layout(5, 1)))
-  # print(map_score, vp=grid::viewport(layout.pos.row=1:3, layout.pos.col=1))
-  # grid::pushViewport(grid::viewport(layout.pos.row=4:5, layout.pos.col=1))
-  shaman_plot_tracks_and_annotations(genome, interval_range,  misha_tracks=misha_tracks,
-                                     mt_colors=mt_colors, mt_ylims=mt_ylims, annotations=annotations, a_colors=a_colors,
-                                     add_genes=add_genes, add_ideogram=add_ideogram, add_axis=add_axis, gene_stacking=gene_stacking,
-                                     gene_size=gene_size, track_size=track_size, annotation_size=annotation_size)
-  # if (fig_fn != "") {
-  #   dev.off()
-  # }
-}
-
+}#
 
 ##########################################################################################################
 #' Returns the color palette used to display normalized scores
@@ -400,6 +441,42 @@ save(col.pos, file="col.pos.Rdata", version=2)
 
 
 
-# keep_idx <- grepl("GIMAP", as.character(gene_track@range@elementMetadata@listData$symbol))
-# gene_track@range@elementMetadata@listData$symbol <- gene_track@range@elementMetadata@listData$symbol[keep_idx] 
-  
+
+value_min=min(points_score$score)
+value_max=max(points_score$score)
+col_lowest="grey"
+
+# p = ggplot(data = melted_cormat, aes(x=Var1, y=Var2, fill=value)) + scale_fill_gradient2(na.value=col_lowest, low = col_low, high = col_high, mid=mid, midpoint=midpoint) + geom_tile()
+
+
+
+p = p + scale_y_continuous(labels=tick_labels, expand = c(0, 0), breaks=breaks) + scale_x_continuous(labels=tick_labels, expand = c(0, 0), position = "bottom",  breaks=breaks)
+p = p + xlab('') + ylab('') + theme_bw() + theme(legend.position='none', plot.margin = margin(2, 2, 2, 2, "cm"))
+p = p + theme(axis.text.x=element_text(size=5, angle=90), axis.text.y=element_text(size=5, angle=0), axis.title=element_text(size=10))
+# p = p + labs(title=CELL_LINE)
+p = p + xlab(CELL_LINEs[2]) + ylab(CELL_LINEs[1])
+
+
+
+points_score = data.frame(
+  start1=c(0,0,0,0,0,0,
+           10000, 10000,10000,10000,10000,
+           15000, 15000, 15000, 15000,
+           20000, 20000, 20000,
+           25000, 25000, 
+           30000),
+  start2=c(0,10000,15000,20000,25000,30000,
+           10000,15000,20000,25000,30000,
+           15000,20000,25000,30000,
+           20000,25000,30000,
+           25000,30000,
+           30000),
+  score=c(16,20,65,2,2,1,
+          35,4,2,1,4,
+          66,12,3,4,
+          17,1,2,
+          10,1,
+          15),
+  stringsAsFactors = FALSE
+)
+interval_range <- data.frame(chromo="chr1", start=0, end=30000)
