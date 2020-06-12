@@ -20,7 +20,7 @@ source("../settings.R")
 myWidthGG <- 9
 myHeightGG <- 6
 
-outFolder <- "DBCHART_FCC_OBSPERM"
+outFolder <- "DBCHART_FCC_OBSPERM_1"
 dir.create(outFolder, recursive = TRUE)
 
 buildData <- FALSE
@@ -33,7 +33,7 @@ all_exprds <- all_obs_exprds
 
 # all_hicds=all_hicds[1:2]
 
-fcc_thresh <- 0.75
+fcc_thresh <- 1
 
 keepPermut <- 1000
 
@@ -125,19 +125,26 @@ all_dt <- all_dt[order(as.numeric(all_dt$dataset)),]
 #   ) + 
 #   labs(x="Datasets ranked by decreasing\nFCC AUC ratio (top=higher) ")
 
-bar_colors <-  c("steelblue3", "orangered")
+ggsci_pal <- "lancet"
+ggsci_subpal <- ""
+
+# bar_colors <-  c("steelblue3", "orangered")
+bar_colors <-  pal_lancet()(2)
 line_color <- "darkgrey"
 line_size <- 1
-bar_names <- setNames(c("perm.", "obs."), bar_colors)
+bar_names <- setNames(c("permut.", "observed"), bar_colors)
 
-point_size=5
+point_size <- 4
 horizontal <- FALSE
 
 plotTit <- paste0("Ratio of TADs with FCC >= ", fcc_thresh)
 subTit <- paste0("(mean ", keepPermut, " permut)")
 
+nDS <- length(unique(all_dt$dataset))
+
 myy_lab <- "Ratio of TADs"
-myx_lab <- "Datasets ranked by decreasing FCC AUC ratio"
+myx_lab <- paste0("Datasets ranked by decreasing FCC AUC ratio (n=", nDS, ")")
+
 
 dumbbell_p <- ggplot(all_dt, aes(x = dataset)) + 
   geom_segment(mapping = aes(xend = dataset, y = ratioMeanPerm_aboveThresh, yend = ratioObs_aboveThresh), 
@@ -149,21 +156,35 @@ dumbbell_p <- ggplot(all_dt, aes(x = dataset)) +
   
             scale_color_manual(values = bar_colors, labels=bar_names) + 
   
-  ggcharts:::ggcharts_current_theme(grid = ifelse(horizontal, "Y", "X"))+
+  # ggcharts:::ggcharts_current_theme(grid = ifelse(horizontal, "Y", "X"))+
   
       theme(legend.position = "top") + 
-  labs(x=myx_lab,y=myy_lab)+
-  guides(color = guide_legend(title = NULL)) +
+  labs(x=myx_lab,y=myy_lab, color = "Data:")+
+  # guides(color = guide_legend(title = NULL)) +
   ggtitle(plotTit, subtitle = subTit)+
   expand_limits(x= c(-1, length(fcc_ds_order) + 1))+
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 8))+
+  # eval(parse(text=paste0("scale_fill_", ggsci_pal, "(", ggsci_subpal, ")"))) + 
+  # eval(parse(text=paste0("scale_color_", ggsci_pal, "(", ggsci_subpal, ")"))) + 
+  # 
+  my_box_theme+
   theme(
+    text = element_text(family=fontFamily, color = "black"),
     # axis.text.x=element_text(angle=90)
     plot.title = element_text(size=18, face="bold", family=fontFamily, hjust=0.5),
     plot.subtitle = element_text(size=14, face="italic", family=fontFamily, hjust=0.5),
+    axis.line.x = element_line(),
+    axis.line.y = element_line(),
     axis.text.x=element_blank(),
+    axis.ticks.x = element_blank(),
     axis.title=element_text(size=14),
-    legend.text=element_text(size=12)
-  )
+    legend.text=element_text(size=12),
+    legend.title=element_text(size=14),
+    legend.key = element_rect(fill = NA)
+  ) + 
+  theme(
+    panel.background = element_blank(),
+    plot.background = element_blank())
 
 
 outFile <- file.path(outFolder, paste0("ratio_", fcc_thresh, "FCC_obsPerm_dumbbell_plot.", plotType))

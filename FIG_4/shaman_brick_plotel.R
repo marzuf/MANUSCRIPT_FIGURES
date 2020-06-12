@@ -1,11 +1,7 @@
 # Rscript shaman_brick_plot.R
 
-require(ggplot2)
-require(gridExtra)
-require(grid)
-
 source("shaman_plot_map.R")
-source("adapt_hicbrick.R")
+source("adapt_hicbrick_el.R")
 
 cat("... load data\n")
 
@@ -33,7 +29,7 @@ stopifnot(ncol(plot_range) == 3)
 
 cat("... plot map\n")
 
-map_score <- mz_Brick_vizart_plot_heatmap(File = file.path(".",#"tempdir(),
+map_score <- mz_Brick_vizart_plot_heatmap(File = file.path(tempdir(),
                                                            "shaman_brick_mapOnly.pdf"),
                                           Matrix.df = brick_dt,
                                           tad_dt = my_tads,
@@ -55,15 +51,6 @@ map_score <- mz_Brick_vizart_plot_heatmap(File = file.path(".",#"tempdir(),
                                           rotate = TRUE,
                                           return_object=TRUE)
   
-cat("... plot annotation\n")
-
-png("shaman_brick_mapOnly.png")
-grid::grid.newpage()
-grid::pushViewport(grid::viewport(layout = grid::grid.layout(5, 1)))
-print(map_score, vp=grid::viewport(layout.pos.row=1:3, layout.pos.col=1))
-dev.off()
-
-
 cat("... plot annotation\n")
 
 png("shaman_brick_mapAndTrack.png")

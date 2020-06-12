@@ -23,7 +23,7 @@ myHeightGG <- 5
 outFolder <- "CHECK_FCC1"
 dir.create(outFolder, recursive = TRUE)
 
-buildData <- TRUE
+buildData <- FALSE
 
 ggsci_pal <- "lancet"
 ggsci_subpal <- ""
@@ -174,11 +174,26 @@ cat(paste0("... written: ", outFile, "\n"))
 
 sub2_dt <- m_all_dt[!grepl("nFCC", m_all_dt$varLab) & grepl("ratio", m_all_dt$varLab),]
 
-plotTit <- "Ratio of FCC=1 TADs of size # genes=3"
+sub2_dt$varType[sub2_dt$varType == "obs"] <- "observed"
+sub2_dt$varType[sub2_dt$varType == "permMean"] <- "permut."
 
-p2 <- plot_myBox(ggplot(sub2_dt, aes(x=varLab, color=varType, y=value)) + 
+
+plotTit <- "Ratio of FCC=1 TADs with 3 genes"
+
+p2 <- plot_myBox(ggplot(sub2_dt, aes(x=varLab, color=varType, y=value))) + 
   ggtitle(plotTit, subtitle = subTit)+
-    labs(fill ="", color="", x="", y="Ratio of FCC=1 TADs" ))
+    labs(fill ="", color="Data:", x="", y="Ratio of TADs with FCC=1" )+
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 7))+
+  my_box_theme+
+  theme(
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.title.x = element_blank(),
+    legend.title = element_text(size=14),
+    legend.text = element_text(size=12),
+    legend.key = element_rect(fill = NA))
+  # )+
+  # theme(legend.background=element_blank())+guides(color=guide_legend(override.aes=list(fill=NA)))
 
 outFile <- file.path(outFolder, paste0("FCC1ratioSize3_obsPerm_boxplot.", plotType))
 ggsave(p2, filename = outFile, height=myHeightGG, width=myWidthGG)

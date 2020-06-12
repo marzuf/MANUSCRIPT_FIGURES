@@ -22,7 +22,7 @@ mycols <- mycols[2:3]
 cmp_levels <- sort(cmp_names)
 
 myHeight <- 5
-myWidth <- 8
+myWidth <- 10
 
 plotCex <- 1.4
 
