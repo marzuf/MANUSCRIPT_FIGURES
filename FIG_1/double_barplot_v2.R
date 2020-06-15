@@ -79,6 +79,8 @@ y_labs <- format(y_labs, digits=3)
 dt1$cmp <- all_cmps[basename(as.character(dt1$dataset))]
 stopifnot(!is.na(dt1$cmp))
 
+nDS <- length(unique(dt1$dataset))
+
 
 p1_aucRatio_plot <- ggplot(dt1, aes(x=dataset, y = fcc_auc_minus1, color=cmp, fill=cmp))+ 
   ggtitle(p1_tit, subtitle = p1_sub)+
@@ -93,6 +95,8 @@ p1_aucRatio_plot <- ggplot(dt1, aes(x=dataset, y = fcc_auc_minus1, color=cmp, fi
   coord_cartesian(clip = 'off', expand=F)  + 
   theme(
     text = element_text(family=fontFamily),
+	legend.text = element_text(size=12),
+	legend.title = element_text(size=14),
     axis.text.x = element_blank(),
         plot.margin = unit(plotMargin, "lines"))
 
@@ -111,6 +115,8 @@ p2_fccFract_plot <- ggplot(dt2, aes(x=dataset, y = ratioFCC, color = intervalFCC
   guides(color = FALSE)+
   coord_cartesian(clip = 'off', expand=F) + 
   theme(  
+	legend.text = element_text(size=12),
+	legend.title = element_text(size=14),
     text = element_text(family=fontFamily),
     axis.text.x = element_text(size=10, hjust=0.5, vjust=1, color=dotcols),
         plot.margin = unit(plotMargin, "lines"))
@@ -120,8 +126,23 @@ out_p <- p1_aucRatio_plot/p2_fccFract_plot +
   plot_layout(heights = c(2, 1))
 
 outFile <- file.path(outFolder, paste0("FCC_aucRatio_topFract.", plotType))
-ggsave(plot = out_p, filename = outFile, height=myHeightGG, width=myWidth)
+ggsave(plot = out_p, filename = outFile, height=myHeightGG*1.2, width=myWidth)
 cat(paste0("... written: ", outFile, "\n"))
+
+
+p1_aucRatio_plot_b <- p1_aucRatio_plot +
+  scale_x_discrete(name=paste0("Datasets ranked by decreasing AUC (n=",nDS, ")"))+
+#labs(x=paste0("Datasets ranked by decreasing AUC (n=",nDS, ")" )) +
+theme(axis.ticks.x = element_blank(),axis.title=element_text(size=14))
+
+outFile <- file.path(outFolder, paste0("p1_FCC_aucRatio_topFract.", plotType))
+ggsave(plot = p1_aucRatio_plot_b, filename = outFile, height=myHeightGG/1.5, width=myWidth)
+cat(paste0("... written: ", outFile, "\n"))
+
+outFile <- file.path(outFolder, paste0("p2_FCC_aucRatio_topFract.", plotType))
+ggsave(plot = p2_fccFract_plot, filename = outFile, height=myHeightGG/1.5, width=myWidth)
+cat(paste0("... written: ", outFile, "\n"))
+
 
 
 write.table(dt1, file=file.path(outFolder, "fcc_auc_dt.txt"), col.names=T, row.names=F, sep="\t", quote=F)

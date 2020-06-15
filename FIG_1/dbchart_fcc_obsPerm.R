@@ -25,8 +25,7 @@ dir.create(outFolder, recursive = TRUE)
 
 buildData <- FALSE
 
-ggsci_pal <- "lancet"
-ggsci_subpal <- ""
+
 
 all_hicds <- all_obs_hicds
 all_exprds <- all_obs_exprds
@@ -128,11 +127,20 @@ all_dt <- all_dt[order(as.numeric(all_dt$dataset)),]
 ggsci_pal <- "lancet"
 ggsci_subpal <- ""
 
+ggsci_pal <- "lancet"
+ggsci_subpal <- ""
+
+observ_col <- pal_lancet()(3)[1]
+permut_col <- pal_lancet()(3)[2]
+mycols <- setNames(c(observ_col, permut_col), c("observed", "permut."))
+
 # bar_colors <-  c("steelblue3", "orangered")
 bar_colors <-  pal_lancet()(2)
+bar_colors <- c(observ_col, permut_col)
+
 line_color <- "darkgrey"
 line_size <- 1
-bar_names <- setNames(c("permut.", "observed"), bar_colors)
+bar_names <- setNames(c("observed", "permut."), bar_colors)
 
 point_size <- 4
 horizontal <- FALSE
@@ -149,11 +157,10 @@ myx_lab <- paste0("Datasets ranked by decreasing FCC AUC ratio (n=", nDS, ")")
 dumbbell_p <- ggplot(all_dt, aes(x = dataset)) + 
   geom_segment(mapping = aes(xend = dataset, y = ratioMeanPerm_aboveThresh, yend = ratioObs_aboveThresh), 
                color = line_color, size = line_size) +
-  geom_point(aes(y = ratioMeanPerm_aboveThresh , color = bar_colors[1]),
-             size = point_size) + 
-  geom_point(aes(y = ratioObs_aboveThresh, color = bar_colors[2]),
+  geom_point(aes(y = ratioObs_aboveThresh, color = mycols["observed"]),
                                              size = point_size) + 
-  
+  geom_point(aes(y = ratioMeanPerm_aboveThresh , color = mycols["permut."]),
+             size = point_size) + 
             scale_color_manual(values = bar_colors, labels=bar_names) + 
   
   # ggcharts:::ggcharts_current_theme(grid = ifelse(horizontal, "Y", "X"))+

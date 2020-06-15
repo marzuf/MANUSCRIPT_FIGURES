@@ -61,20 +61,90 @@ buildData <- FALSE
 count_dt <- count_dt[order(count_dt$nSignifTADs),]
 ds_order <- as.character(count_dt$dataset)
 
-m_count_dt <- melt(count_dt, id="dataset")
-m_count_dt$dataset <- factor(m_count_dt$dataset, levels = ds_order)
-stopifnot(!is.na(m_count_dt$dataset))
+count_dt$dataset_name <- file.path(hicds_names[dirname(count_dt$dataset)], 
+                                exprds_names[basename(count_dt$dataset)])
+dsName_order <-  as.character(count_dt$dataset_name)
 
+# m_count_dt <- melt(count_dt, id="dataset")
+# m_count_dt$dataset <- factor(m_count_dt$dataset, levels = ds_order)
+count_dt$dataset <- NULL
+m_count_dt <- melt(count_dt, id="dataset_name")
+m_count_dt$dataset_name <- factor(m_count_dt$dataset_name, levels = dsName_order)
 
-ggplot(m_count_dt[m_count_dt$variable %in% c("nSignifTADs_withSignifGenes", "nSignifTADs_noSignifGenes"),], aes(x=dataset, y = value, 
+# stopifnot(!is.na(m_count_dt$dataset))
+stopifnot(!is.na(m_count_dt$dataset_name))
+
+my_pal <- "nord::victory_bonds"
+# my_pal <- "wesanderson::FantasticFox1"
+withsignif <- paletteer::paletteer_d(my_pal)[3]
+nosignif <- paletteer::paletteer_d(my_pal)[4] 
+
+plot_names <- c("nSignifTADs_withSignifGenes", "nSignifTADs_noSignifGenes")
+
+my_cols <- setNames(c(withsignif, nosignif), plot_names)
+my_cols_names <- setNames(c("with signif. genes", "without signif. genes"), plot_names)
+
+plotTit <- ""
+subTit <- ""
+
+# m_count_dt$ds_nbr <- as.numeric(m_count_dt$dataset)
+# m_count_dt$ds_nbr2 <- m_count_dt$ds_nbr *2
+
+ggplot(m_count_dt[m_count_dt$variable %in% c(plot_names),], 
+       # aes(x=dataset, y = value, fill=variable))+ 
+    aes(x=dataset_name, y = value, fill=variable))+ 
+  ggtitle(plotTit, subtitle = paste0(subTit))+
   geom_bar(stat="identity", position="stack") +
+  scale_fill_manual(values=my_cols, labels=my_cols_names)+
+  labs(fill = "Signif. TADs:", x = "", y="# of TADs") +
   scale_x_discrete(labels=function(x) gsub("/", "\n", x)) +
+  scale_y_continuous(breaks=seq(from=10, 70, by=10))+
   coord_flip()+
   my_box_theme + 
-  theme(legend.position = "top",
-        axis.title.x = element_blank())
+  theme(
+    plot.subtitle = element_text(hjust=0, face="italic"),
+    panel.grid.major.y =element_blank(),
+    panel.grid.major.x =element_line(color="darkgrey"),
+    panel.grid.minor.x =element_line(color="darkgrey"),
+      legend.position = "top",
+        axis.title.x = element_text(),
+    axis.text.y = element_text(hjust=1, size=6),
+    axis.line.x = element_line(colour="darkgrey"),
+        axis.title.y = element_blank()
+        )
 
 
+#####################3
+
+check_dt <- do.call(rbind, by(all_dt, all_dt$dataset, function(x) {
+  
+  nSignifTADs <- length(unique(x$region[x$tad_adjCombPval<=tadSignifThresh]  ))
+  
+  nSignifTADs_withSignifGenes <- length(unique(x$region[x$tad_adjCombPval<=tadSignifThresh & x$adj.P.Val <= geneSignifThresh]  ))
+  
+  nSignifTADs_withTopGenes <- length(unique(x$region[x$tad_adjCombPval<=tadSignifThresh & x$gene_rank <= nTopGenes]  ))
+  
+  nSignifTADs_noTopGenes <- length(setdiff(x$region[x$tad_adjCombPval<=tadSignifThresh],
+                                                x$region[x$tad_adjCombPval<=tadSignifThresh & x$gene_rank <= nTopGenes]))
+  
+  nSignifTADs_noSignifGenes<- length(setdiff(x$region[x$tad_adjCombPval<=tadSignifThresh],
+                                          x$region[x$tad_adjCombPval<=tadSignifThresh & x$adj.P.Val <= geneSignifThresh]))
+  
+  data.frame(
+   dataset=unique(x$dataset),
+    nSignifTADs=nSignifTADs  ,
+     nSignifTADs_withSignifGenes=nSignifTADs_withSignifGenes,
+      nSignifTADs_withTopGenes=nSignifTADs_withTopGenes,
+      nSignifTADs_noSignifGenes=nSignifTADs_noSignifGenes,
+      nSignifTADs_noTopGenes=nSignifTADs_noTopGenes,
+      stringsAsFactors = FALSE
+)
+}))
+
+rownames(check_dt) <- NULL
+check_dt <- check_dt[order(as.character(check_dt$dataset)),]
+count_dt <- count_dt[order(as.character(count_dt$dataset)),]
+stopifnot(all.equal(check_dt, count_dt))
 
 
 

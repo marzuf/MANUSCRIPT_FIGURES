@@ -25,8 +25,7 @@ dir.create(outFolder, recursive = TRUE)
 
 buildData <- FALSE
 
-ggsci_pal <- "lancet"
-ggsci_subpal <- ""
+mycols <- setNames(c(observ_col, permut_col), c("observed", "permut."))
 
 all_hicds <- all_obs_hicds
 all_exprds <- all_obs_exprds
@@ -139,8 +138,11 @@ plot_myBox <- function(p){
   p <- p +   
     geom_boxplot(notch = TRUE, outlier.shape=NA)+
     geom_point(position=position_jitterdodge(),  alpha=0.5) +
-    eval(parse(text=paste0("scale_fill_", ggsci_pal, "(", ggsci_subpal, ")"))) + 
-    eval(parse(text=paste0("scale_color_", ggsci_pal, "(", ggsci_subpal, ")"))) + 
+#    eval(parse(text=paste0("scale_fill_", ggsci_pal, "(", ggsci_subpal, ")"))) + 
+#    eval(parse(text=paste0("scale_color_", ggsci_pal, "(", ggsci_subpal, ")"))) + 
+	scale_fill_manual(values=mycols)+
+	scale_color_manual(values=mycols)+
+
     my_box_theme+
     theme(
       legend.text=element_text(size=12),
@@ -163,6 +165,9 @@ plot_myBox <- function(p){
 #     axis.text.x = element_text(size=14)
 
 
+sub1_dt$varType[sub1_dt$varType == "obs"] <- "observed"
+sub1_dt$varType[sub1_dt$varType == "permMean"] <- "permut."
+
 p1 <- plot_myBox(ggplot(sub1_dt, aes(x=varLab, color=varType, y=value)) + 
   ggtitle(plotTit, subtitle = subTit)+
   labs(fill ="", color="", x="", y="# TADs" ))
@@ -182,7 +187,7 @@ plotTit <- "Ratio of FCC=1 TADs with 3 genes"
 
 p2 <- plot_myBox(ggplot(sub2_dt, aes(x=varLab, color=varType, y=value))) + 
   ggtitle(plotTit, subtitle = subTit)+
-    labs(fill ="", color="Data:", x="", y="Ratio of TADs with FCC=1" )+
+    labs(fill ="", color="Data:", x="", y="Ratio of FCC=1 TADs" )+
   scale_y_continuous(breaks = scales::pretty_breaks(n = 7))+
   my_box_theme+
   theme(
@@ -201,6 +206,9 @@ cat(paste0("... written: ", outFile, "\n"))
 
 
 sub3_dt <- m_all_dt[!grepl("nFCC", m_all_dt$varLab) & ! grepl("ratio", m_all_dt$varLab),]
+
+sub3_dt$varType[sub3_dt$varType == "obs"] <- "observed"
+sub3_dt$varType[sub3_dt$varType == "permMean"] <- "permut."
 
 plotTit <- "Mean and median # genes of FCC=1 TADs"
 

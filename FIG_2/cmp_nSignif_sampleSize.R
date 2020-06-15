@@ -213,12 +213,16 @@ customSignif_p <- function(p) {
 ## Plot both TADs and genes 
 ##################################
 
+mylines <- setNames(c(2,1), c(paste0("genes (adj. p-val <= ", geneSignifThresh, ")"),
+								paste0("TADs (adj. p-val <= ", tadSignifThresh, ")")))
+
 subTit <- paste0("average of ", nSubsamp, " subsamplings")
 plotTit <- paste0("Ratio of features detected signif.")
 
 both_p <- customSignif_p(
   ggplot(mean_plot_dt, aes(x=nSamp_ratio, y =value, color=ds_lab, linetype=variable)) + 
     scale_y_continuous(name="Ratio of signif. features", breaks = scales::pretty_breaks(n = 8))+
+	scale_linetype_manual(values=mylines)+
   ggtitle(plotTit, subtitle=subTit))
 
 outFile <- file.path(outFolder, paste0("allDS_ratioSignif_genesAndTADs_linePlot.", plotType))

@@ -3,6 +3,7 @@
 
 plotType <- "svg"
 
+require(ggsci)
 
 source("../../Cancer_HiC_data_TAD_DA/utils_fct.R")
 source("../../Yuanlong_Cancer_HiC_data_TAD_DA/subtype_cols.R")
@@ -10,6 +11,8 @@ source("../settings.R")
 require(ggsci)
 
 # Rscript nSignifGenes_nSignifTADs_minSamp.R
+
+cmp_levels <- sort(cmp_names)
 
 outFolder <- file.path("NSIGNIFGENES_NSIGNIFTADS_MINSAMP")
 dir.create(outFolder, recursive = TRUE)
@@ -31,6 +34,9 @@ geneDT <- unique(geneDT)
 nSignifGenes_dt <- aggregate(adj.P.Val~hicds + exprds, data = geneDT, FUN=function(x) sum(x<=geneSignifThresh))
 colnames(nSignifGenes_dt)[colnames(nSignifGenes_dt) == "adj.P.Val"] <- "nSignifGenes"
 
+ratioSignifGenes_dt <- aggregate(adj.P.Val~hicds + exprds, data = geneDT, FUN=function(x) mean(x<=geneSignifThresh))
+colnames(ratioSignifGenes_dt)[colnames(ratioSignifGenes_dt) == "adj.P.Val"] <- "ratioSignifGenes"
+
 tadDT <- inDT[,c("hicds", "exprds", "region", "tad_adjCombPval")]
 tadDT <- unique(tadDT)
 nSignifTADs_dt <- aggregate(tad_adjCombPval~hicds + exprds, data = tadDT, FUN=function(x) sum(x<=tadSignifThresh))
@@ -40,6 +46,33 @@ nSignif_dt <- merge(nSignifGenes_dt, nSignifTADs_dt, by=c("hicds", "exprds"), al
 stopifnot(!is.na(nSignif_dt))
 
 nSignif_dt <- nSignif_dt[order(nSignif_dt$nSignifTADs, decreasing = TRUE),]
+
+
+ratioSignifTADs_dt <- aggregate(tad_adjCombPval~hicds + exprds, data = tadDT, FUN=function(x) mean(x<=tadSignifThresh))
+colnames(ratioSignifTADs_dt)[colnames(ratioSignifTADs_dt) == "tad_adjCombPval"] <- "ratioSignifTADs"
+
+ratioSignif_dt <- merge(ratioSignifGenes_dt, ratioSignifTADs_dt, by=c("hicds", "exprds"), all=TRUE)
+stopifnot(!is.na(ratioSignif_dt))
+
+nSignif_dt <- merge(nSignifGenes_dt, nSignifTADs_dt, by=c("hicds", "exprds"), all=TRUE)
+stopifnot(!is.na(nSignif_dt))
+
+nSignif_dt <- nSignif_dt[order(nSignif_dt$nSignifTADs, decreasing = TRUE),]
+
+# retrieve the number of samples
+ratioSignif_dt$dataset <- file.path(ratioSignif_dt$hicds, ratioSignif_dt$exprds)
+ratioSignif_dt$minNbrSample <- sapply(ratioSignif_dt$dataset, function(x) {
+  settingFile <- file.path(settingFolder, dirname(x), paste0("run_settings_", basename(x), ".R"))
+  stopifnot(file.exists(settingFile))
+  source(settingFile)
+  samp1 <- get(load(file.path(setDir, sample1_file)))
+  samp2 <- get(load(file.path(setDir, sample2_file)))
+  min(c(length(samp1), length(samp2)))
+})
+ratioSignif_dt$dataset <- paste0(ratioSignif_dt$hicds, "\n", ratioSignif_dt$exprds)
+ratioSignif_dt <- ratioSignif_dt[order(ratioSignif_dt$minNbrSample),]
+
+
 
 # retrieve the number of samples
 
@@ -275,5 +308,91 @@ addCorr(x=nSignif_dt$minNbrSample,y=nSignif_dt$nSignifGenes,bty="n")
 #)
 foo <- dev.off()
 cat(paste0("... written: ", outFile, "\n"))
+
+
+# save(nSignif_dt, version=2, file="nSignif_dt.Rdata")
+# save(ratioSignif_dt, version=2, file="ratioSignif_dt.Rdata")
+# load("nSignif_dt.Rdata")
+# load("ratioSignif_dt.Rdata")
+
+nSignif_dt$nSignifGenes_log10 <- log10(nSignif_dt$nSignifGenes)
+
+nSignif_dt$cmpType <- all_cmps[paste0(nSignif_dt$exprds)]
+stopifnot(!is.na(nSignif_dt$cmpType))
+ratioSignif_dt$cmpType <- all_cmps[paste0(ratioSignif_dt$exprds)]
+stopifnot(!is.na(ratioSignif_dt$cmpType))
+
+sampBreaks <- c(30, 80, 130, 180)
+
+myHeightGG <- 5
+myWidthGG <- 7
+
+plotTit <- paste0("# signif. features - all datasets - n= ", length(unique(nSignif_dt$dataset)))
+subTit <- paste0("TAD signif. adj. p-val <= ", tadSignifThresh, "; gene signif. adj. p-val <= ", geneSignifThresh)
+
+# 
+# ggplot(ratioSignif_dt, aes(y=ratioSignifTADs, x=ratioSignifGenes, size=sumSample))+
+#   coord_polar(theta = "x")+
+# # ggplot(ratioSignif_dt, aes(x=ratioSignifTADs, y=ratioSignifGenes, size=sumSample))+
+# #   coord_polar(theta = "x") +
+#   ggtitle(plotTit, subtitle = subTit)+
+#   scale_y_continuous( breaks = scales::pretty_breaks(n = 10))+
+#   scale_x_continuous( breaks = scales::pretty_breaks(n = 10))+
+#   labs(size="# samples\n(samp1+samp2)", x = "Ratio signif. TADs", y="Ratio signif. genes")+
+#   scale_size_continuous(breaks = sampBreaks)+
+#   geom_point() + 
+#   my_box_theme +
+#   theme(
+#     plot.subtitle = element_text(size=12, hjust=0.5, face="italic"),
+#     axis.line=element_line(),
+#     legend.text=element_text(size=12),
+#     legend.title=element_text(size=14)
+#   )
+#   
+  
+p_ratio <-  ggplot(ratioSignif_dt, aes(x=ratioSignifTADs, y=ratioSignifGenes, size=minNbrSample, color=cmpType))+
+  ggtitle(plotTit, subtitle = subTit)+
+  scale_y_continuous( breaks = scales::pretty_breaks(n = 10))+
+  scale_x_continuous( breaks = scales::pretty_breaks(n = 10))+
+  scale_color_manual(values=all_cols, labels=cmp_levels)+
+  labs(size="Min(samp1, samp2)\n# samples", x = "Ratio signif. TADs", y="Ratio signif. genes", color="")+
+  scale_size_continuous(breaks = sampBreaks)+
+  geom_point(alpha=0.6) + 
+  my_box_theme +
+  theme(
+    plot.subtitle = element_text(size=12, hjust=0.5, face="italic"),
+    axis.line=element_line(),
+    legend.key = element_rect(fill = NA),
+    legend.text=element_text(size=12),
+    legend.title=element_text(size=14)
+    )
+
+outFile <- file.path(outFolder, paste0("ratioGenesSignif_ratioTADsSignif_dotSize_plot.", plotType))
+ggsave(p_ratio, filename = outFile, height=myHeightGG, width=myWidthGG*1.2)
+cat(paste0("... written: ", outFile, "\n"))
+
+
+p_nbr <- ggplot(nSignif_dt, aes(x=nSignifTADs, y=nSignifGenes_log10, size=minNbrSample, color=cmpType))+
+  ggtitle(plotTit, subtitle = subTit)+
+  scale_color_manual(values=all_cols, labels=cmp_levels)+
+  geom_point(alpha=0.6) + 
+  scale_y_continuous( breaks = scales::pretty_breaks(n = 10))+
+  scale_x_continuous( breaks = scales::pretty_breaks(n = 10))+
+  labs(size="Min(samp1,samp2)\n# samples", x = "# signif. TADs", y="# signif. genes [log10]", color="")+
+  scale_size_continuous(breaks = sampBreaks)+
+  my_box_theme+
+  theme(
+    plot.subtitle = element_text(size=12, hjust=0.5, face="italic"),
+    legend.key = element_rect(fill = NA),
+    legend.text=element_text(size=12),
+    legend.title=element_text(size=14),
+    axis.line=element_line()
+  )
+outFile <- file.path(outFolder, paste0("nbrGenesSignif_nbrTADsSignif_dotSize_plot.", plotType))
+ggsave(p_nbr, filename = outFile, height=myHeightGG, width=myWidthGG*1.2)
+cat(paste0("... written: ", outFile, "\n"))
+
+
+
 
 
