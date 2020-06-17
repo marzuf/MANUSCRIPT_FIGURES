@@ -115,6 +115,8 @@ m_count_dt$dataset_name <- factor(m_count_dt$dataset_name, levels = dsName_order
 # stopifnot(!is.na(m_count_dt$dataset))
 stopifnot(!is.na(m_count_dt$dataset_name))
 
+max_y <- max(count_dt$nSignifTADs)
+
 my_pal <- "nord::victory_bonds"
 # my_pal <- "wesanderson::FantasticFox1"
 # withsignif <- paletteer::paletteer_d(my_pal)[3]
@@ -139,6 +141,12 @@ subTit <- paste0("gene adj. p-val <= ", geneSignifThresh, "; TAD adj. p-val <= "
 # m_count_dt$ds_nbr <- as.numeric(m_count_dt$dataset)
 # m_count_dt$ds_nbr2 <- m_count_dt$ds_nbr *2
 
+break_step <- 5
+samp_y_start_offset <- 4 + break_step
+samp_y_start <- 70
+samp_axis_offset <- 30
+axis_lim <- 65
+
 text_label_dt <- do.call(rbind, lapply(ds_order, function(x) {
   settingFile <- file.path(settingFolder, dirname(x), paste0("run_settings_", basename(x), ".R"))
   stopifnot(file.exists(settingFile))
@@ -156,9 +164,41 @@ text_label_dt <- do.call(rbind, lapply(ds_order, function(x) {
 }))
 text_label_dt$dataset <- factor(text_label_dt$dataset, levels=ds_order)
 stopifnot(!is.na(text_label_dt$dataset))
-text_label_dt$y_pos <- max(m_count_dt$value[m_count_dt$variable %in% c(plot_names)]) + 1
+text_label_dt$y_pos <- max_y + samp_y_start_offset
+text_label_dt$y_pos <- samp_y_start
 text_label_dt$x_pos <- as.numeric(text_label_dt$dataset)
-text_label_dt$samp_lab <- paste0(text_label_dt$n_samp1, " - ", text_label_dt$n_samp2)
+# text_label_dt$samp_lab <- paste0("(", text_label_dt$n_samp1, " - ", text_label_dt$n_samp2, ")")
+text_label_dt$samp_lab <- paste0("(", text_label_dt$n_samp1, " vs. ", text_label_dt$n_samp2, ")")
+
+
+add_axes <- function(p) {
+  return(
+    p +   geom_text(data=text_label_dt, aes(x=x_pos, y= y_pos, label=samp_lab), inherit.aes = FALSE, hjust=0) +
+      scale_y_continuous(
+        breaks=seq(from=break_step, to=samp_y_start+break_step, by=break_step), 
+        labels = c(seq(from=break_step, to=axis_lim, by=break_step),"",  "\t\t(# samp.)"), 
+        # breaks=seq(from=5, to=axis_lim, by=5), 
+        expand=c(0,0), 
+                         limits=c(0, max_y+ samp_axis_offset)) +
+      with_samp_theme +
+      geom_hline(yintercept = seq(from=break_step, axis_lim, by=break_step), color="darkgrey") +
+      geom_segment(x= 0.5, xend=0.5, yend=axis_lim, y=0, color="darkgrey")
+    
+  )
+}
+
+no_samp_theme <- theme(
+  plot.subtitle = element_text(hjust=0.5, face="italic"),
+  panel.grid.major.y =element_blank(),
+  panel.grid.major.x =element_line(color="darkgrey"),
+  panel.grid.minor.x =element_line(color="darkgrey"),
+  legend.position = "top",
+  legend.text = element_text(size=14),
+  axis.title.x = element_text(),
+  axis.text.y = element_text(hjust=1, size=8),
+  axis.line.x = element_line(colour="darkgrey"),
+  axis.title.y = element_blank()
+) 
 
 p_signif <- ggplot(m_count_dt[m_count_dt$variable %in% c(plot_names),], 
        # aes(x=dataset, y = value, fill=variable))+ 
@@ -170,33 +210,27 @@ p_signif <- ggplot(m_count_dt[m_count_dt$variable %in% c(plot_names),],
   labs(fill = "", x = "", y="# of TADs") +
   # scale_x_discrete(labels=function(x) gsub("/", "\n", x)) +
   scale_x_discrete(labels=function(x) gsub("/", " - ", x)) +
-  scale_y_continuous(breaks=seq(from=10, 70, by=5), expand=c(0,0))+
+  # scale_y_continuous(breaks=seq(from=10, 70, by=5), expand=c(0,0))+
   coord_flip()+
   my_box_theme + 
-  theme(
-    plot.subtitle = element_text(hjust=0.5, face="italic"),
-    panel.grid.major.y =element_blank(),
-    panel.grid.major.x =element_line(color="darkgrey"),
-    panel.grid.minor.x =element_line(color="darkgrey"),
-      legend.position = "top",
-        axis.title.x = element_text(),
-    axis.text.y = element_text(hjust=1, size=8),
-    axis.line.x = element_line(colour="darkgrey"),
-        axis.title.y = element_blank()
-        ) 
+  no_samp_theme
 
-p_signif2 <- p_signif + geom_text(data=text_label_dt, aes(x=x_pos, y= y_pos, label=samp_lab), inherit.aes = FALSE, hjust=0) +
-  scale_y_continuous(breaks=seq(from=5, 60, by=5), expand=c(0,0), 
-                     limits=c(0, max(m_count_dt$value[m_count_dt$variable %in% c(plot_names)]) + 5)) +
-  theme(
-    plot.subtitle = element_text(hjust=0.5, face="italic"),
-    axis.line.x =element_blank(),
-    panel.grid.major.y =element_blank(),
-    panel.grid.major.x =element_blank(),
-    panel.grid.minor.x =element_blank()
-  ) +
-  geom_hline(yintercept = seq(from=5, 60, by=5), color="darkgrey") 
-p_signif2 <- p_signif2+geom_segment(x= 0.5, xend=0.5, yend=60, y=0, color="darkgrey")
+
+with_samp_theme <-  theme(
+  plot.subtitle = element_text(hjust=0.5, face="italic"),
+  axis.line.x =element_blank(),
+  panel.grid.major.y =element_blank(),
+  panel.grid.major.x =element_blank(),
+  panel.grid.minor.x =element_blank()
+) 
+
+p_signif2 <- add_axes(p_signif)
+# + geom_text(data=text_label_dt, aes(x=x_pos, y= y_pos, label=samp_lab), inherit.aes = FALSE, hjust=0) +
+#   scale_y_continuous(breaks=seq(from=5, 65, by=5), expand=c(0,0),
+#                      limits=c(0, max_y + samp_axis_offset)) +
+#   with_samp_theme +
+#   geom_hline(yintercept = seq(from=5, 65, by=5), color="darkgrey")
+# p_signif2 <- p_signif2+geom_segment(x= 0.5, xend=0.5, yend=65, y=0, color="darkgrey")
 
 outFile <- file.path(outFolder, paste0("summary_plot_signifTADs_signifGenes.", plotType))
 ggsave(p_signif2, filename = outFile, height=myHeightGG, width=myWidthGG)
@@ -225,33 +259,14 @@ p_signif <- ggplot(m_count_dt[m_count_dt$variable %in% c(plot_names),],
   labs(fill = "", x = "", y="# of TADs") +
   # scale_x_discrete(labels=function(x) gsub("/", "\n", x)) +
   scale_x_discrete(labels=function(x) gsub("/", " - ", x)) +
-  scale_y_continuous(breaks=seq(from=10, 70, by=5), expand=c(0,0))+
+  # scale_y_continuous(breaks=seq(from=10, 70, by=5), expand=c(0,0))+
   coord_flip()+
   my_box_theme + 
-  theme(
-    plot.subtitle = element_text(hjust=0.5, face="italic"),
-    panel.grid.major.y =element_blank(),
-    panel.grid.major.x =element_line(color="darkgrey"),
-    panel.grid.minor.x =element_line(color="darkgrey"),
-    legend.position = "top",
-    axis.title.x = element_text(),
-    axis.text.y = element_text(hjust=1, size=8),
-    axis.line.x = element_line(colour="darkgrey"),
-    axis.title.y = element_blank()
-  ) 
+  no_samp_theme
 
-p_signif2 <- p_signif + geom_text(data=text_label_dt, aes(x=x_pos, y= y_pos, label=samp_lab), inherit.aes = FALSE, hjust=0) +
-  scale_y_continuous(breaks=seq(from=5, 60, by=5), expand=c(0,0), 
-                     limits=c(0, max(m_count_dt$value[m_count_dt$variable %in% c(plot_names)]) + 5)) +
-  theme(
-    plot.subtitle = element_text(hjust=0.5, face="italic"),
-    axis.line.x =element_blank(),
-    panel.grid.major.y =element_blank(),
-    panel.grid.major.x =element_blank(),
-    panel.grid.minor.x =element_blank()
-  ) +
-  geom_hline(yintercept = seq(from=5, 60, by=5), color="darkgrey") 
-p_signif2 <- p_signif2+geom_segment(x= 0.5, xend=0.5, yend=60, y=0, color="darkgrey")
+
+
+p_signif2 <- add_axes(p_signif)
 
 
 outFile <- file.path(outFolder, paste0("summary_plot_signifTADs_topGenes.", plotType))

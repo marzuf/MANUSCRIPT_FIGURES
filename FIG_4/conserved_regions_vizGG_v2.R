@@ -1,13 +1,13 @@
 # IGV style
-
-# Rscript conserved_regions_vizGG.R all <conserved_region_130>  <conserved_region_42> 
-# Rscript conserved_regions_vizGG.R norm_vs_tumor <conserved_region_22> <conserved_region_9
-# Rscript conserved_regions_vizGG.R subtypes
-# Rscript conserved_regions_vizGG.R wt_vs_mut
+#Rscript conserved_regions_vizGG_v2.R all conserved_region_130 
+# Rscript conserved_regions_vizGG_v2.R all <conserved_region_130>  <conserved_region_42> 
+# Rscript conserved_regions_vizGG_v2.R norm_vs_tumor <conserved_region_22> <conserved_region_9
+# Rscript conserved_regions_vizGG_v2.R subtypes
+# Rscript conserved_regions_vizGG_v2.R wt_vs_mut
 
 # Rscript conserved_regions_viz.R cmpType <regions_to_plot>
 
-cat("> START ", "conserved_regions_viz.R", "\n")
+cat("> START ", "conserved_regions_vizGG_v2.R", "\n")
 
 startTime <- Sys.time()
 
@@ -21,7 +21,8 @@ tad_col <- pal_d3()(3)[1]
 gene_col <- pal_d3()(3)[2]
 syn_col <- pal_d3()(3)[3]
 
-consAll_col <- "red"
+# consAll_col <- "red"
+consAll_col <- "darkgreen"
 consAbove_col <- "orange"
 consBelow_col <- "black"
 
@@ -43,7 +44,7 @@ if(args[1] == "all"){
   stopifnot(cmpType %in% c("subtypes", "wt_vs_mut", "norm_vs_tumor"))
 }
 
-outFolder <- file.path("CONSERVED_REGIONS_VIZGG", cmpType)
+outFolder <- file.path("CONSERVED_REGIONS_VIZGG_V2", cmpType)
 dir.create(outFolder, recursive = TRUE)
 
 if(length(args) > 1){
@@ -226,8 +227,23 @@ for(maxConserved in conserved_regions_to_plot) {
   tad_gene_space <- 0.5
   gene_line_offset <- 0.1
   
-  region_plot_dt <- region_plot_dt[order(region_plot_dt$hicds_lab, region_plot_dt$exprds_lab, decreasing = TRUE),]
-  region_plot_dt$ds_rank <- 1:nrow(region_plot_dt)
+  # region_plot_dt <- region_plot_dt[order(region_plot_dt$hicds_lab, region_plot_dt$exprds_lab, decreasing = TRUE),]
+  # region_plot_dt$ds_rank <- 1:nrow(region_plot_dt)
+  # ### CHANGE HERE TO HAVE RANK BY CMP TYPE and space between them
+  region_plot_dt$tad_size <- region_plot_dt$end- region_plot_dt$start
+  region_plot_dt$cmpType <- all_cmps[paste0(region_plot_dt$exprds)]
+  stopifnot(!is.na(region_plot_dt$cmpType))
+  region_plot_dt$cmpType <- factor(region_plot_dt$cmpType, levels=sort(unique(as.character(all_cmps))))
+  stopifnot(!is.na(region_plot_dt$cmpType))
+  region_plot_dt$cmpType_num <- as.numeric(region_plot_dt$cmpType)-1
+  # region_plot_dt <- region_plot_dt[order(-region_plot_dt$cmpType_num, region_plot_dt$hicds_lab, region_plot_dt$exprds_lab, decreasing = TRUE),]
+  region_plot_dt <- region_plot_dt[order(-region_plot_dt$cmpType_num, region_plot_dt$tad_size, decreasing=TRUE),]
+  # region_plot_dt$ds_rank <- 1:nrow(region_plot_dt) ## CHANGED HERE
+  region_plot_dt$ds_rank <- 1:nrow(region_plot_dt) + region_plot_dt$cmpType_num
+  
+  # for label colors
+  region_plot_dt$ds_col <- all_cols[as.character(region_plot_dt$cmpType)]
+  stopifnot(!is.na(region_plot_dt$ds_col))
   
   gene_plot_dt <- gene_plot_dt[order(gene_plot_dt$start, gene_plot_dt$end),]
   gene_plot_dt$gene_rank <- max(region_plot_dt$ds_rank) + tad_gene_space + 1:nrow(gene_plot_dt)
@@ -321,6 +337,7 @@ for(maxConserved in conserved_regions_to_plot) {
     # if the first caracter are numbers -> need to separate ! -> should match 22Rv1 but not 786[]
     # mylab <- gsub("^(\\d+)", "\\1*", mylab)
     mylab <- gsub("^(\\d+)([a-zA-Z])", "\\1*\\2", mylab)
+    
     mylab
   })
   
@@ -350,6 +367,7 @@ for(maxConserved in conserved_regions_to_plot) {
             aes(x = region_plot_dt$start, y =  region_plot_dt$ds_rank, label = region_plot_dt$ds_lab), inherit.aes = F,
             nudge_x       = 3.5 - region_plot_dt$start,
             direction     = "y",
+            color = region_plot_dt$ds_col, # ADDED 
             hjust         = 1, parse = T, size=3,
             force_pull   = 0
           ) +
@@ -380,7 +398,7 @@ for(maxConserved in conserved_regions_to_plot) {
   save(region_p3, file="region_p3.Rdata", version=2)
   
   outFile <- file.path(outFolder, paste0(filePrefix, maxConserved, "_viz.", plotType))
-  ggsave(region_p3, filename=outFile, height=myHeightGG, width=myWidthGG *2)
+  ggsave(region_p3, filename=outFile, height=myHeightGG*1.2, width=myWidthGG *2)
   cat(paste0("... written: ", outFile, "\n"))
   
 }

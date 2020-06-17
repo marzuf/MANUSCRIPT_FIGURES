@@ -72,11 +72,6 @@ hicds="ENCSR489OCU_NCI-H460_40kb"
 exprds="TCGAlusc_norm_lusc"
 tad_to_plot="chr11_TAD390"
 
-col1 <- pal_futurama()(5)[1]
-col2 <- pal_futurama()(5)[5]
-col1 <- pal_aaas()(5)[4]
-col2 <- pal_npg()(5)[5]
-
 args <- commandArgs(trailingOnly = TRUE)
 stopifnot(length(args) >= 3)
 hicds <- args[1]
@@ -95,6 +90,15 @@ myHeightGG <- 6
 myWidthGG <- 7.5
 
 source("../settings.R")
+
+
+col1 <- pal_futurama()(5)[1]
+col2 <- pal_futurama()(5)[5]
+col1 <- pal_aaas()(5)[4]
+col2 <- pal_npg()(5)[5]
+col1 <- "black"#"exprBox_cond1Col
+col2 <- exprBox_cond2Col
+
 
 cat("load inDT \n")
 inDT <- get(load(file.path(runFolder, "/GENE_RANK_TAD_RANK/all_gene_tad_signif_dt.Rdata")))
