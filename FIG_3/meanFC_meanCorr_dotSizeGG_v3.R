@@ -190,7 +190,8 @@ fc_corr_p <- ggplot(ex_DT, aes(x=meanLogFC, y = meanCorr, fill = dotcol_lab, col
              shape=21,
              aes(size = adjPvalComb_log10_col, color = dotcol_lab), stroke=1)+
   
-  labs( fill = "TAD adj. p-val",size="TAD adj. p-val")+#, color="TAD ratio\ndown-reg. genes")+
+  labs( size= "TAD adj. p-val", fill="")+#, color="TAD ratio\ndown-reg. genes")+
+#  labs( fill = "TAD adj. p-val",size="TAD adj. p-val")+#, color="TAD ratio\ndown-reg. genes")+
   geom_label_repel(data = ex_DT[ex_DT$region %in% tads_to_annot,],
     aes(x= meanLogFC, 
         y=meanCorr, label=region),

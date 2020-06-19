@@ -145,7 +145,11 @@ bar_names <- setNames(c("observed", "permut."), bar_colors)
 point_size <- 4
 horizontal <- FALSE
 
-plotTit <- paste0("Ratio of TADs with FCC >= ", fcc_thresh)
+if(fcc_thresh == 1 | fcc_thresh == -1) {
+  plotTit <- paste0("Ratio of TADs with FCC = ", fcc_thresh)
+} else {
+  plotTit <- paste0("Ratio of TADs with FCC >= ", fcc_thresh)
+}
 subTit <- paste0("(mean ", keepPermut, " permut)")
 
 nDS <- length(unique(all_dt$dataset))

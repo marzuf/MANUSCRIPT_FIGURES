@@ -70,6 +70,22 @@ atLeast <- 10
 atMin <- 2
 
 
+# retrieve the max from permut
+all_perm_dt <- get(load(file.path(runFolder,
+                      "CONSERV_SIGNIF_OBSSHUFFLE/all_perm_dt.Rdata")))
+max_perm <- max(all_perm_dt$conserved)
+
+permline_col <- "black"
+
+add_maxPerm_line <- function(p) {
+   return(p + 
+    geom_hline(yintercept=max_perm, linetype=2, color=permline_col) + 
+    annotate("text", x = 1, y= max_perm+0.5, 
+              label=paste0("max permut. conserved = ", max_perm),
+              hjust=0, vjust=0, 
+              fontface ="italic", color=permline_col))
+}
+
 inFile <- file.path(runFolder,
                     "TAD_MATCHING_SIGNIF_ACROSS_HICDS_ALLMATCH_v2",
                     cmpType,
@@ -167,16 +183,23 @@ bar_p <- ggplot(plot_dt, aes(x=region_rank, y=conserved, fill = cmpType_lab, col
   theme(
     panel.grid.major.x =  element_blank(),
     panel.grid.minor.x  =  element_blank(),
+    panel.grid.minor.y  =  element_blank(),
     legend.text = element_text(size=12),
     # axis.line = element_line()
     # axis.ticks.x = element_blank(),
     # axis.text.x = element_blank(),
-    axis.line.x = element_line()
+    axis.line = element_line()
   )
+
+
+
+bar_p <- add_maxPerm_line(bar_p)
 
 outFile <- file.path(outFolder, paste0(filePrefix, "nConserved_byRegion_allCond.", plotType))
 ggsave(bar_p, filename = outFile, height=myHeightGG, width=myWidthGG)
 cat(paste0("... written: ", outFile, "\n"))
+
+# stop("-ok\n")
 
 #######################################################
 # plot only from at least top 10

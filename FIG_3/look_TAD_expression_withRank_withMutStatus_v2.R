@@ -98,6 +98,12 @@ tad_plot_rank <- unique(inDT$tad_rank[inDT$hicds == hicds & inDT$exprds == exprd
 stopifnot(!is.na(tad_plot_rank))
 stopifnot(length(tad_plot_rank) == 1)
 
+stopifnot(hicds %in% names(hicds_names))
+hicds_lab <- hicds_names[paste0(hicds)]
+
+stopifnot(exprds %in% names(exprds_names))
+exprds_lab <- exprds_names[paste0(exprds)]
+
 plotSub <- paste0(tad_to_plot, " - rank: ", tad_plot_rank)
 
 my_xlab <- "TAD genes (ordered by start positions)"
@@ -251,8 +257,7 @@ p_var_boxplot <-  ggplot(withRank_toplot_dt2, aes(x = symbol_lab, y = value_log1
   # geom_jitter(data=withRank_toplot_dt2[as.character(withRank_toplot_dt2$cond_sh) == "withMut",],
   #             aes(colour = cond, fill =cond, shape=cond_sh, group=cond), position=position_jitterdodge())+
   # 
-  
-  ggtitle(paste0(hicds, " - ", exprds), subtitle = paste0(subTit))+
+  ggtitle(paste0(hicds_lab, " - ", exprds_lab), subtitle = paste0(subTit))+
   scale_x_discrete(name=my_xlab)+
   scale_y_continuous(name=paste0(my_ylab),
                      breaks = scales::pretty_breaks(n = 20))+

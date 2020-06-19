@@ -512,7 +512,7 @@ save(conserved_signif_enrich_resultDT, version=2, file=file.path(outFolder, "con
     conserved_signif_dt$plot_labs <- factor(conserved_signif_dt$plot_labs, levels=as.character(conserved_signif_dt$plot_labs))
     
     myTit <- paste0(barplot_vars_tit[var_plot], " ", data_cmpType, " (conserved_signif)")
-    myTit <- "Signif. enriched GO from conserved regions"
+    myTit <- "Signif. enriched GO from conserved region"
     
     subTit <- paste0("(# datasets = ", nDS, ")")
     

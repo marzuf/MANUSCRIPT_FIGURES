@@ -2,7 +2,7 @@ options(scipen=100)
 
 SSHFS=F
 
-buildData <- TRUE
+buildData <- F
 
 # Rscript go_signif_across_hicds_v2_withThresh.R
 # Rscript go_signif_across_hicds_v2_withThresh.R norm_vs_tumor
@@ -67,7 +67,7 @@ source(file.path(runFolder, "enricher_settings.R"))
 # enricher_qvalueCutoff <- 1
 # enricher_results_sortGOby <- "p.adjust"
 
-conservThresh <- 10
+conservThresh <- 8
 
 
 script0_name <- "0_prepGeneData"
@@ -106,7 +106,7 @@ cat(paste0("n allDS = ", length(all_datasets), "\n"))
 # in # of genes
 # in bp
 
-plotOnly <- FALSE
+plotOnly <- T
 
 final_dt_file <- file.path(runFolder, "CREATE_FINAL_TABLE", "all_result_dt.Rdata")
 stopifnot(file.exists(final_dt_file))
@@ -513,9 +513,9 @@ if(! plotOnly) {
     conserved_signif_dt$plot_labs <- factor(conserved_signif_dt$plot_labs, levels=as.character(conserved_signif_dt$plot_labs))
     
     myTit <- paste0(barplot_vars_tit[var_plot], " ", data_cmpType, " (conserved_signif)")
-    myTit <- "Signif. enriched GO from conserved regions"
+    myTit <- "Signif. enriched GO from conserved region"
     
-    subTit <- paste0("(# datasets = ", nDS, ")")
+    subTit <- paste0("(conserved in >= ", conservThresh, "/", nDS,  " datasets)")
     
     if(var_plot == "log10_pval") {
       my_ylab <- "adj. p-val [-log10]"
@@ -538,8 +538,9 @@ if(! plotOnly) {
       labs(x="" , y = my_ylab) + 
       theme(
         axis.text.x = element_text(hjust=1, vjust=0.5,size=10,angle=90)
-    )
-    
+    ) +
+     scale_y_continuous( breaks= scales::pretty_breaks(n = 8))
+     
    outFile <- file.path(outFolder,paste0(file_prefix, "conserved_signif", var_plot, "_GO_", enricher_ontologyType, "_", var_plot, "_barplotGG", ".", plotType))
    ggsave(ggbar_p, filename = outFile, height=myHeightGG, width=myWidthGG*1.2)
    cat(paste0("... written: ", outFile, "\n"))
