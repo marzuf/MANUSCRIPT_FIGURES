@@ -181,7 +181,7 @@ add_axes <- function(p) {
         expand=c(0,0), 
                          limits=c(0, max_y+ samp_axis_offset)) +
       with_samp_theme +
-      geom_hline(yintercept = seq(from=break_step, axis_lim, by=break_step), color="darkgrey") +
+      # geom_hline(yintercept = seq(from=break_step, axis_lim, by=break_step), color="darkgrey") +
       geom_segment(x= 0.5, xend=0.5, yend=axis_lim, y=0, color="darkgrey")
     
   )
@@ -203,6 +203,7 @@ no_samp_theme <- theme(
 p_signif <- ggplot(m_count_dt[m_count_dt$variable %in% c(plot_names),], 
        # aes(x=dataset, y = value, fill=variable))+ 
     aes(x=dataset_name, y = value, fill=variable))+ 
+  geom_hline(yintercept = seq(from=break_step, axis_lim, by=break_step), color="darkgrey") +
   ggtitle(plotTit, subtitle = paste0(subTit))+
   geom_bar(stat="identity", position="stack") +
   scale_fill_manual(values=my_cols, labels=my_cols_names)+
@@ -252,6 +253,7 @@ subTit <- paste0("gene rank <= ", nTopGenes, "; TAD adj. p-val <= ", tadSignifTh
 p_signif <- ggplot(m_count_dt[m_count_dt$variable %in% c(plot_names),], 
                    # aes(x=dataset, y = value, fill=variable))+ 
                    aes(x=dataset_name, y = value, fill=variable))+ 
+  geom_hline(yintercept = seq(from=break_step, axis_lim, by=break_step), color="darkgrey") +
   ggtitle(plotTit, subtitle = paste0(subTit))+
   geom_bar(stat="identity", position="stack") +
   scale_fill_manual(values=my_cols, labels=my_cols_names)+

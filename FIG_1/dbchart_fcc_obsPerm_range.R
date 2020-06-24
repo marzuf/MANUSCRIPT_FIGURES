@@ -1,5 +1,8 @@
 
-# Rscript dbchart_fcc_obsPerm.R 
+# Rscript dbchart_fcc_obsPerm_range.R minRangeExc maxRangInc
+
+# Rscript dbchart_fcc_obsPerm_range.R 0.9 1
+# Rscript dbchart_fcc_obsPerm_range.R 0.8 0.9
 
 require(doMC)
 require(foreach)
@@ -9,8 +12,6 @@ require(colorRamps)
 require(reshape2)
 
 require(ggpubr)
-require(ggrepel)
-
 
 registerDoMC(50)
 
@@ -22,19 +23,23 @@ source("../settings.R")
 myWidthGG <- 9
 myHeightGG <- 6
 
-outFolder <- "DBCHART_FCC_OBSPERM_1"
+args <- commandArgs(trailingOnly = TRUE)
+minRangeExc <- as.numeric(args[1])
+maxRangeInc <- as.numeric(args[2])
+stopifnot(!is.na(minRangeExc))
+stopifnot(!is.na(maxRangeInc))
+
+outFolder <- file.path("DBCHART_FCC_OBSPERM_RANGE", paste0(minRangeExc, "_", maxRangeInc))
 dir.create(outFolder, recursive = TRUE)
 
-buildData <- FALSE
-
-
+buildData <- TRUE
 
 all_hicds <- all_obs_hicds
 all_exprds <- all_obs_exprds
 
 # all_hicds=all_hicds[1:2]
 
-fcc_thresh <- 1
+# fcc_thresh <- 1
 
 keepPermut <- 1000
 
@@ -57,11 +62,15 @@ if(buildData){
       stopifnot(file.exists(fcc_file))
       all_obs_fcc <- get(load(fcc_file))
       
-      obs_aboveThresh <- all_obs_fcc[all_obs_fcc >= fcc_thresh]
-      nObs_aboveThresh <- sum(all_obs_fcc >= fcc_thresh)
-      ratioObs_aboveThresh <- mean(all_obs_fcc >= fcc_thresh)
+      # obs_aboveThresh <- all_obs_fcc[all_obs_fcc >= fcc_thresh]
+      # nObs_aboveThresh <- sum(all_obs_fcc >= fcc_thresh)
+      # ratioObs_aboveThresh <- mean(all_obs_fcc >= fcc_thresh)
       
-      stopifnot(ratioObs_aboveThresh >= 0 & ratioObs_aboveThresh <= 1)
+      obs_inRange <- all_obs_fcc[all_obs_fcc > minRangeExc &  all_obs_fcc <= maxRangeInc]
+      nObs_inRange <- sum(all_obs_fcc > minRangeExc &  all_obs_fcc <= maxRangeInc)
+      ratioObs_inRange <- mean(all_obs_fcc > minRangeExc &  all_obs_fcc <= maxRangeInc)
+      
+      stopifnot(ratioObs_inRange >= 0 & ratioObs_inRange <= 1)
       
       fcc_file <- file.path(pipFolder, hicds, exprds, "8cOnlyFCC_runAllDown", "prodSignedRatio_permDT.Rdata")
       if(!file.exists(fcc_file)) return(NULL)
@@ -73,8 +82,12 @@ if(buildData){
       stopifnot(length(keepCols) == keepPermut)
       fcc_perm_dt <- fcc_perm_dt[,keepCols ]
 
-      all_perm_nAboveThresh <- apply(fcc_perm_dt, 2, function(x) sum(x >= fcc_thresh))
-      all_perm_ratioAboveThresh <- apply(fcc_perm_dt, 2, function(x) mean(x >= fcc_thresh))
+      # all_perm_nAboveThresh <- apply(fcc_perm_dt, 2, function(x) sum(x >= fcc_thresh))
+      # all_perm_ratioAboveThresh <- apply(fcc_perm_dt, 2, function(x) mean(x >= fcc_thresh))
+      
+      all_perm_nAboveThresh <- apply(fcc_perm_dt, 2, function(x) sum(x  > minRangeExc &  x <= maxRangeInc))
+      all_perm_ratioAboveThresh <- apply(fcc_perm_dt, 2, function(x) mean(x  > minRangeExc &  x <= maxRangeInc))
+      
       
       mean_perm_nAboveThresh <- mean(all_perm_nAboveThresh)
       mean_perm_ratioAboveThresh <- mean(all_perm_ratioAboveThresh)
@@ -84,10 +97,10 @@ if(buildData){
       data.frame(
         hicds = hicds,
         exprds = exprds,
-        nObs_aboveThresh=nObs_aboveThresh,
-        ratioObs_aboveThresh=ratioObs_aboveThresh,
-        nMeanPerm_aboveThresh=mean_perm_nAboveThresh,
-        ratioMeanPerm_aboveThresh=mean_perm_ratioAboveThresh,
+        nObs_inRange=nObs_inRange,
+        ratioObs_inRange=ratioObs_inRange,
+        nMeanPerm_inRange=mean_perm_nAboveThresh,
+        ratioMeanPerm_inRange=mean_perm_ratioAboveThresh,
         stringsAsFactors = FALSE
       )
     }
@@ -118,6 +131,17 @@ stopifnot(!is.na(all_dt$dataset))
 
 all_dt <- all_dt[order(as.numeric(all_dt$dataset)),]
 
+# db_p <- 
+#   dumbbell_chart(all_dt, dataset, ratioObs_inRange, ratioMeanPerm_inRange, sort=FALSE) + 
+#   theme(
+#     axis.text.y = element_blank(),
+#     axis.line = element_line()
+#   ) + 
+#   labs(x="Datasets ranked by decreasing\nFCC AUC ratio (top=higher) ")
+
+ggsci_pal <- "lancet"
+ggsci_subpal <- ""
+
 ggsci_pal <- "lancet"
 ggsci_subpal <- ""
 
@@ -136,11 +160,13 @@ bar_names <- setNames(c("observed", "permut."), bar_colors)
 point_size <- 4
 horizontal <- FALSE
 
-if(fcc_thresh == 1 | fcc_thresh == -1) {
-  plotTit <- paste0("Ratio of TADs with FCC = ", fcc_thresh)
-} else {
-  plotTit <- paste0("Ratio of TADs with FCC >= ", fcc_thresh)
-}
+# if(fcc_thresh == 1 | fcc_thresh == -1) {
+#   plotTit <- paste0("Ratio of TADs with FCC = ", fcc_thresh)
+# } else {
+#   plotTit <- paste0("Ratio of TADs with FCC >= ", fcc_thresh)
+# }
+plotTit <- paste0("Ratio of TADs with FCC > ", minRangeExc, " & FCC <= ", maxRangeInc)
+
 subTit <- paste0("(mean ", keepPermut, " permut)")
 
 nDS <- length(unique(all_dt$dataset))
@@ -150,11 +176,11 @@ myx_lab <- paste0("Datasets ranked by decreasing FCC AUC ratio (n=", nDS, ")")
 
 
 dumbbell_p <- ggplot(all_dt, aes(x = dataset)) + 
-  geom_segment(mapping = aes(xend = dataset, y = ratioMeanPerm_aboveThresh, yend = ratioObs_aboveThresh), 
+  geom_segment(mapping = aes(xend = dataset, y = ratioMeanPerm_inRange, yend = ratioObs_inRange), 
                color = line_color, size = line_size) +
-  geom_point(aes(y = ratioObs_aboveThresh, color = mycols["observed"]),
+  geom_point(aes(y = ratioObs_inRange, color = mycols["observed"]),
                                              size = point_size) + 
-  geom_point(aes(y = ratioMeanPerm_aboveThresh , color = mycols["permut."]),
+  geom_point(aes(y = ratioMeanPerm_inRange , color = mycols["permut."]),
              size = point_size) + 
             scale_color_manual(values = bar_colors, labels=bar_names) + 
   
@@ -189,73 +215,15 @@ dumbbell_p <- ggplot(all_dt, aes(x = dataset)) +
     plot.background = element_blank())
 
 
-outFile <- file.path(outFolder, paste0("ratio_", fcc_thresh, "FCC_obsPerm_dumbbell_plot.", plotType))
+# outFile <- file.path(outFolder, paste0("ratio_", fcc_thresh, "FCC_obsPerm_dumbbell_plot.", plotType))
+outFile <- file.path(outFolder, paste0("ratio_", minRangeExc, "_", maxRangeInc, "_FCC_obsPerm_dumbbell_plot.", plotType))
 ggsave(dumbbell_p, filename = outFile, height=myHeightGG, width=myWidthGG)
 cat(paste0("... written: ", outFile, "\n"))
-
-
-manual_annot <- c("ENCSR312KHQ_SK-MEL-5_40kb/TCGAskcm_lowInf_highInf", "ENCSR862OGI_RPMI-7951_40kb/TCGAskcm_lowInf_highInf")
-annot_dt <- all_dt[as.character(all_dt$dataset) %in% manual_annot,]
-annot_dt$dataset_lab <- paste0(hicds_names[dirname(as.character(annot_dt$dataset))], " - ", exprds_names[basename(as.character(annot_dt$dataset))])
-#  labs( fill = "TAD adj. p-val",size="TAD adj. p-val")+#, color="TAD ratio\ndown-reg. genes")+
-dumbbell_p_v1 <- dumbbell_p + geom_label_repel(data = annot_dt,
-                 aes(x= dataset, 
-                     y=ratioObs_aboveThresh, label=dataset_lab),
-                 inherit.aes = F,
-                 direction="y",
-                 hjust=1,
-                 # nudge_x=1,
-                 # nudge_x=1,
-                 # min.segment.length = unit(35, 'lines'),
-                 force = 10,
-                 # segment.size = 15,
-                  nudge_y = 0.05
-)  
-outFile <- file.path(outFolder, paste0("ratio_", fcc_thresh, "FCC_obsPerm_dumbbell_plot_withLabs_v1.", plotType))
-ggsave(dumbbell_p_v1, filename = outFile, height=myHeightGG, width=myWidthGG)
-cat(paste0("... written: ", outFile, "\n"))
-
-dumbbell_p_v2 <-  dumbbell_p + geom_label_repel(data = annot_dt,
-                                            aes(x= dataset, 
-                                                y=ratioObs_aboveThresh, label=dataset_lab),
-                                            inherit.aes = F,
-                                            direction="both",
-                                            # hjust=1,
-                                            # nudge_x=1,
-                                            # nudge_x=1,
-                                            # min.segment.length = unit(35, 'lines'),
-                                            force = 10
-                                            # segment.size = 15,
-                              # nudge_y = 0.05
-)  
-outFile <- file.path(outFolder, paste0("ratio_", fcc_thresh, "FCC_obsPerm_dumbbell_plot_withLabs_v2.", plotType))
-ggsave(dumbbell_p_v2, filename = outFile, height=myHeightGG, width=myWidthGG)
-cat(paste0("... written: ", outFile, "\n"))
-
-dumbbell_p_v3 <- dumbbell_p + geom_label_repel(data = annot_dt,
-                              aes(x= dataset, 
-                                  y=ratioObs_aboveThresh, label=dataset_lab),
-                              inherit.aes = F,
-                              direction="x",
-                              # hjust=1,
-                              # nudge_x=1,
-                              nudge_y=1,
-                              # min.segment.length = unit(35, 'lines'),
-                              force = 10
-                              # segment.size = 15,
-                              # nudge_y = 0.05
-)  
-outFile <- file.path(outFolder, paste0("ratio_", fcc_thresh, "FCC_obsPerm_dumbbell_plot_withLabs_v3.", plotType))
-ggsave(dumbbell_p_v3, filename = outFile, height=myHeightGG, width=myWidthGG)
-cat(paste0("... written: ", outFile, "\n"))
-
-
-
-
-
-
-
 # 
+
+
+
+
 # if (horizontal) {
 #   plot <- plot + coord_flip()
 # }

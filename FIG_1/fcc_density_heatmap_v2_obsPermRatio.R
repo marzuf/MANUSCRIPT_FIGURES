@@ -29,11 +29,14 @@ cmp_dt$density_y_Ratio <- log2(cmp_dt$density_y_OBS/cmp_dt$density_y_PERMUT)
 
 nDS <- length(unique(cmp_dt$dataset))
 
+
+myWidthGG=myWidthGG*1.1
+
 subTit <- paste0("all datasets (n=", nDS, ")")
 
 cmp_dt$dataset <- factor(cmp_dt$dataset, levels = ds_levels)
 
-density_plot <- ggplot(cmp_dt, aes(x = dataset, y = density_x, fill = density_y_Ratio))+
+density_plot_s <- ggplot(cmp_dt, aes(x = dataset, y = density_x, fill = density_y_Ratio))+
   geom_tile() +
   ggtitle(paste0("FCC score distribution - OBS/PERMUT [log2]"),
           subtitle = subTit) +
@@ -43,7 +46,7 @@ density_plot <- ggplot(cmp_dt, aes(x = dataset, y = density_x, fill = density_y_
   labs(fill = "Density\nratio [log2]")+
                           theme(
 	text = element_text(family=fontFamily),
-                            axis.text.x = element_text(colour = dsCols, size=12),
+                            axis.text.x = element_text(colour = dsCols, size=8),
                             axis.text.y= element_text(colour = "black", size=12),
                             axis.title.x = element_text(colour = "black", size=14, face="bold"),
                             axis.title.y = element_text(colour = "black", size=14, face="bold"),
@@ -51,7 +54,8 @@ density_plot <- ggplot(cmp_dt, aes(x = dataset, y = density_x, fill = density_y_
                             plot.subtitle = element_text(hjust=0.5, size=14, face="italic"),
                             panel.background = element_rect(fill = "transparent")
                             # legend.background =  element_rect()
-                          )  + geom_vline(xintercept=seq(from=1.5, by=1, length.out = nDS-1), linetype=3)
+                          )  
+density_plot <- density_plot_s + geom_vline(xintercept=seq(from=1.5, by=1, length.out = nDS-1), linetype=3)
                         
 density_plot1 <- density_plot  +
   scale_fill_gradient( high="red", low="blue", na.value = "white" ) 
@@ -59,8 +63,16 @@ density_plot1 <- density_plot  +
 #  scale_fill_gradient2( high="red", low="blue", na.value = "grey", mid ="white", midpoint=mean(cmp_dt$density_y_Ratio)) 
 
 
+cat(myHeightGG, "\n")
+cat(myWidthGG, "\n")
+
   density_plot2 <- density_plot + 
 					scale_fill_viridis_c(option="A")  
+  
+  density_plot3 <- density_plot + 
+    geom_vline(xintercept=seq(from=1.5, by=1, length.out = nDS-1), linetype=1)+
+    scale_fill_gradientn(colours=colorRamps::matlab.like2(20))
+    
 
 outFile <- file.path(outFolder, paste0("FCC_score_ratio_dist_allDS_obs_perm_densityheatmap.", plotType))
 ggsave(density_plot1, filename = outFile,  height=myHeightGG, width=myWidthGG)
@@ -70,6 +82,11 @@ outFile <- file.path(outFolder, paste0("FCC_score_ratio_dist_allDS_obs_perm_dens
 ggsave(density_plot2, filename = outFile,  height=myHeightGG, width=myWidthGG)
 cat(paste0("... written: ", outFile, "\n"))
 
+outFile <- file.path(outFolder, paste0("FCC_score_ratio_dist_allDS_obs_perm_densityheatmap_vMatlab.", plotType))
+ggsave(density_plot3, filename = outFile,  height=myHeightGG, width=myWidthGG)
+cat(paste0("... written: ", outFile, "\n"))
+
+
 all_dt <- get(load("FCC_DENSITY_HEATMAP_OBS_V2/all_result_dt.Rdata"))
 min_fcc <- min(all_dt$FCC)
 stopifnot(!is.na(min_fcc))
@@ -77,7 +94,7 @@ stopifnot(!is.na(min_fcc))
 
 cmp_dt_cut <- cmp_dt[cmp_dt$density_x >= min_fcc,]
 
-density_plot <- ggplot(cmp_dt_cut, aes(x = dataset, y = density_x, fill = density_y_Ratio))+
+density_plot_s <- ggplot(cmp_dt_cut, aes(x = dataset, y = density_x, fill = density_y_Ratio))+
   geom_tile() +
   ggtitle(paste0("FCC score distribution - OBS/PERMUT [log2]"),
           subtitle = subTit) +
@@ -87,7 +104,7 @@ density_plot <- ggplot(cmp_dt_cut, aes(x = dataset, y = density_x, fill = densit
   labs(fill = "Density\nratio [log2]")+
                           theme(
 	text = element_text(family=fontFamily),
-                            axis.text.x = element_text(colour = dsCols, size=12),
+                            axis.text.x = element_text(colour = dsCols, size=8),
                             axis.text.y= element_text(colour = "black", size=12),
                             axis.title.x = element_text(colour = "black", size=14, face="bold"),
                             axis.title.y = element_text(colour = "black", size=14, face="bold"),
@@ -95,7 +112,8 @@ density_plot <- ggplot(cmp_dt_cut, aes(x = dataset, y = density_x, fill = densit
                             plot.subtitle = element_text(hjust=0.5, size=14, face="italic"),
                             panel.background = element_rect(fill = "transparent")
                             # legend.background =  element_rect()
-                          )  + geom_vline(xintercept=seq(from=1.5, by=1, length.out = nDS-1), linetype=3)
+                          )  
+density_plot <- density_plot_s + geom_vline(xintercept=seq(from=1.5, by=1, length.out = nDS-1), linetype=3)
                         
 density_plot1 <- density_plot  +
   scale_fill_gradient( high="red", low="blue", na.value = "white" ) 
@@ -106,12 +124,21 @@ density_plot1 <- density_plot  +
   density_plot2 <- density_plot + 
 					scale_fill_viridis_c(option="A")  
 
+  density_plot3 <- density_plot_s + 
+    geom_vline(xintercept=seq(from=1.5, by=1, length.out = nDS-1), linetype=1)+
+    scale_fill_gradientn(colours=colorRamps::matlab.like2(20))
+    
+  
 outFile <- file.path(outFolder, paste0("FCC_score_ratio_dist_allDS_obs_perm_densityheatmap_cutMin.", plotType))
 ggsave(density_plot1, filename = outFile,  height=myHeightGG, width=myWidthGG)
 cat(paste0("... written: ", outFile, "\n"))
 
 outFile <- file.path(outFolder, paste0("FCC_score_ratio_dist_allDS_obs_perm_densityheatmap_vPal_cutMin.", plotType))
 ggsave(density_plot2, filename = outFile,  height=myHeightGG, width=myWidthGG)
+cat(paste0("... written: ", outFile, "\n"))
+
+outFile <- file.path(outFolder, paste0("FCC_score_ratio_dist_allDS_obs_perm_densityheatmap_vMatlab_cutMin.", plotType))
+ggsave(density_plot3, filename = outFile,  height=myHeightGG, width=myWidthGG)
 cat(paste0("... written: ", outFile, "\n"))
 
 

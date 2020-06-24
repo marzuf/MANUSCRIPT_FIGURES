@@ -102,6 +102,9 @@ all_result_dt$dataset <- file.path(all_result_dt$hicds, all_result_dt$exprds)
 
 all_result_dt$hicds_lab <- "PERMG2T"
 
+heatmap_lims <- range(all_result_dt$FCC)
+
+
 
 all_types <- unique(all_result_dt$hicds_lab)
 a_t = all_types[1]
@@ -123,7 +126,8 @@ for(a_t in all_types) {
     stopifnot(length(hicds) == 1)
     exprds <- unique(x$exprds)
     stopifnot(length(exprds) == 1)
-    ds_dt <- density(x$FCC, from=-1, to=1) # update 03.05.2020 -> limit density curves
+#   ds_dt <- density(x$FCC)  # 24.06.20-1) finally compute normal density but crop
+    ds_dt <- density(x$FCC, from=-1, to=1) # update 03.05.2020 -> limit density curves -> 24.06.20-2) see test_density.R -> there are the same curves, but easier then to take ratio
     data.frame(
       hicds=hicds,
       exprds=exprds,
@@ -143,7 +147,8 @@ for(a_t in all_types) {
   
   subTit <- paste0("all datasets (n=", nDS, "; # permut=", keepPermut, ")")
 
-   new_density_x <- seq(min(sub_density_dt$density_x),max(sub_density_dt$density_x),by=resolution) # update 03.05.2020 -> limit density curves
+  new_density_x <- seq(min(sub_density_dt$density_x),max(sub_density_dt$density_x),by=resolution) # finally 24.06 -> interpolate, then crop the ggplot update 03.05.2020 -> limit density curves
+
 #  new_density_x <- seq(-1,1,by=resolution)
 
   plot_dt <- foreach(i = 1:nDS, .combine='rbind') %dopar% {
@@ -169,7 +174,7 @@ for(a_t in all_types) {
     labs(fill = "Density")+
     theme(
 	text = element_text(family=fontFamily),
-      axis.text.x = element_text(colour = dsCols, size=12),
+      axis.text.x = element_text(colour = dsCols, size=8),
       axis.text.y= element_text(colour = "black", size=12),
       axis.title.x = element_text(colour = "black", size=14, face="bold"),
       axis.title.y = element_text(colour = "black", size=14, face="bold"),
@@ -184,21 +189,90 @@ for(a_t in all_types) {
     scale_fill_gradient2( high="red", low="blue", na.value = "grey", mid ="white", midpoint=mean(plot_dt$density_y))  
 
 
+	density_plot1_cut <- density_plot1 + 
+    scale_y_continuous(name="FCC score", limits = heatmap_lims,
+                       breaks = scales::pretty_breaks(n = 20),  expand = c(0, 0))
+    
+
   density_plot2 <- density_plot +
 					scale_fill_viridis_c(option="A")  
+
+  density_plot2_cut <- density_plot2 +
+    scale_y_continuous(name="FCC score", limits = heatmap_lims,
+                       breaks = scales::pretty_breaks(n = 20),  expand = c(0, 0))
+
+
+    density_plot3 <- density_plot + 
+    scale_fill_gradientn(colours=colorRamps::matlab.like2(20))
+  
+    density_plot3_cut <- density_plot + 
+    scale_fill_gradientn(colours=colorRamps::matlab.like2(20))+
+      scale_y_continuous(name="FCC score", limits = heatmap_lims,
+                         breaks = scales::pretty_breaks(n = 20),  expand = c(0, 0))
+    
+
+ 
+  density_plot_s <- ggplot(plot_dt[plot_dt$density_x >= min(heatmap_lims),], aes(x = dataset, y = density_x, fill = density_y))+
+    geom_tile() +
+    ggtitle(paste0("FCC score distribution - ", a_t),
+            subtitle = paste0("all datasets (n=", nDS, ")")) +
+    scale_x_discrete(name="Datasets ranked by decreasing AUC FCC ratio", labels = rep(labsymbol, nDS ), expand = c(0, 0))  +
+    scale_y_continuous(name="FCC score",
+                       breaks = scales::pretty_breaks(n = 20),  expand = c(0, 0))+
+    labs(fill = "Density")+
+    theme(
+      text = element_text(family=fontFamily),
+      axis.text.x = element_text(colour = dsCols, size=8),
+      axis.text.y= element_text(colour = "black", size=12),
+      axis.title.x = element_text(colour = "black", size=14, face="bold"),
+      axis.title.y = element_text(colour = "black", size=14, face="bold"),
+      plot.title = element_text(hjust=0.5, size=16, face="bold"),
+      plot.subtitle = element_text(hjust=0.5, size=14, face="italic"),
+      panel.background = element_rect(fill = "transparent")
+      # legend.background =  element_rect()
+    )
+density_plot <- density_plot_s + 	geom_vline(xintercept=seq(from=1.5, by=1, length.out = nDS-1), linetype=1)+
+  scale_fill_gradientn(colours=colorRamps::matlab.like2(20))+
+    scale_y_continuous(name="FCC score", 
+                       breaks = scales::pretty_breaks(n = 20),  expand = c(0, 0))
+  
+  
+  
+  outFile <- file.path(outFolder, paste0("FCC_score_dist_allDS_", a_t, "_densityheatmap_vMatlab_cut2.", plotType))
+  ggsave(density_plot, filename = outFile,  height=myHeightGG, width=myWidthGG)
+  cat(paste0("... written: ", outFile, "\n"))
+  
+  
+  
+
+
   
   outFile <- file.path(outFolder, paste0("FCC_score_dist_allDS_", a_t, "_densityheatmap.", plotType))
   ggsave(density_plot1, filename = outFile,  height=myHeightGG, width=myWidthGG)
   cat(paste0("... written: ", outFile, "\n"))
 
-  outFile <- file.path(outFolder, paste0("FCC_score_dist_allDS_", a_t, "_densityheatmap_vPal.", plotType))
-  ggsave(density_plot2, filename = outFile,  height=myHeightGG, width=myWidthGG)
+#  outFile <- file.path(outFolder, paste0("FCC_score_dist_allDS_", a_t, "_densityheatmap_vPal.", plotType))
+#  ggsave(density_plot2, filename = outFile,  height=myHeightGG, width=myWidthGG)
+#  cat(paste0("... written: ", outFile, "\n"))
+
+  outFile <- file.path(outFolder, paste0("FCC_score_dist_allDS_", a_t, "_densityheatmap_vMatlab.", plotType))
+  ggsave(density_plot3, filename = outFile,  height=myHeightGG, width=myWidthGG)
   cat(paste0("... written: ", outFile, "\n"))
+  
+  outFile <- file.path(outFolder, paste0("FCC_score_dist_allDS_", a_t, "_densityheatmap_vMatlab_cut.", plotType))
+  ggsave(density_plot3_cut, filename = outFile,  height=myHeightGG, width=myWidthGG)
+  cat(paste0("... written: ", outFile, "\n"))
+
   
   outFile <- file.path(outFolder, paste0("density_plot_", a_t, ".Rdata"))
   save(plot_dt, file = outFile)
   cat(paste0("... written: ", outFile, "\n"))
   
+
+
+################# CHECKPLOT
+
+
   sub_dt <- all_result_dt[all_result_dt$hicds_lab == a_t,]
   sub_dt$FCC[sub_dt$hicds == dirname(ds_levels[1]) & sub_dt$exprds == basename(ds_levels[1])] <- sub_dt$FCC[sub_dt$hicds == dirname(ds_levels[1]) & sub_dt$exprds == basename(ds_levels[1])] - 0.5
     
@@ -207,7 +281,8 @@ for(a_t in all_types) {
     stopifnot(length(hicds) == 1)
     exprds <- unique(x$exprds)
     stopifnot(length(exprds) == 1)
-    ds_dt <- density(x$FCC, from=-1, to=1) # update 03.05.2020 -> limit density curves
+#   ds_dt <- density(x$FCC)  # 24.06.20-1) finally compute normal density but crop
+    ds_dt <- density(x$FCC, from=-1, to=1) # update 03.05.2020 -> limit density curves -> 24.06.20-2) see test_density.R -> there are the same curves, but easier then to take ratio
     data.frame(
       hicds=hicds,
       exprds=exprds,
@@ -229,7 +304,8 @@ for(a_t in all_types) {
   
   subTit <- paste0("all datasets (n=", nDS, "; # permut=", keepPermut, ")")
   
-   new_density_x <- seq(min(sub_density_dt$density_x),max(sub_density_dt$density_x),by=resolution) # update 03.05.2020 -> limit density curves
+  new_density_x <- seq(min(sub_density_dt$density_x),max(sub_density_dt$density_x),by=resolution) # finally 24.06 -> interpolate, then crop the ggplot update 03.05.2020 -> limit density curves
+
 #  new_density_x <- seq(-1,1,by=resolution)
   
   plot_dt <- foreach(i = 1:nDS, .combine='rbind') %dopar% {
@@ -257,7 +333,7 @@ for(a_t in all_types) {
     scale_fill_gradient2( high="red", low="blue", na.value = "grey", mid ="white", midpoint=mean(plot_dt$density_y))  +
     theme(
 	text = element_text(family=fontFamily),
-      axis.text.x = element_text(colour = dsCols, size=12),
+      axis.text.x = element_text(colour = dsCols, size=8),
       axis.text.y= element_text(colour = "black", size=12),
       axis.title.x = element_text(colour = "black", size=14, face="bold"),
       axis.title.y = element_text(colour = "black", size=14, face="bold"),
