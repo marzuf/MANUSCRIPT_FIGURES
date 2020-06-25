@@ -148,6 +148,11 @@ nDS <- length(unique(all_dt$dataset))
 myy_lab <- "Ratio of TADs"
 myx_lab <- paste0("Datasets ranked by decreasing FCC AUC ratio (n=", nDS, ")")
 
+ratioTADs_fcc1_dt <- all_dt
+saveFile <- file.path(outFolder, "fig1Ea_ratioTADs_fcc1_dt.Rdata")
+save(ratioTADs_fcc1_dt, file=saveFile, version=2)
+cat(paste0("... written:" , saveFile, "\n"))
+
 
 dumbbell_p <- ggplot(all_dt, aes(x = dataset)) + 
   geom_segment(mapping = aes(xend = dataset, y = ratioMeanPerm_aboveThresh, yend = ratioObs_aboveThresh), 
@@ -252,96 +257,3 @@ cat(paste0("... written: ", outFile, "\n"))
 
 
 
-
-
-
-# 
-# if (horizontal) {
-#   plot <- plot + coord_flip()
-# }
-
-
-
-
-# 
-# # load("CHECK_FCC1/all_dt.Rdata")
-# all_dt$obs_ratioSize3 <- all_dt$obs_nFCC1size3/all_dt$obs_nFCC1
-# all_dt$permMean_ratioSize3 <- all_dt$permMean_nFCC1size3/all_dt$permMean_nFCC1
-# 
-# m_all_dt <- melt(all_dt, id=c("hicds", "exprds"))
-# m_all_dt$varType <- gsub("(.+?)_.+", "\\1", m_all_dt$variable)
-# m_all_dt$varLab <- gsub("(.+?)_(.+)", "\\2", m_all_dt$variable)
-# 
-# m_all_dt$cmpType <- all_cmps[paste0(m_all_dt$exprds)]
-# 
-# nDS <- length(unique(file.path(m_all_dt$hicds, m_all_dt$exprds)))
-# 
-# plotTit <- "# TADs with FCC=1"
-# subTit <- paste0("all datasets (n=", nDS, "); mean permut (# perm. = ", keepPermut, ")")
-# 
-# sub1_dt <- m_all_dt[grepl("nFCC", m_all_dt$varLab),]
-# 
-# plot_myBox <- function(p){
-#   p <- p +   
-#     geom_boxplot(notch = TRUE, outlier.shape=NA)+
-#     geom_point(position=position_jitterdodge(),  alpha=0.5) +
-#     eval(parse(text=paste0("scale_fill_", ggsci_pal, "(", ggsci_subpal, ")"))) + 
-#     eval(parse(text=paste0("scale_color_", ggsci_pal, "(", ggsci_subpal, ")"))) + 
-#     my_box_theme+
-#     theme(
-#       legend.text=element_text(size=12),
-#       axis.line=element_line(),
-#       axis.text.x = element_text(size=14)
-#     )
-#   return(p)
-# }
-# # ggplot(sub1_dt, aes(x=varLab, color=varType, y=value)) +
-# #   ggtitle(plotTit, subtitle = subTit)+
-# #   labs(fill ="", color="", x="", y="# TADs" )+
-# #   geom_boxplot(notch = TRUE, outlier.shape=NA) +
-# #   geom_point(aes(color=cmpType),position=position_jitterdodge(),  alpha=0.5) +
-# #   eval(parse(text=paste0("scale_fill_", ggsci_pal, "(", ggsci_subpal, ")"))) +
-# #   eval(parse(text=paste0("scale_color_", ggsci_pal, "(", ggsci_subpal, ")"))) +
-# #   my_box_theme+
-# #   theme(
-# #     legend.text=element_text(size=12),
-# #     axis.line=element_line(),
-# #     axis.text.x = element_text(size=14)
-# 
-# 
-# p1 <- plot_myBox(ggplot(sub1_dt, aes(x=varLab, color=varType, y=value)) + 
-#   ggtitle(plotTit, subtitle = subTit)+
-#   labs(fill ="", color="", x="", y="# TADs" ))
-#   
-# outFile <- file.path(outFolder, paste0("nFCC1_nFCC1size3_obsPerm_boxplot.", plotType))
-# ggsave(p1, filename = outFile, height=myHeightGG, width=myWidthGG)
-# cat(paste0("... written: ", outFile, "\n"))
-# 
-# 
-# sub2_dt <- m_all_dt[!grepl("nFCC", m_all_dt$varLab) & grepl("ratio", m_all_dt$varLab),]
-# 
-# plotTit <- "Ratio of FCC=1 TADs of size # genes=3"
-# 
-# p2 <- plot_myBox(ggplot(sub2_dt, aes(x=varLab, color=varType, y=value)) + 
-#   ggtitle(plotTit, subtitle = subTit)+
-#     labs(fill ="", color="", x="", y="Ratio of FCC=1 TADs" ))
-# 
-# outFile <- file.path(outFolder, paste0("FCC1ratioSize3_obsPerm_boxplot.", plotType))
-# ggsave(p2, filename = outFile, height=myHeightGG, width=myWidthGG)
-# cat(paste0("... written: ", outFile, "\n"))
-# 
-# 
-# sub3_dt <- m_all_dt[!grepl("nFCC", m_all_dt$varLab) & ! grepl("ratio", m_all_dt$varLab),]
-# 
-# plotTit <- "Mean and median # genes of FCC=1 TADs"
-# 
-# p3 <- plot_myBox(ggplot(sub3_dt, aes(x=varLab, color=varType, y=value)) + 
-#   ggtitle(plotTit, subtitle = subTit)+
-#     labs(fill ="", color="", x="", y="Ratio of FCC=1 TADs" ))
-# 
-# outFile <- file.path(outFolder, paste0("FCC1meanMedianSize_obsPerm_boxplot.", plotType))
-# ggsave(p3, filename = outFile, height=myHeightGG, width=myWidthGG)
-# cat(paste0("... written: ", outFile, "\n"))
-# 
-# 
-# 

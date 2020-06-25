@@ -278,9 +278,10 @@ cat(paste0("... written: ", outFile, "\n"))
 #####################
 
 
-
-
-
+signifTADs_signifGenes_topGenes_dt <- m_count_dt
+saveFile <- file.path(outFolder, "fig2D_supp_fig2C_signifTADs_signifGenes_topGenes_dt.Rdata")
+save(signifTADs_signifGenes_topGenes_dt, file=saveFile, version=2)
+cat(paste0("... written:" , saveFile, "\n"))
 
 
 

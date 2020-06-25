@@ -394,6 +394,18 @@ for(maxConserved in conserved_regions_to_plot) {
     
   save(gene_plot_dt, file="gene_plot_dt.Rdata", version=2)
   save(region_plot_dt, file="region_plot_dt.Rdata", version=2)
+
+genes_plot_dt <- gene_plot_dt
+saveFile <- file.path(outFolder, paste0("fig4C_", maxConserved, "_genes_plot_dt.Rdata"))
+save(genes_plot_dt, file=saveFile, version=2)
+cat(paste0("... written:" , saveFile, "\n"))
+
+tads_plot_dt <- region_plot_dt
+saveFile <- file.path(outFolder, paste0("fig4C_", maxConserved, "_tads_plot_dt.Rdata"))
+save(tads_plot_dt, file=saveFile, version=2)
+cat(paste0("... written:" , saveFile, "\n"))
+
+
   
   save(region_p3, file="region_p3.Rdata", version=2)
   

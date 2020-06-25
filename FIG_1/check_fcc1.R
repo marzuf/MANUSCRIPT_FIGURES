@@ -185,6 +185,13 @@ sub2_dt$varType[sub2_dt$varType == "permMean"] <- "permut."
 
 plotTit <- "Ratio of FCC=1 TADs with 3 genes"
 
+
+ratioSize3_fcc1TADs_dt <- sub2_dt
+saveFile <- file.path(outFolder, "fig1Eb_ratioSize3_fcc1TADs_dt.Rdata")
+save(ratioSize3_fcc1TADs_dt, file=saveFile, version=2)
+cat(paste0("... written:" , saveFile, "\n"))
+
+
 p2 <- plot_myBox(ggplot(sub2_dt, aes(x=varLab, color=varType, y=value))) + 
   ggtitle(plotTit, subtitle = subTit)+
     labs(fill ="", color="Data:", x="", y="Ratio of FCC=1 TADs" )+

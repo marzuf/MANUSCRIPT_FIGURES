@@ -67,6 +67,11 @@ myTit <- paste0(hicds_lab, " - ", exprds_lab)
 my_xlab <- "Ranked TADs"
 my_ylab <- "FCC"
 
+all_FCC_dt <- data.frame(hicds=hicds, exprds=exprds, relative_rank=rel_rank, FCC = all_fcc, stringsAsFactors=FALSE)
+saveFile <- file.path(outFolder, paste0("fig1G_", hicds, "_", exprds, "_all_FCC_dt.Rdata"))
+save(all_FCC_dt, file=saveFile, version=2)
+cat(paste0("... written:" , saveFile, "\n"))
+  
 ybreaks <- seq(-1, 1, by=0.25)
 
 outFile <- file.path(outFolder, paste0(hicds, "_", exprds, "_fcc_ranked_with_pie.", plotType))

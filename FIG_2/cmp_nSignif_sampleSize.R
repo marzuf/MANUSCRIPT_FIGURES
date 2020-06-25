@@ -213,6 +213,12 @@ customSignif_p <- function(p) {
 ## Plot both TADs and genes 
 ##################################
 
+downsampSampSize_ratioSignifFeatures_dt <- mean_plot_dt
+saveFile <- file.path(outFolder, "fig2C_downsampSampSize_ratioSignifFeatures_dt.Rdata")
+save(downsampSampSize_ratioSignifFeatures_dt, file=saveFile, version=2)
+cat(paste0("... written:" , saveFile, "\n"))
+
+
 mylines <- setNames(c(2,1), c(paste0("genes (adj. p-val <= ", geneSignifThresh, ")"),
 								paste0("TADs (adj. p-val <= ", tadSignifThresh, ")")))
 

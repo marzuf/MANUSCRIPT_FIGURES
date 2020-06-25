@@ -245,7 +245,18 @@ all_fcc_dt <- foreach(hicds = all_obs_hicds, .combine='rbind') %dopar% {
       auc_obs <- auc(x = x_val, y = obs_cumsum)
       auc_permut <- auc(x = x_val, y = meanPermut_cumsum)
       auc_permutQt <- auc(x = x_val, y = qt95Permut_cumsum)
-      
+
+saveFile <- file.path(outFolder, paste0("fig1F_", hicds, "_", exprds, "_", "fcc_cumsum_dt.Rdata"))      
+fcc_cumsum_dt <- data.frame(
+			hicds=hicds,
+			exprds=exprds,
+			x_rank = x_val,
+			obs_FCC = obs_cumsum,
+			qt95Permut_FCC=qt95Permut_cumsum,
+			stringsAsFactors=FALSE
+)
+save(fcc_cumsum_dt, file= saveFile)
+cat(paste0("... written: ", outFile, "\n"))
       
       outFile <- file.path(outFolder, paste0(hicds, "_", exprds, "_", "auc_obs.Rdata"))
       save(auc_obs, file= outFile)

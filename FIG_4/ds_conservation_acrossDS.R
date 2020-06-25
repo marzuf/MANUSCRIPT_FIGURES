@@ -171,6 +171,11 @@ stopifnot(!is.na(plot_dt$cmpType_lab))
 
 save(plot_dt, file=file.path(outFolder, "plot_dt.Rdata"), version=2)
 
+conservedRegions_dt <- plot_dt
+saveFile <- file.path(outFolder, paste0("fig4A_conservedRegions_dt.Rdata"))
+save(conservedRegions_dt, file=saveFile, version=2)
+cat(paste0("... written:" , saveFile, "\n"))
+
 bar_p <- ggplot(plot_dt, aes(x=region_rank, y=conserved, fill = cmpType_lab, color=cmpType_lab)) +
   ggtitle(myTit, subtitle = subTit)+
   geom_bar(stat="identity") +

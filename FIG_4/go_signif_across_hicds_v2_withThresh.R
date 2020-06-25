@@ -544,6 +544,13 @@ if(! plotOnly) {
    outFile <- file.path(outFolder,paste0(file_prefix, "conserved_signif", var_plot, "_GO_", enricher_ontologyType, "_", var_plot, "_barplotGG", ".", plotType))
    ggsave(ggbar_p, filename = outFile, height=myHeightGG, width=myWidthGG*1.2)
    cat(paste0("... written: ", outFile, "\n"))
+
+
+topSignifGO_conservedRegions_dt <- conserved_signif_dt
+saveFile <- file.path(outFolder, paste0("fig4B_topSignifGO_conservedRegions_dt.Rdata"))
+save(topSignifGO_conservedRegions_dt, file=saveFile, version=2)
+cat(paste0("... written:" , saveFile, "\n"))
+
    
    
   }

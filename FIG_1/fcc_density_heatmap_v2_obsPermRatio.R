@@ -94,6 +94,13 @@ stopifnot(!is.na(min_fcc))
 
 cmp_dt_cut <- cmp_dt[cmp_dt$density_x >= min_fcc,]
 
+obsPerm_ratioFensityFCC_dt <- cmp_dt_cut
+saveFile <- file.path(outFolder, "supp_fig1B_obsPerm_ratioDensityFCC_dt.Rdata")
+save(obsPerm_ratioFensityFCC_dt, file=saveFile, version=2)
+cat(paste0("... written:" , saveFile, "\n"))
+  
+
+
 density_plot_s <- ggplot(cmp_dt_cut, aes(x = dataset, y = density_x, fill = density_y_Ratio))+
   geom_tile() +
   ggtitle(paste0("FCC score distribution - OBS/PERMUT [log2]"),

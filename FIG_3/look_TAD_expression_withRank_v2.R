@@ -283,6 +283,12 @@ all_conds <- c(cond1_lab, cond2_lab)
 cond_labels <- paste0(all_conds, " (n=" , table(check_dt$cond_labels) [all_conds], ")")
 
 
+tad_geneExpr_dt <- withRank_toplot_dt2
+saveFile <- file.path(outFolder, paste0("fig3B_", hicds, "_", exprds, "_", tad_to_plot, "_tad_geneExpr_dt.Rdata"))
+save(tad_geneExpr_dt, file=saveFile, version=2)
+cat(paste0("... written:" , saveFile, "\n"))
+
+
 p_var_boxplot <-  ggplot(withRank_toplot_dt2, aes(x = symbol_lab, y = value_log10, color = cond)) + 
   # geom_boxplot(notch = TRUE, outlier.shape=NA)+
   # geom_jitter(aes(colour = cond), position=position_jitterdodge())+

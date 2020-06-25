@@ -350,6 +350,12 @@ subTit <- paste0("TAD signif. adj. p-val <= ", tadSignifThresh, "; gene signif. 
 #   )
 #   
   
+ratioSignifFeatures_minSample_dt <- ratioSignif_dt
+saveFile <- file.path(outFolder, "supp_fig2B_ratioSignifFeatures_minSample_dt.Rdata")
+save(ratioSignifFeatures_minSample_dt, file=saveFile, version=2)
+cat(paste0("... written:" , saveFile, "\n"))
+  
+
 p_ratio <-  ggplot(ratioSignif_dt, aes(x=ratioSignifTADs, y=ratioSignifGenes, size=minNbrSample, color=cmpType))+
   ggtitle(plotTit, subtitle = subTit)+
   scale_y_continuous( breaks = scales::pretty_breaks(n = 10))+

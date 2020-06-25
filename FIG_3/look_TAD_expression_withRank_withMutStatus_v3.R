@@ -6,9 +6,9 @@
 
 ########################################################################################################################################################################################
 startTime <- Sys.time()
-cat(paste0("> Rscript look_TAD_expression_withRank_withMutStatus_v2.R\n"))
+cat(paste0("> Rscript look_TAD_expression_withRank_withMutStatus_v3.R\n"))
 
-script_name <- "look_TAD_expression_withRank_withMutStatus_v2.R"
+script_name <- "look_TAD_expression_withRank_withMutStatus_v3.R"
 
 suppressPackageStartupMessages(library(foreach, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
 suppressPackageStartupMessages(library(doMC, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
@@ -22,13 +22,11 @@ require(reshape2)
 log10_offset <- 0.01
 
 
-# Rscript look_TAD_expression_withRank_withMutStatus_v2.R <hicds> <exprds> <gene_symbol>
-# Rscript look_TAD_expression_withRank_withMutStatus_v2.R ENCSR489OCU_NCI-H460_40kb TCGAlusc_norm_lusc chr11_TAD390 # MMPP
-# Rscript look_TAD_expression_withRank_withMutStatus_v2.R ENCSR489OCU_NCI-H460_40kb TCGAlusc_norm_lusc chr10_TAD268 # SFTPA
-# Rscript look_TAD_expression_withRank_withMutStatus_v2.R ENCSR489OCU_NCI-H460_40kb TCGAluad_norm_luad chr11_TAD390
-# Rscript look_TAD_expression_withRank_withMutStatus_v2.R ENCSR489OCU_NCI-H460_40kb TCGAluad_norm_luad chr10_TAD268
-
-
+# Rscript look_TAD_expression_withRank_withMutStatus_v3.R <hicds> <exprds> <gene_symbol>
+# Rscript look_TAD_expression_withRank_withMutStatus_v3.R ENCSR489OCU_NCI-H460_40kb TCGAlusc_norm_lusc chr11_TAD390 # MMPP
+# Rscript look_TAD_expression_withRank_withMutStatus_v3.R ENCSR489OCU_NCI-H460_40kb TCGAlusc_norm_lusc chr10_TAD268 # SFTPA
+# Rscript look_TAD_expression_withRank_withMutStatus_v3.R ENCSR489OCU_NCI-H460_40kb TCGAluad_norm_luad chr11_TAD390
+# Rscript look_TAD_expression_withRank_withMutStatus_v3.R ENCSR489OCU_NCI-H460_40kb TCGAluad_norm_luad chr10_TAD268
 
 # ENCSR489OCU_NCI-H460_40kb	TCGAluad_mutKRAS_mutEGFR	chr10_TAD16	AKR1C1,AKR1C2,AKR1C3
 # ENCSR489OCU_NCI-H460_40kb	TCGAluad_mutKRAS_mutEGFR	chr17_TAD162	HOXB2,HOXB3,HOXB4,HOXB5,HOXB6,HOXB7
@@ -41,17 +39,15 @@ log10_offset <- 0.01
 # ENCSR489OCU_NCI-H460_40kb	TCGAlusc_norm_lusc	chr10_TAD268	BEND3P3,SFTPA1,SFTPA2
 
 
-# Rscript look_TAD_expression_withRank_withMutStatus_v2.R ENCSR489OCU_NCI-H460_40kb TCGAluad_mutKRAS_mutEGFR chr10_TAD16
-# Rscript look_TAD_expression_withRank_withMutStatus_v2.R ENCSR489OCU_NCI-H460_40kb TCGAluad_mutKRAS_mutEGFR chr17_TAD162
-# Rscript look_TAD_expression_withRank_withMutStatus_v2.R ENCSR489OCU_NCI-H460_40kb TCGAluad_nonsmoker_smoker chr10_TAD16
-# Rscript look_TAD_expression_withRank_withMutStatus_v2.R ENCSR489OCU_NCI-H460_40kb TCGAluad_nonsmoker_smoker chr17_TAD162
-# Rscript look_TAD_expression_withRank_withMutStatus_v2.R ENCSR489OCU_NCI-H460_40kb TCGAluad_norm_luad chr11_TAD390
-# Rscript look_TAD_expression_withRank_withMutStatus_v2.R ENCSR489OCU_NCI-H460_40kb TCGAluad_norm_luad chr10_TAD268
-# Rscript look_TAD_expression_withRank_withMutStatus_v2.R ENCSR489OCU_NCI-H460_40kb TCGAlusc_norm_lusc chr11_TAD390
-# Rscript look_TAD_expression_withRank_withMutStatus_v2.R ENCSR489OCU_NCI-H460_40kb TCGAlusc_norm_lusc chr10_TAD268
+# Rscript look_TAD_expression_withRank_withMutStatus_v3.R ENCSR489OCU_NCI-H460_40kb TCGAluad_mutKRAS_mutEGFR chr10_TAD16
+# Rscript look_TAD_expression_withRank_withMutStatus_v3.R ENCSR489OCU_NCI-H460_40kb TCGAluad_mutKRAS_mutEGFR chr17_TAD162
+# Rscript look_TAD_expression_withRank_withMutStatus_v3.R ENCSR489OCU_NCI-H460_40kb TCGAluad_nonsmoker_smoker chr10_TAD16
+# Rscript look_TAD_expression_withRank_withMutStatus_v3.R ENCSR489OCU_NCI-H460_40kb TCGAluad_nonsmoker_smoker chr17_TAD162
+# Rscript look_TAD_expression_withRank_withMutStatus_v3.R ENCSR489OCU_NCI-H460_40kb TCGAluad_norm_luad chr11_TAD390
+# Rscript look_TAD_expression_withRank_withMutStatus_v3.R ENCSR489OCU_NCI-H460_40kb TCGAluad_norm_luad chr10_TAD268
+# Rscript look_TAD_expression_withRank_withMutStatus_v3.R ENCSR489OCU_NCI-H460_40kb TCGAlusc_norm_lusc chr11_TAD390
+# Rscript look_TAD_expression_withRank_withMutStatus_v3.R ENCSR489OCU_NCI-H460_40kb TCGAlusc_norm_lusc chr10_TAD268
 # 
-
-
 
 hicds="ENCSR489OCU_NCI-H460_40kb"
 exprds="TCGAluad_mutKRAS_mutEGFR"
@@ -60,8 +56,6 @@ tad_to_plot="chr10_TAD16"
 hicds="ENCSR489OCU_NCI-H460_40kb"
 exprds="TCGAlusc_norm_lusc"
 tad_to_plot="chr11_TAD390"
-
-
 
 args <- commandArgs(trailingOnly = TRUE)
 stopifnot(length(args) >= 3)
@@ -115,7 +109,7 @@ mainFolder <- runFolder
 pipFolder <- file.path(mainFolder, "PIPELINE", "OUTPUT_FOLDER")
 settingFolder <- file.path(mainFolder, "PIPELINE", "INPUT_FILES")
 
-outFolder <- file.path("LOOK_TAD_EXPRESSION_WITHRANK_WITHMUTSTATUS_V2")
+outFolder <- file.path("LOOK_TAD_EXPRESSION_WITHRANK_WITHMUTSTATUS_V3")
 dir.create(outFolder, recursive = TRUE)
 
 mutSamples <- get(load(file.path(runFolder, "NFE2L2_KEAP1_MUTSAMPLES", "mut_samples.Rdata")))
@@ -196,7 +190,6 @@ stopifnot(!is.na(toplot_dt$symbol))
 toplot_dt <- toplot_dt[order(toplot_dt$chromo, toplot_dt$start, toplot_dt$end, toplot_dt$value),]
 toplot_dt$value_log10 <- log10(toplot_dt$value + log10_offset)
 
-
 withRank_toplot_dt2 <- do.call(rbind, by(toplot_dt, list(toplot_dt$symbol), function(x) {
   x$cond <- factor(x$cond, levels=c(cond1,cond2))
   dt <- x[order(-as.numeric(x$cond), x$value, decreasing = TRUE),]
@@ -228,47 +221,40 @@ withRank_toplot_dt2$cond_sh <- ifelse(as.character(withRank_toplot_dt2$variable)
 withRank_toplot_dt2$cond_sh <- factor(withRank_toplot_dt2$cond_sh, levels = c("noMut", "withMut"))
 stopifnot(!is.na(withRank_toplot_dt2$cond_sh))
 
-
-withRank_toplot_dt2$cond <- factor(withRank_toplot_dt2$cond, levels = c(cond1,cond2))
-stopifnot(!is.na(withRank_toplot_dt2$cond))
-
 withRank_toplot_dt2$symbol_lab <- paste0(withRank_toplot_dt2$symbol, "\n(rank: ", withRank_toplot_dt2$gene_rank, ")")
 withRank_toplot_dt2$symbol_lab <- factor(withRank_toplot_dt2$symbol_lab, levels=tmp$lab)
 stopifnot(!is.na(withRank_toplot_dt2$symbol_lab))
 
-save(withRank_toplot_dt2, file ="withRank_toplot_dt2.Rdata")
+save(withRank_toplot_dt2, file =file.path(outFolder, "withRank_toplot_dt2.Rdata"))
 
 subTit <- paste0(tad_to_plot, " (rank: ", tad_plot_rank, ")")
 
-alpha_mutStat <- setNames(c(0.5,1), c("noMut", "withMut"))
+# mutcols <- as.character(paletteer::paletteer_d("ggthemes::excel_Atlas"))[2:3]
+mutcols <- setNames(c("#FC7715FF", "#AFBF41FF"), c("noMut", "withMut"))
 
+withRank_toplot_dt2 <- withRank_toplot_dt2[order(withRank_toplot_dt2$cond_sh),]
 
-p_var_boxplot <-  ggplot(withRank_toplot_dt2, aes(x = symbol_lab, y = value_log10, col = cond)) + 
+p_var_boxplot <- ggplot(withRank_toplot_dt2, aes(x = symbol_lab, y = value_log10, col = cond)) + 
   geom_boxplot(notch = TRUE, outlier.shape=NA)+
-  
-  # geom_jitter(aes(colour = cond, fill =cond, shape=cond_sh, group=cond), position=position_jitterdodge(), alpha=0.7)+
-  
-  geom_jitter(aes(colour = cond, fill =cond, shape=cond_sh, group=cond, alpha=cond_sh), position=position_jitterdodge())+
-  
-  scale_alpha_manual(values=alpha_mutStat, guide=F)+
-  
-  # geom_jitter(data=withRank_toplot_dt2[as.character(withRank_toplot_dt2$cond_sh) == "noMut",],
-  #               aes(colour = cond, fill =cond, shape=cond_sh, group=cond), position=position_jitterdodge(), alpha=0.7)+
-  # geom_jitter(data=withRank_toplot_dt2[as.character(withRank_toplot_dt2$cond_sh) == "withMut",],
-  #             aes(colour = cond, fill =cond, shape=cond_sh, group=cond), position=position_jitterdodge())+
-  # 
+  geom_jitter(aes(fill =cond_sh, shape=cond_sh, group=cond), 
+              alpha=0.5,
+              position=position_jitterdodge())+
   ggtitle(paste0(hicds_lab, " - ", exprds_lab), subtitle = paste0(subTit))+
   scale_x_discrete(name=my_xlab)+
   scale_y_continuous(name=paste0(my_ylab),
                      breaks = scales::pretty_breaks(n = 20))+
   scale_shape_manual(
-    values = c(15,8),
+    values = c(21,24),
     breaks = c("noMut", "withMut"),
     labels = c("not mut.", "mut.")
   )+
   scale_color_manual(values=c(col1, col2))+
-  scale_fill_manual(values=c(col1, col2))+
-  labs(fill  = paste0("Cond."), color=paste0("Cond."), shape=paste0("KEAP1|NFE2L2")) +
+  scale_fill_manual(values=mutcols, 
+                    breaks=c("noMut", "withMut"),
+                    labels=c("not mut.", "mut."))+
+  
+  labs(fill  = paste0("KEAP1|NFE2L2"), color=paste0("Cond."), shape=paste0("KEAP1|NFE2L2")) +
+  
   theme( 
     plot.title = element_text(hjust = 0.5, face = "bold", size=16),
     plot.subtitle = element_text(hjust = 0.5, face = "italic", size = 14),
@@ -290,10 +276,140 @@ p_var_boxplot <-  ggplot(withRank_toplot_dt2, aes(x = symbol_lab, y = value_log1
     legend.title = element_text(face="bold", size=12)
   )
 
+
 outFile <- file.path(outFolder, paste0(hicds, "_", exprds, "_", tad_to_plot, "_allSamples_exprValues_boxplot_vShape.", plotType))
 ggsave(plot = p_var_boxplot, filename = outFile, height=myHeightGG, width = myWidthGG*1.2)
 cat(paste0("... written: ", outFile, "\n"))
 
+boxSpacing <- 0.2
+mutSpacing <- 0.075
+
+withRank_toplot_dt2$symbol_pos <- as.numeric(withRank_toplot_dt2$symbol_lab)
+withRank_toplot_dt2$cond_pos <- ifelse(as.numeric(withRank_toplot_dt2$cond) == 1, -boxSpacing, boxSpacing)
+withRank_toplot_dt2$box_pos <- withRank_toplot_dt2$symbol_pos + withRank_toplot_dt2$cond_pos
+
+withRank_toplot_dt2b <- do.call(rbind, by(withRank_toplot_dt2, withRank_toplot_dt2$box_pos, function(x) {
+  if(length(unique(as.numeric(x$cond_sh))) == 1) {
+    x$mut_pos <-0  # if there is only wt or mut -> put at the middle of the box
+  } else {
+    x$mut_pos <- ifelse(as.numeric(x$cond_sh) == 1, -mutSpacing, mutSpacing)
+  }
+  x
+}))
+withRank_toplot_dt2b$dot_pos <- withRank_toplot_dt2b$box_pos + withRank_toplot_dt2b$mut_pos
+
+
+tad_geneExpr_withMut_dt <- withRank_toplot_dt2b
+saveFile <- file.path(outFolder, paste0("fig3BwithMut_", hicds, "_", exprds, "_", tad_to_plot, "_tad_geneExpr_withMut_dt.Rdata"))
+save(tad_geneExpr_withMut_dt, file=saveFile, version=2)
+cat(paste0("... written:" , saveFile, "\n"))
+
+
+p_var_boxplot_v2 <- ggplot(withRank_toplot_dt2b, aes(x = box_pos, y = value_log10, group=box_pos, color=cond)) +
+  ggtitle(paste0(hicds_lab, " - ", exprds_lab), subtitle = paste0(subTit))+
+  geom_boxplot(notch = TRUE, outlier.shape=NA) + 
+  geom_jitter(aes(x=dot_pos, y = value_log10, group=dot_pos, shape=cond_sh, fill=cond_sh),
+              alpha=0.5,
+              width=0.05)+
+  scale_color_manual(values=c(col1, col2))+
+  scale_fill_manual(values=mutcols, 
+                    breaks=c("noMut", "withMut"),
+                    labels=c("not mut.", "mut."))+
+  scale_shape_manual(
+    values = c(21,24),
+    breaks = c("noMut", "withMut"),
+    labels = c("not mut.", "mut.")
+  )+
+  labs(fill  = paste0("KEAP1|NFE2L2"), color=paste0("Cond."), shape=paste0("KEAP1|NFE2L2")) +
+  
+  scale_x_continuous(name=my_xlab, breaks=unique(withRank_toplot_dt2b$symbol_pos), 
+                     labels = as.character(levels(withRank_toplot_dt2b$symbol_lab)))+
+  scale_y_continuous(name=paste0(my_ylab),
+                     breaks = scales::pretty_breaks(n = 20))+
+  theme( 
+    plot.title = element_text(hjust = 0.5, face = "bold", size=16),
+    plot.subtitle = element_text(hjust = 0.5, face = "italic", size = 14),
+    panel.grid = element_blank(),
+    panel.grid.major.y = element_line(colour = "grey"),
+    panel.grid.minor.y = element_line(colour = "grey"),
+    axis.line.x= element_line(size = .2, color = "black"),
+    axis.line.y = element_line(size = .2, color = "black"),
+    axis.text.y = element_text(color="black", hjust=1,vjust = 0.5, size=12),
+    axis.text.x =element_text(color="black", hjust=0.5,vjust = 0.5, size=12, face="bold"),
+    # axis.ticks.x = element_blank(),
+    axis.title.y = element_text(color="black", size=14),
+    axis.title.x = element_text(color="black", size=14),
+    panel.border = element_blank(),
+    panel.background = element_rect(fill = "transparent"),
+    legend.background =  element_rect(),
+    legend.text = element_text(size=12),
+    legend.key = element_blank(),
+    legend.title = element_text(face="bold", size=12)
+  )
+
+outFile <- file.path(outFolder, paste0(hicds, "_", exprds, "_", tad_to_plot, "_allSamples_exprValues_boxplot_vShape_v2.", plotType))
+ggsave(plot = p_var_boxplot_v2, filename = outFile, height=myHeightGG, width = myWidthGG*1.2)
+cat(paste0("... written: ", outFile, "\n"))
+
+p_var_boxplot_v2 <- ggplot(withRank_toplot_dt2b, aes(x = box_pos, y = value_log10, group=box_pos, color=cond)) +
+  ggtitle(paste0(hicds_lab, " - ", exprds_lab), subtitle = paste0(subTit))+
+  geom_boxplot(notch = TRUE, outlier.shape=NA) + 
+  geom_jitter(aes(x=dot_pos, y = value_log10, group=dot_pos, shape=cond_sh, fill=cond), 
+              alpha=0.5,
+              width=0.05)+
+  scale_color_manual(values=c(col1, col2))+
+  scale_fill_manual(values=c(col1, col2))+
+  # scale_fill_manual(values=mutcols, 
+  #                   breaks=c("noMut", "withMut"),
+  #                   labels=c("not mut.", "mut."))+
+  scale_shape_manual(
+    values = c(21,24),
+    breaks = c("noMut", "withMut"),
+    labels = c("not mut.", "mut.")
+  )+
+  labs(fill  = paste0("KEAP1|NFE2L2"), color=paste0("Cond."), shape=paste0("KEAP1|NFE2L2")) +
+  
+  scale_x_continuous(name=my_xlab, breaks=unique(withRank_toplot_dt2b$symbol_pos), 
+                     labels = as.character(levels(withRank_toplot_dt2b$symbol_lab)))+
+  scale_y_continuous(name=paste0(my_ylab),
+                     breaks = scales::pretty_breaks(n = 20))+
+  theme( 
+    plot.title = element_text(hjust = 0.5, face = "bold", size=16),
+    plot.subtitle = element_text(hjust = 0.5, face = "italic", size = 14),
+    panel.grid = element_blank(),
+    panel.grid.major.y = element_line(colour = "grey"),
+    panel.grid.minor.y = element_line(colour = "grey"),
+    axis.line.x= element_line(size = .2, color = "black"),
+    axis.line.y = element_line(size = .2, color = "black"),
+    axis.text.y = element_text(color="black", hjust=1,vjust = 0.5, size=12),
+    axis.text.x =element_text(color="black", hjust=0.5,vjust = 0.5, size=12, face="bold"),
+    # axis.ticks.x = element_blank(),
+    axis.title.y = element_text(color="black", size=14),
+    axis.title.x = element_text(color="black", size=14),
+    panel.border = element_blank(),
+    panel.background = element_rect(fill = "transparent"),
+    legend.background =  element_rect(),
+    legend.text = element_text(size=12),
+    legend.key = element_blank(),
+    legend.title = element_text(face="bold", size=12)
+  )
+
+outFile <- file.path(outFolder, paste0(hicds, "_", exprds, "_", tad_to_plot, "_allSamples_exprValues_boxplot_vShape_v3.", plotType))
+ggsave(plot = p_var_boxplot_v2, filename = outFile, height=myHeightGG, width = myWidthGG*1.2)
+cat(paste0("... written: ", outFile, "\n"))
+
+
+# paletteer::paletteer_d("ggthemes::Classic_Green_Orange_6") 1:2
+# paletteer::paletteer_d("lisa::KarlZerbe") 4:5
+# paletteer::paletteer_d("lisa::FrancescoXanto")4:5
+# paletteer::paletteer_d("lisa::PabloPicasso_1")3:4
+# paletteer::paletteer_d("lisa::ClaesOldenburg")3:4
+# paletteer::paletteer_d("lisa::ClaudeMonet")2:3
+# paletteer::paletteer_d("lisa::KazimirMalevich")3:4
+# paletteer::paletteer_d("lisa::GustavKlimt")2:3
+# paletteer::paletteer_d("lisa::HelenFrankenthaler")1:2
+# paletteer::paletteer_d("lisa::RobertDelaunay")2:3
+# paletteer::paletteer_d("lisa::JackBush")3:4
 
 
 

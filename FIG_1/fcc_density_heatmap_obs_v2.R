@@ -149,6 +149,11 @@ for(a_t in all_types) {
   stopifnot(!is.na(plot_dt$dataset))
 
   heatmap_lims <- range(all_result_dt$FCC)
+
+obs_densityFCC_dt <- plot_dt
+saveFile <- file.path(outFolder, "fig1A_obs_densityFCC_dt.Rdata")
+save(obs_densityFCC_dt, file=saveFile, version=2)
+cat(paste0("... written:" , saveFile, "\n"))
   
   density_plot_s <- ggplot(plot_dt, aes(x = dataset, y = density_x, fill = density_y))+
     geom_tile() +

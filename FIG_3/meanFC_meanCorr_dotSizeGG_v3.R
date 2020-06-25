@@ -235,7 +235,10 @@ ggsave(fc_corr_p, filename = outFile, height=myHeightGG, width=myWidthGG)
 cat(paste0("... written: ", outFile, "\n"))
 
 
-
+logFC_meanCorr_volcano_dt <- ex_DT
+saveFile <- file.path(outFolder, paste0("fig3A_", ex_hicds, "_", ex_exprds, "_logFC_meanCorr_volcano_dt.Rdata"))
+save(logFC_meanCorr_volcano_dt, file=saveFile, version=2)
+cat(paste0("... written:" , saveFile, "\n"))
 
 
 #######################################################################################################################################

@@ -41,6 +41,12 @@ exprds_lab <- exprds_names[paste0(exprds)]
 
 inDT <- get(load(file.path(runFolder, "GENE_RANK_TAD_RANK/all_gene_tad_signif_dt.Rdata")))
 
+allDT_geneRank_tadRank_dt <- inDT
+saveFile <- file.path(outFolder, paste0("fig3CD_allDS_geneRank_tadRank_dt.Rdata"))
+save(allDT_geneRank_tadRank_dt, file=saveFile, version=2)
+cat(paste0("... written:" , saveFile, "\n"))
+
+
 ds_dt <- inDT[inDT$hicds == hicds & inDT$exprds == exprds,]
 
 tad_dt <- ds_dt[,c("hicds", "exprds", "region", "tad_adjCombPval")]

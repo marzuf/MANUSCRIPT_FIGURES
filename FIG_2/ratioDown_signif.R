@@ -218,6 +218,11 @@ outFile <- file.path(outFolder, paste0("ratioGeneSignif_ratioDown_barplot.", plo
 ggsave(plot = ratio_p, filename = outFile, height=myHeightGG, width = myWidthGG)
 cat(paste0("... written: ", outFile, "\n"))
 
+ratioDown_ratioSignif_geneLevel_tadLevel_dt <- ratio_totNbr_signif_dt
+saveFile <- file.path(outFolder, "supp_fig2A_ratioDown_ratioSignif_geneLevel_tadLevel_dt.Rdata")
+save(ratioDown_ratioSignif_geneLevel_tadLevel_dt, file=saveFile, version=2)
+cat(paste0("... written:" , saveFile, "\n"))
+
 
 
 ###### abs. FC distribution

@@ -81,6 +81,17 @@ stopifnot(!is.na(dt1$cmp))
 
 nDS <- length(unique(dt1$dataset))
 
+aucRatio_dt <- dt1
+saveFile <- file.path(outFolder, "fig1D_aucRatio_dt.Rdata")
+save(aucRatio_dt, file=saveFile, version=2)
+cat(paste0("... written:" , saveFile, "\n"))
+
+
+ratioTADs_fccTopRanges_dt <- dt2
+saveFile <- file.path(outFolder, "supp_fig1C_ratioTADs_fccTopRanges_dt.Rdata")
+save(ratioTADs_fccTopRanges_dt, file=saveFile, version=2)
+cat(paste0("... written:" , saveFile, "\n"))
+
 
 p1_aucRatio_plot <- ggplot(dt1, aes(x=dataset, y = fcc_auc_minus1, color=cmp, fill=cmp))+ 
   ggtitle(p1_tit, subtitle = p1_sub)+

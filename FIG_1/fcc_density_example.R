@@ -65,7 +65,12 @@ all_dt <- foreach(ds  = all_ds, .combine='rbind') %dopar% {
   )
 }
 
-save(all_dt, file=file.path(outFolder, "all_dt.Rdata"))
+#save(all_dt, file=file.path(outFolder, "all_dt.Rdata"))
+example_fccDensity_dt <- all_dt
+saveFile <- file.path(outFolder, paste0("fig1C_",  paste0(gsub("/", "_", all_ds), collapse="_"), "_example_fccDensity_dt.Rdata"))
+save(example_fccDensity_dt, file=saveFile, version=2)
+cat(paste0("... written:" , saveFile, "\n"))
+
 
 all_dt$dataset <- paste0(hicds_names[as.character(all_dt$hicds)], " \n ", exprds_names[as.character(all_dt$exprds)])
 stopifnot(!is.na(all_dt$dataset))

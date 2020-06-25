@@ -211,6 +211,11 @@ for(a_t in all_types) {
                          breaks = scales::pretty_breaks(n = 20),  expand = c(0, 0))
     
 
+permut_densityFCC_dt <- plot_dt
+saveFile <- file.path(outFolder, "supp_fig1A_permut_densityFCC_dt.Rdata")
+save(permut_densityFCC_dt, file=saveFile, version=2)
+cat(paste0("... written:" , saveFile, "\n"))
+  
  
   density_plot_s <- ggplot(plot_dt[plot_dt$density_x >= min(heatmap_lims),], aes(x = dataset, y = density_x, fill = density_y))+
     geom_tile() +
@@ -320,6 +325,7 @@ density_plot <- density_plot_s + 	geom_vline(xintercept=seq(from=1.5, by=1, leng
   }
   plot_dt$dataset <- factor(plot_dt$dataset, levels=ds_levels)
   stopifnot(!is.na(plot_dt$dataset))
+
   
   density_plot <- ggplot(plot_dt, aes(x = dataset, y = density_x, fill = density_y))+ 
     geom_tile() +
