@@ -23,7 +23,7 @@ myHeightGG <- 5
 outFolder <- "CHECK_FCC1"
 dir.create(outFolder, recursive = TRUE)
 
-buildData <- FALSE
+buildData <- TRUE
 
 mycols <- setNames(c(observ_col, permut_col), c("observed", "permut."))
 
@@ -58,6 +58,7 @@ if(buildData){
       stopifnot(length(obs_tadSize_fcc1) == length(all_obs_fcc1))
       obs_nFCC1 <- length(all_obs_fcc1)
       obs_nFCC1size3 <- sum(obs_tadSize_fcc1 == 3)
+      obs_nFCC1size7more <- sum(obs_tadSize_fcc1 >= 7)
       obs_meanSizeFCC1 <- mean(obs_tadSize_fcc1)
       obs_medianSizeFCC1 <- median(obs_tadSize_fcc1)
       
@@ -80,25 +81,29 @@ if(buildData){
         t(data.frame(
           perm_nFCC1 = length(fcc1_idx),
         perm_nFCC1size3 = sum(perm_tadSize_fcc1 == 3),
+        perm_nFCC1size7more = sum(perm_tadSize_fcc1 >= 7),
         perm_meanSizeFCC1 = mean(perm_tadSize_fcc1),
         perm_medianSizeFCC1 = median(perm_tadSize_fcc1)))
       })
-      stopifnot(nrow(all_perm) == 4)
+      stopifnot(nrow(all_perm) == 5)
       stopifnot(ncol(all_perm) == keepPermut)
       permMean_nFCC1 <- mean(all_perm[1,])
       permMean_nFCC1size3 <- mean(all_perm[2,])
-      permMean_meanSizeFCC1 <- mean(all_perm[3,])
-      permMean_medianSizeFCC1 <- mean(all_perm[4,])
+      permMean_nFCC1size7more <- mean(all_perm[3,])
+      permMean_meanSizeFCC1 <- mean(all_perm[4,])
+      permMean_medianSizeFCC1 <- mean(all_perm[5,])
       
       data.frame(
         hicds = hicds,
         exprds = exprds,
         obs_nFCC1 = obs_nFCC1,
         obs_nFCC1size3 = obs_nFCC1size3,
+		obs_nFCC1size7more = obs_nFCC1size7more,
         obs_meanSizeFCC1 = obs_meanSizeFCC1,
         obs_medianSizeFCC1 = obs_medianSizeFCC1,
         permMean_nFCC1 = permMean_nFCC1,
         permMean_nFCC1size3 = permMean_nFCC1size3,
+        permMean_nFCC1size7more = permMean_nFCC1size7more,
         permMean_meanSizeFCC1 = permMean_meanSizeFCC1,
         permMean_medianSizeFCC1 = permMean_medianSizeFCC1,
         stringsAsFactors = FALSE
@@ -120,6 +125,9 @@ if(buildData){
 # load("CHECK_FCC1/all_dt.Rdata")
 all_dt$obs_ratioSize3 <- all_dt$obs_nFCC1size3/all_dt$obs_nFCC1
 all_dt$permMean_ratioSize3 <- all_dt$permMean_nFCC1size3/all_dt$permMean_nFCC1
+
+all_dt$obs_ratioSize7more <- all_dt$obs_nFCC1size7more/all_dt$obs_nFCC1
+all_dt$permMean_ratioSize7more <- all_dt$permMean_nFCC1size7more/all_dt$permMean_nFCC1
 
 m_all_dt <- melt(all_dt, id=c("hicds", "exprds"))
 m_all_dt$varType <- gsub("(.+?)_.+", "\\1", m_all_dt$variable)
@@ -177,14 +185,13 @@ ggsave(p1, filename = outFile, height=myHeightGG, width=myWidthGG)
 cat(paste0("... written: ", outFile, "\n"))
 
 
-sub2_dt <- m_all_dt[!grepl("nFCC", m_all_dt$varLab) & grepl("ratio", m_all_dt$varLab),]
+sub2_dt <- m_all_dt[!grepl("nFCC", m_all_dt$varLab) & grepl("ratioSize3", m_all_dt$varLab),]
 
 sub2_dt$varType[sub2_dt$varType == "obs"] <- "observed"
 sub2_dt$varType[sub2_dt$varType == "permMean"] <- "permut."
 
 
 plotTit <- "Ratio of FCC=1 TADs with 3 genes"
-
 
 ratioSize3_fcc1TADs_dt <- sub2_dt
 saveFile <- file.path(outFolder, "fig1Eb_ratioSize3_fcc1TADs_dt.Rdata")
@@ -210,6 +217,60 @@ p2 <- plot_myBox(ggplot(sub2_dt, aes(x=varLab, color=varType, y=value))) +
 outFile <- file.path(outFolder, paste0("FCC1ratioSize3_obsPerm_boxplot.", plotType))
 ggsave(p2, filename = outFile, height=myHeightGG, width=myWidthGG)
 cat(paste0("... written: ", outFile, "\n"))
+
+
+
+
+
+
+sub2_dt <- m_all_dt[!grepl("nFCC", m_all_dt$varLab) & grepl("ratioSize7more", m_all_dt$varLab),]
+
+sub2_dt$varType[sub2_dt$varType == "obs"] <- "observed"
+sub2_dt$varType[sub2_dt$varType == "permMean"] <- "permut."
+
+
+
+plotTit <- "Ratio of FCC=1 TADs with >= 7 genes"
+
+#ratioSize3_fcc1TADs_dt <- sub2_dt
+#saveFile <- file.path(outFolder, "fig1Eb_ratioSize3_fcc1TADs_dt.Rdata")
+#save(ratioSize3_fcc1TADs_dt, file=saveFile, version=2)
+#cat(paste0("... written:" , saveFile, "\n"))
+
+
+p2 <- plot_myBox(ggplot(sub2_dt, aes(x=varLab, color=varType, y=value))) + 
+  ggtitle(plotTit, subtitle = subTit)+
+    labs(fill ="", color="Data:", x="", y="Ratio of FCC=1 TADs" )+
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 7))+
+  my_box_theme+
+  theme(
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.title.x = element_blank(),
+    legend.title = element_text(size=14),
+    legend.text = element_text(size=12),
+    legend.key = element_rect(fill = NA))
+  # )+
+  # theme(legend.background=element_blank())+guides(color=guide_legend(override.aes=list(fill=NA)))
+
+outFile <- file.path(outFolder, paste0("FCC1ratioSize7more_obsPerm_boxplot.", plotType))
+ggsave(p2, filename = outFile, height=myHeightGG, width=myWidthGG)
+cat(paste0("... written: ", outFile, "\n"))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 sub3_dt <- m_all_dt[!grepl("nFCC", m_all_dt$varLab) & ! grepl("ratio", m_all_dt$varLab),]

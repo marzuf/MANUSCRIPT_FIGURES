@@ -283,5 +283,11 @@ saveFile <- file.path(outFolder, "fig2D_supp_fig2C_signifTADs_signifGenes_topGen
 save(signifTADs_signifGenes_topGenes_dt, file=saveFile, version=2)
 cat(paste0("... written:" , saveFile, "\n"))
 
-
+#> wide_dt =reshape(signifTADs_signifGenes_topGenes_dt, direction="wide", timevar="variable", idvar="dataset_name")                                                                                                                                                                 
+#> save(wide_dt, file="SUMMARY_PLOT/wide_dt_fig2D_supp_fig2C_signifTADs_signifGenes_topGenes_dt.Rdata", version=2
+#> stopifnot(wide_dt$nSignifTADs == wide_dt$nSignifTADs_withSignifGenes + wide_dt$nSignifTADs_noSignifGenes)
+#> range(wide_dt$nSignifTADs_withTopGenes/wide_dt$nSignifTADs)
+#[1] 0.0 0.6
+#> mean(wide_dt$nSignifTADs_withTopGenes/wide_dt$nSignifTADs)
+#[1] 0.2278946
 
