@@ -109,11 +109,6 @@ head(logFC_DT)
 
 mergedDT <- left_join(logFC_DT, gene2tadDT[,c("entrezID", "region")], by="entrezID")
 
-
-save(mergedDT, file="mergedDT.Rdata")
-save(logFC_DT, file="logFC_DT.Rdata")
-save(gene2tadDT, file="gene2tadDT.Rdata")
-
 stopifnot(nrow(mergedDT) == nrow(na.omit(mergedDT)))
 
 mean_DT <- aggregate(logFC ~ region, data=mergedDT, FUN=mean)

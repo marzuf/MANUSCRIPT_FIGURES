@@ -274,5 +274,12 @@ ggsave(plot = wrap_both, filename = outFile, height=myHeightGG, width = myWidthG
 cat(paste0("... written: ", outFile, "\n"))
 
 
+#> yy=allSignif_agg_dt[,c("ds", "nSamp_ratio")]                                                                                                                                                              
+#> xx=all_geneSignif_dt[,c("ds", "nSamp1", "nSamp2")]
+#> yy=unique(yy)
+#> xx=unique(xx)
+#> zz=merge(xx,yy,by="ds")
+#> write.table(zz, col.names=T,row.names=F,sep="\t",quote=F, file="FIG_2/CMP_NSIGNIF_SAMPLESIZE/nSubSamp_table.txt")
+
 
 

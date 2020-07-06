@@ -115,33 +115,6 @@ rnaseqDT <- rnaseqDT[,c(samp1, samp2)]
 totSamples <- length(samp1) + length(samp2)
 
 # FILTER THE EXPRESSION DATA TO MIN CPM FILTER  ################################################################ CPM FOR MICROARRAY OR NOT ????????????????????????????
-# apply CPM only on raw counts or RSEM
-                    #if(inputDataType == "raw" | inputDataType == "RSEM") {
-                    #  cpm_exprDT <- cpm(rnaseqDT)
-                    #  txt <- paste0(toupper(script_name), "> NA in cpm_exprDT: ", 
-                    #                sum(is.na(cpm_exprDT)), "/", dim(cpm_exprDT)[1]*dim(cpm_exprDT)[2], " (",
-                    #                round((sum(is.na(cpm_exprDT))/(dim(cpm_exprDT)[1]*dim(cpm_exprDT)[2]) * 100),2), "%)\n")
-                    #  printAndLog(txt, pipLogFile)
-                    #  rowsToKeep <- rowSums(cpm_exprDT, na.rm=T) >= (minCpmRatio * ncol(rnaseqDT))
-                    #  
-                    #  txt <- paste0(toupper(script_name), "> CPM filter, genes to retain: ", sum(rowsToKeep), "/", nrow(rnaseqDT), "\n")
-                    #  printAndLog(txt, pipLogFile)
-                    #} else if(inputDataType == "FPKM") {
-                    #  txt <- paste0(toupper(script_name), "> !!! FPKM filter not applied !!!", "\n")
-                    #  printAndLog(txt, pipLogFile)
-                    #  cpm_exprDT <- rnaseqDT
-                    #  txt <- paste0(toupper(script_name), "> NA in cpm_exprDT: ", 
-                    #                sum(is.na(cpm_exprDT)), "/", dim(cpm_exprDT)[1]*dim(cpm_exprDT)[2], " (",
-                    #                round((sum(is.na(cpm_exprDT))/(dim(cpm_exprDT)[1]*dim(cpm_exprDT)[2]) * 100),2), "%)\n")
-                    #  printAndLog(txt, pipLogFile)
-                    #  rowsToKeep <- rowSums(cpm_exprDT, na.rm=T) >= (minCpmRatio * ncol(rnaseqDT))
-                    #} else if (inputDataType == "microarray" | inputDataType == "DESeq2") {
-                    #  txt <- paste0(toupper(script_name), "> !!! CPM filter not applied !!!", "\n")
-                    #  printAndLog(txt, pipLogFile)
-                    #  rowsToKeep <- rep(TRUE, nrow(rnaseqDT))
-                    #} else {
-                    #  stop("ERROR\n")
-                    #}
 # UPDATE 15.08.2019
   countFilter_rnaseqDT <- rnaseqDT
   if(inputDataType == "raw" | inputDataType == "RSEM") {
@@ -199,14 +172,6 @@ if(inputDataType == "raw" | inputDataType == "RSEM"){
 }
 
 labcol <- unlist(sapply(colnames(cpm_expr_tmp), function(x) ifelse(x %in% samp1, "blue", "red") ))
-
-# cat("... plot MDS\n") # do not do this, too slow when doing DE for all the genes !!! (and not the TAD-filtered genes)
-# png(paste0(outFile), width=1000)
-# par(mfrow=c(1,2), oma=par()$oma + c(5,0,0,0))
-# boxplot(cpm_expr_tmp,las=2)
-# plotMDS(cpm_expr_tmp, col=labcol)
-# foo <- dev.off()
-# cat(paste0("... written: ", outFile, "\n"))
 
 # update 12.10 => cannot create DGEList object for microarray EZH2 data (log-transformed; contain negative values)
 # if the input data are already log-normalized or microarray data:
@@ -374,7 +339,6 @@ cat(paste0("... written: ", paste0(curr_outFold, "/", "DE_geneList.Rdata"), "\n"
 check_pipeline_geneList <- eval(parse(text = load(paste0(pipOutFold, "/", script0_name,  "/", "pipeline_geneList.Rdata"))))
 check_DE_topTable <- eval(parse(text = load(paste0(curr_outFold, "/", "DE_topTable.Rdata"))))
 
-#stopifnot(check_pipeline_geneList %in% check_DE_topTable$genes)
 #update correct 17.08.2018
 stopifnot(names(check_pipeline_geneList) %in% check_DE_topTable$genes)
 

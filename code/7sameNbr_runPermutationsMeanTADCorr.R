@@ -70,22 +70,13 @@ corrMeth <- "pearson"
 txt <- paste0("corrMeth\t=\t", corrMeth, "\n")
 printAndLog(txt, pipLogFile)
 
-
-
-
-
 geneList_file <- file.path(pipOutFold, script0_name, "pipeline_geneList.Rdata")
 stopifnot(file.exists(geneList_file))
 geneList <- eval(parse(text = load(geneList_file)))
 
-
-
 regionList_file <- file.path(pipOutFold, script0_name, "pipeline_regionList.Rdata")
 stopifnot(file.exists(regionList_file))
 regionList <- eval(parse(text = load(regionList_file)))
-
-
-
 
 sample1_file <- file.path(setDir, sample1_file)
 sample2_file <- file.path(setDir, sample2_file)

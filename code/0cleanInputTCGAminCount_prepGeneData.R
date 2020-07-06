@@ -1,7 +1,5 @@
 #!/usr/bin/Rscript
 
-#stop("*** DONT FORGET TO TEST THIS NEW VERSION BEFORE RUNNING THE FULL PIPELINE !!!")
-
 ### -> UPDATE 13.08.2019
 # => retain the genes for which <min_sampleRatio*100>% of the samples have at least <min_counts> counts 
 # => default settings: min_sampleRatio = 0.8 and min_counts = 5

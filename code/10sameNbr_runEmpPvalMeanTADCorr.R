@@ -87,10 +87,7 @@ printAndLog(txt, pipLogFile)
 txt <- paste0(all_sampleCorr_files, collapse="\n")
 printAndLog(txt, pipLogFile)
 
-
-
 stopifnot(length(all_sampleCorr_files) == length(unlist(all_exprds)))
-
 
 ### PREPARE THE SAMPLE CORR VALUES FROM ALL DATASETS
 corr_file="/media/electron/mnt/etemp/marie/Yuanlong_Cancer_HiC_data_TAD_DA/PIPELINE/OUTPUT_FOLDER/GSE105381_HepG2_40kb/TCGAlihc_norm_lihc/7sameNbr_runPermutationsMeanTADCorr/meanCorr_sample_around_TADs_sameNbr.Rdata"

@@ -65,7 +65,6 @@ printAndLog(txt, pipLogFile)
 corrMethod <- "pearson" 
 txt <- paste0(toupper(script_name), "> Correlation method: ",  toTitleCase(corrMethod), "\n")
 printAndLog(txt, pipLogFile)
-#*******************************************************************************
 
 ################################****************************************************************************************
 ################################********************************************* PREPARE INPUT

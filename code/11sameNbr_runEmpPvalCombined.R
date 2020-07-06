@@ -30,14 +30,7 @@ pipScriptDir <- paste0(setDir, "/mnt/ed4/marie/scripts/TAD_DE_pipeline_v2")
 script0_name <- "0_prepGeneData"
 script1_name <- "1_runGeneDE"
 script3_name <- "3_runMeanTADLogFC"
-#script8_name <- "8c10000_runAllDown"
-#script9_name <- "910000_runEmpPvalMeanTADLogFC"
-
-script8_name <- "8cOnlyRatioDownFastSave_runAllDown"
 script9_name <- "9_runEmpPvalMeanTADLogFC"
-
-#cat("!!! WARNING: USE 10000 PERMUTATIONS DATA !!!\n")
-
 script10sameNbr_name <- "10sameNbr_runEmpPvalMeanTADCorr"
 script_name <- "11sameNbr_runEmpPvalCombined"
 stopifnot(file.exists(paste0(pipScriptDir, "/", script_name, ".R")))
@@ -55,7 +48,7 @@ system(paste0("mkdir -p ", curr_outFold))
 pipLogFile <- paste0(pipOutFold, "/", format(Sys.time(), "%Y%d%m%H%M%S"),"_", script_name, "_logFile.txt")
 system(paste0("rm -f ", pipLogFile))
 
-twoTailsStouffer <- FALSE
+twoTailsStouffer <- FALSE # discussion with Marco -> do it one-sided (compared two- and one- -> similar)
 # stouffer(c(emp_pval_intraCorr[x], emp_pval_logFC[x]), two.tails = twoTailsStouffer)))
 
 # ADDED 16.11.2018 to check using other files
@@ -119,7 +112,6 @@ stopifnot(all(names(emp_pval_logFC) == names(emp_pval_intraCorr)))
 ####################################################### CALCULATE EMP. PVAL INTRA-TAD CORR & WRITE OUTPUT
 ################################****************************************************************************************
 
-
 # COMBINE EMPIRICAL P-VALUES
 emp_pval_combined <- unlist(sapply(seq_along(intersectRegions), function(x) 
                   stouffer(c(emp_pval_intraCorr[x], emp_pval_logFC[x]), two.tails = twoTailsStouffer)))
@@ -130,66 +122,6 @@ stopifnot(length(emp_pval_combined) == length(intersectRegions))
 save(emp_pval_combined, file= paste0(curr_outFold, "/emp_pval_combined.Rdata"))
 cat(paste0("... written: ", curr_outFold, "/emp_pval_combined.Rdata", "\n"))
 
-                    # NOT DOWN IN THIS VERSION !
-
-
-                    ##***** build and save table
-                    ## TAD | meanFC | ratioDown | emp. p-val combined | genes list comma separated
-                    ## load emp. p-val logFC 
-                    #gene2tadDT <- read.delim(gene2tadDT_file, header=F, col.names = c("entrezID", "chromo", "start", "end", "region"), stringsAsFactors = F)
-                    #gene2tadDT$entrezID <- as.character(gene2tadDT$entrezID)
-                    #pipeline_geneList <- eval(parse(text = load(paste0(pipOutFold, "/", script0_name, "/pipeline_geneList.Rdata"))))
-                    #DE_table <- eval(parse(text = load(paste0(pipOutFold, "/", script1_name, "/DE_topTable.Rdata"))))
-
-                    #entrezDT <- read.delim(entrezDT_file, header=T, stringsAsFactors = F)
-                    #entrezDT$entrezID <- as.character(entrezDT$entrezID)
-
-                    #DE_table <- DE_table[DE_table$genes %in% names(pipeline_geneList),]
-                    #stopifnot(nrow(DE_table) > 0)
-                    #stopifnot(all(DE_table$genes %in% names(pipeline_geneList)))
-
-                    #DE_entrez <- as.character(unlist(sapply(DE_table$genes, function(x) pipeline_geneList[x])))
-                    #gene2tadDT <- gene2tadDT[gene2tadDT$entrezID %in% DE_entrez,]
-
-                    #stopifnot(all(DE_entrez %in% entrezDT$entrezID))
-
-                    #################################****************************************************************************************
-                    ######################################################## BUILD TABLES & WRITE OUTPUT
-                    #################################****************************************************************************************
-
-                    #obs_logFC <- eval(parse(text = load(paste0(pipOutFold, "/", script3_name, "/all_meanLogFC_TAD.Rdata"))))
-                    #obs_ratioDown <- eval(parse(text = load(paste0(pipOutFold, "/", script8_name, "/all_obs_ratioDown.Rdata"))))
-
-                    #interReg <- sort(Reduce(intersect, list(names(obs_logFC), names(obs_ratioDown), names(emp_pval_combined))))
-
-                    #txt <- paste0(toupper(script_name), "> Number of TADs in logFC: ", length(obs_logFC), "\n")
-                    #printAndLog(txt, pipLogFile)    
-                    #txt <- paste0(toupper(script_name), "> Number of TADs in ratioDown: ", length(obs_ratioDown), "\n")
-                    #printAndLog(txt, pipLogFile)    
-                    #txt <- paste0(toupper(script_name), "> Number of TADs in emp. p-val combined: ", length(emp_pval_combined), "\n")
-                    #printAndLog(txt, pipLogFile)    
-                    #txt <- paste0(toupper(script_name), "> Number of TADs in the intersect: ", length(interReg), "\n")
-                    #printAndLog(txt, pipLogFile)    
-
-                    #interReg_empPval <- emp_pval_combined[names(emp_pval_combined) %in% interReg]
-                    #interReg_empPval_sort <- sort(interReg_empPval)
-
-                    #pvalDT <- foreach(i_reg = 1:length(interReg_empPval_sort), .combine = 'rbind') %do% {
-                    #  reg <- names(interReg_empPval_sort)[i_reg]
-                    #  reg_genes_entrez <- gene2tadDT$entrezID[gene2tadDT$region == reg]
-                    #  reg_genes_symbol <- unlist(sapply(reg_genes_entrez, function(x) entrezDT$symbol[entrezDT$entrezID == x]))
-                    #  reg_genes_symbol_list <- paste0(reg_genes_symbol, collapse = ",")
-                    #  data.frame(rank_pval = i_reg,
-                    #             TAD = reg,
-                    #             meanLogFC = obs_logFC[reg],
-                    #             ratioDown = obs_ratioDown[reg],
-                    #             emp_pval_comb = emp_pval_combined[reg],
-                    #             TAD_genes = reg_genes_symbol_list
-                    #             )
-                    #}
-
-                    #write.table(pvalDT, file = paste0(curr_outFold, "/TAD_ratioDown_logFC_empPvalComb.txt"), col.names =T , row.names = F, quote=F, sep="\t")
-                    #cat(paste0("... written: ", paste0(curr_outFold, "/TAD_ratioDown_logFC_empPvalComb.txt"), "\n"))
 
 txt <- paste0(startTime, "\n", Sys.time(), "\n")
 printAndLog(txt, pipLogFile)

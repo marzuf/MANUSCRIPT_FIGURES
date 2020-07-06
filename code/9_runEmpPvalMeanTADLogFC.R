@@ -38,7 +38,6 @@ suppressPackageStartupMessages(library(foreach, warn.conflicts = FALSE, quietly 
 suppressPackageStartupMessages(library(doMC, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
 registerDoMC(ifelse(SSHFS, 2, nCpu)) # from main_settings.R
 
-
 # create the directories
 curr_outFold <- paste0(pipOutFold, "/", script_name)
 system(paste0("mkdir -p ", curr_outFold))
@@ -53,7 +52,6 @@ txt <- paste0("TADpos_file\t=\t", TADpos_file, "\n")
 printAndLog(txt, pipLogFile)
 txt <- paste0("settingF\t=\t", settingF, "\n")
 printAndLog(txt, pipLogFile)
-
 
 # ADDED 16.11.2018 to check using other files
 txt <- paste0("inputDataType\t=\t", inputDataType, "\n")

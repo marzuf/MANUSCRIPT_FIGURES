@@ -187,7 +187,6 @@ printAndLog(txt, pipLogFile)
 
 cat(paste0("*** DONE: ", script_name, "\n"))
 
-
 cat("dim(meanLogFC_permDT)\n")
 cat(dim(meanLogFC_permDT))
 cat("\n")

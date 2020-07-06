@@ -70,6 +70,7 @@ plotCex <- 1.4
 myHeightGG <- 6
 myWidthGG <- 7.5
 
+
 source("../settings.R")
 
 SSHFS <- FALSE
@@ -82,6 +83,8 @@ col1 <- pal_aaas()(5)[4]
 col2 <- pal_npg()(5)[5]
 col1 <- exprBox_cond1Col
 col2 <- exprBox_cond2Col
+
+if(tad_to_plot == "chr17_TAD162") myWidthGG <- myWidthGG * 1.1
 
 
 cat("load inDT \n")
@@ -234,6 +237,29 @@ mutcols <- setNames(c("#FC7715FF", "#AFBF41FF"), c("noMut", "withMut"))
 
 withRank_toplot_dt2 <- withRank_toplot_dt2[order(withRank_toplot_dt2$cond_sh),]
 
+myG_theme <-   theme( 
+	text = element_text(family=fontFamily),
+    plot.title = element_text(hjust = 0.5, face = "bold", size=16),
+    plot.subtitle = element_text(hjust = 0.5, face = "italic", size = 14),
+    panel.grid = element_blank(),
+    panel.grid.major.y = element_line(colour = "grey"),
+    panel.grid.minor.y = element_line(colour = "grey"),
+    axis.line.x= element_line(size = .2, color = "black"),
+    axis.line.y = element_line(size = .2, color = "black"),
+    axis.text.y = element_text(color="black", hjust=1,vjust = 0.5, size=12),
+    axis.text.x =element_text(color="black", hjust=0.5,vjust = 0.5, size=12, face="bold"),
+    # axis.ticks.x = element_blank(),
+    axis.title.y = element_text(color="black", size=14),
+    axis.title.x = element_text(color="black", size=14),
+    panel.border = element_blank(),
+    panel.background = element_rect(fill = "transparent"),
+    legend.background =  element_rect(),
+    legend.text = element_text(size=12),
+    legend.key = element_blank(),
+    legend.title = element_text(face="bold", size=12)
+  )
+
+
 p_var_boxplot <- ggplot(withRank_toplot_dt2, aes(x = symbol_lab, y = value_log10, col = cond)) + 
   geom_boxplot(notch = TRUE, outlier.shape=NA)+
   geom_jitter(aes(fill =cond_sh, shape=cond_sh, group=cond), 
@@ -254,27 +280,7 @@ p_var_boxplot <- ggplot(withRank_toplot_dt2, aes(x = symbol_lab, y = value_log10
                     labels=c("not mut.", "mut."))+
   
   labs(fill  = paste0("KEAP1|NFE2L2"), color=paste0("Cond."), shape=paste0("KEAP1|NFE2L2")) +
-  
-  theme( 
-    plot.title = element_text(hjust = 0.5, face = "bold", size=16),
-    plot.subtitle = element_text(hjust = 0.5, face = "italic", size = 14),
-    panel.grid = element_blank(),
-    panel.grid.major.y = element_line(colour = "grey"),
-    panel.grid.minor.y = element_line(colour = "grey"),
-    axis.line.x= element_line(size = .2, color = "black"),
-    axis.line.y = element_line(size = .2, color = "black"),
-    axis.text.y = element_text(color="black", hjust=1,vjust = 0.5, size=12),
-    axis.text.x =element_text(color="black", hjust=0.5,vjust = 0.5, size=12, face="bold"),
-    # axis.ticks.x = element_blank(),
-    axis.title.y = element_text(color="black", size=14),
-    axis.title.x = element_text(color="black", size=14),
-    panel.border = element_blank(),
-    panel.background = element_rect(fill = "transparent"),
-    legend.background =  element_rect(),
-    legend.text = element_text(size=12),
-    legend.key = element_blank(),
-    legend.title = element_text(face="bold", size=12)
-  )
+	myG_theme
 
 
 outFile <- file.path(outFolder, paste0(hicds, "_", exprds, "_", tad_to_plot, "_allSamples_exprValues_boxplot_vShape.", plotType))
@@ -326,26 +332,7 @@ p_var_boxplot_v2 <- ggplot(withRank_toplot_dt2b, aes(x = box_pos, y = value_log1
                      labels = as.character(levels(withRank_toplot_dt2b$symbol_lab)))+
   scale_y_continuous(name=paste0(my_ylab),
                      breaks = scales::pretty_breaks(n = 20))+
-  theme( 
-    plot.title = element_text(hjust = 0.5, face = "bold", size=16),
-    plot.subtitle = element_text(hjust = 0.5, face = "italic", size = 14),
-    panel.grid = element_blank(),
-    panel.grid.major.y = element_line(colour = "grey"),
-    panel.grid.minor.y = element_line(colour = "grey"),
-    axis.line.x= element_line(size = .2, color = "black"),
-    axis.line.y = element_line(size = .2, color = "black"),
-    axis.text.y = element_text(color="black", hjust=1,vjust = 0.5, size=12),
-    axis.text.x =element_text(color="black", hjust=0.5,vjust = 0.5, size=12, face="bold"),
-    # axis.ticks.x = element_blank(),
-    axis.title.y = element_text(color="black", size=14),
-    axis.title.x = element_text(color="black", size=14),
-    panel.border = element_blank(),
-    panel.background = element_rect(fill = "transparent"),
-    legend.background =  element_rect(),
-    legend.text = element_text(size=12),
-    legend.key = element_blank(),
-    legend.title = element_text(face="bold", size=12)
-  )
+	myG_theme
 
 outFile <- file.path(outFolder, paste0(hicds, "_", exprds, "_", tad_to_plot, "_allSamples_exprValues_boxplot_vShape_v2.", plotType))
 ggsave(plot = p_var_boxplot_v2, filename = outFile, height=myHeightGG, width = myWidthGG*1.2)
@@ -373,26 +360,7 @@ p_var_boxplot_v2 <- ggplot(withRank_toplot_dt2b, aes(x = box_pos, y = value_log1
                      labels = as.character(levels(withRank_toplot_dt2b$symbol_lab)))+
   scale_y_continuous(name=paste0(my_ylab),
                      breaks = scales::pretty_breaks(n = 20))+
-  theme( 
-    plot.title = element_text(hjust = 0.5, face = "bold", size=16),
-    plot.subtitle = element_text(hjust = 0.5, face = "italic", size = 14),
-    panel.grid = element_blank(),
-    panel.grid.major.y = element_line(colour = "grey"),
-    panel.grid.minor.y = element_line(colour = "grey"),
-    axis.line.x= element_line(size = .2, color = "black"),
-    axis.line.y = element_line(size = .2, color = "black"),
-    axis.text.y = element_text(color="black", hjust=1,vjust = 0.5, size=12),
-    axis.text.x =element_text(color="black", hjust=0.5,vjust = 0.5, size=12, face="bold"),
-    # axis.ticks.x = element_blank(),
-    axis.title.y = element_text(color="black", size=14),
-    axis.title.x = element_text(color="black", size=14),
-    panel.border = element_blank(),
-    panel.background = element_rect(fill = "transparent"),
-    legend.background =  element_rect(),
-    legend.text = element_text(size=12),
-    legend.key = element_blank(),
-    legend.title = element_text(face="bold", size=12)
-  )
+myG_theme
 
 outFile <- file.path(outFolder, paste0(hicds, "_", exprds, "_", tad_to_plot, "_allSamples_exprValues_boxplot_vShape_v3.", plotType))
 ggsave(plot = p_var_boxplot_v2, filename = outFile, height=myHeightGG, width = myWidthGG*1.2)

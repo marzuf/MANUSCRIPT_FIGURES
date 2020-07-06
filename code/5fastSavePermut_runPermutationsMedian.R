@@ -160,8 +160,6 @@ printAndLog(txt, pipLogFile)
 my_save.pigz(permutationsDT, pigz_exec_path = pigz_exec_path, file = paste0(curr_outFold, "/permutationsDT.Rdata") )
 cat(paste0("... written: ", paste0(curr_outFold, "/permutationsDT.Rdata"), "\n"))
 
-
-
 txt <- paste0(startTime, "\n", Sys.time(), "\n")
 printAndLog(txt, pipLogFile)
 
