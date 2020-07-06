@@ -1,0 +1,28 @@
+---
+title: "introduction"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{introduction}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(COCODATA)
+```
+
+
+``` {r FCC_example}
+foldChanges_values <- c(-1.2, -0.2, 0.1, 0.3, 0.9, 1.33, 0.4)
+
+get_fcc(foldChanges_values)
+``` 
+
+
