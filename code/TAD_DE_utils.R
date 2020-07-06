@@ -388,120 +388,27 @@ stouffer <- function(ps, two.tails=FALSE) {
 # size estimate for each study
 
 #######################################################################################################################
-####################################################################################################################### assign genes2tad for permutation (step 5b,5c,5d)
+#######################################################################################################################
 #######################################################################################################################
 
+get_fcc <- function(fc_vect) {
+  (2* sum(fc_vect < 0)/length(fc_vect) -1) *  (2* sum(abs(fc_vect[fc_vect<0]))/sum(abs(fc_vect)) -1)
+}
 
-assignGene2TADs <- function(regionDT, geneDT, assignMethod) {
-  stopifnot(!any(duplicated(regionDT$region)))
-  stopifnot(!any(duplicated(geneDT$entrezID)))
-  stopifnot(nrow(regionDT) > 0, nrow(geneDT) > 0)
-  stopifnot(assignMethod %in% c("maxOverlap","startPos"))
-  stopifnot(c("entrezID", "start","end", "chromo", "strand") %in% colnames(geneDT) )
-  stopifnot(c("chromo", "start","end", "region") %in% colnames(regionDT) )
+#######################################################################################################################
+#######################################################################################################################
+#######################################################################################################################
 
-  if(! "package:foreach" %in% search()) suppressPackageStartupMessages(library(foreach, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
-  if(! "package:dplyr" %in% search()) suppressPackageStartupMessages(library(dplyr, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
-  if(! "package:IRanges" %in% search()) suppressPackageStartupMessages(library(IRanges, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
+get_ratioDown <- function(fc_vect) {
+  sum(fc_vect < 0)/length(fc_vect) 
+}
 
-  # if by startPos -> a bit easier, because I can iterate over TADs (faster)
-  if(assignMethod == "startPos") {
-    # if on - strand -> start is in fact the end
-    geneDT$startPos <- ifelse(geneDT$strand == "-", geneDT$end, geneDT$start)
-    gene2tad_dt <- foreach(i=1:nrow(regionDT), .combine="rbind") %do%{
-      tad_start <- regionDT$start[i]
-      tad_end <- regionDT$end[i]
-      tad_chromo <- regionDT$chromo[i]
-      # select all the genes that fall within this TAD
-      # I CAN DO IN THIS WAY BECAUSE HERE I ASSIGN GENES ACCORDING TO THEIR START POSITION !!!
-      tmpDT <- geneDT[geneDT$startPos >= tad_start & geneDT$startPos <= tad_end & geneDT$chromo == tad_chromo,]    
-      stopifnot(!any(duplicated(tmpDT$entrezID)))
-      if(nrow(tmpDT) == 0) return(NULL)
-      tmpDT$region <- regionDT$region[i]
-      tmpDT
-    }
-  } else if(assignMethod == "maxOverlap") {
-    all_chr <- intersect(as.character(regionDT$chromo), as.character(geneDT$chromo) )
+#######################################################################################################################
+#######################################################################################################################
+#######################################################################################################################
 
-    
-    gene2tad_dt <- foreach(chromo = all_chr, .combine="rbind") %do% {
-      
-      regionDT_chr <- regionDT[as.character(regionDT$chromo) == chromo,]
-      geneDT_chr <- geneDT[as.character(geneDT$chromo) == chromo,]
-      
-      tad_ranges_chr <- IRanges(start=regionDT_chr$start, end = regionDT_chr$end)
-      metadata(tad_ranges_chr)$region <- regionDT_chr$region
-      metadata(tad_ranges_chr)$chromo <- regionDT_chr$chromo
-      
-      gene_ranges_chr <- IRanges(start=geneDT_chr$start, end = geneDT_chr$end)
-      metadata(gene_ranges_chr)$entrezID <- as.character(geneDT_chr$entrezID)
-      metadata(gene_ranges_chr)$chromo <- geneDT_chr$chromo
-      
-      stopifnot(all(regionDT[regionDT$chromo == chromo,"start"] == start(tad_ranges_chr)))
-      stopifnot(all(regionDT[regionDT$chromo == chromo,"end"] == end(tad_ranges_chr)))
-      stopifnot(all(regionDT[regionDT$chromo == chromo,"region"] == metadata(tad_ranges_chr)$region))
-      
-      stopifnot(all(geneDT[geneDT$chromo == chromo,"start"] == start(gene_ranges_chr)))
-      stopifnot(all(geneDT[geneDT$chromo == chromo,"end"] == end(gene_ranges_chr)))
-      stopifnot(all(geneDT[geneDT$chromo == chromo,"region"] == metadata(gene_ranges_chr)$region))
-      
-      # search for hit of genes in TADs
-      tad_gene_hits <- findOverlaps(query=gene_ranges_chr, subject= tad_ranges_chr)
-      # Compute percent overlap and filter the hits:
-      sizeOverlaps <- pintersect(gene_ranges_chr[queryHits(tad_gene_hits)], tad_ranges_chr[subjectHits(tad_gene_hits)])
-      sizeOverlapDT <- tad_gene_hits
-      # for each hit, get the bp of the overlap
-      metadata(sizeOverlapDT)$overlapBp <- width(sizeOverlaps)
-      metadata(sizeOverlapDT)$entrezID <- metadata(gene_ranges_chr)$entrezID[queryHits(tad_gene_hits)]
-      stopifnot(metadata(gene_ranges_chr)$chromo[queryHits(tad_gene_hits)] == chromo)
-      metadata(sizeOverlapDT)$region <- metadata(tad_ranges_chr)$region[subjectHits(tad_gene_hits)]
-      
-      overlapDT <- data.frame(metadata(sizeOverlapDT), stringsAsFactors = FALSE)
-      # overlapBp entrezID    region
-      # 43276     2782 chr1_TAD2
-      # 62552     2782 chr1_TAD3
-      # 314617    23261 chr1_TAD7
-      # 669766    23261 chr1_TAD8
-      
-      
-      ## ADDED 21.02 -> not sure !!!
-      if(nrow(overlapDT) == 0) {
-        cat("!!! WARNING: no gene assigned for", chromo, "!!! \n")
-        return(data.frame(entrezID=character(0), region = character(0), stringsAsFactors = FALSE))
-      }
-      
-      # select the hit with the highest overlap
-      assignDT <- do.call(rbind,by(overlapDT, overlapDT$entrezID, function(x) x[which.max(as.numeric(as.character(x$overlapBp))), c("entrezID", "region")]))
-      rownames(assignDT) <- NULL
-      assignDT$entrezID <- as.character(assignDT$entrezID)
-      assignDT$region <- as.character(assignDT$region)
-      stopifnot(!any(duplicated(assignDT$entrezID)))
-      stopifnot(grepl(chromo, assignDT$region))
-      stopifnot(length(unique(assignDT$entrezID)) == length(unique(overlapDT$entrezID)))
-      
-      assignDT
-    }
-  }
-  
-  if(nrow(gene2tad_dt) == 0) {
-    cat("!!! WARNING: no gene assigned for ALL chromo !!! \n")
-    return(data.frame(entrezID=character(0), region = character(0), stringsAsFactors = FALSE))
-  }
-  
-  # gene2tad_dt[gene2tad_dt$entrezID %in% c("2782", "23261"),]
-  # entrezID    region
-  # 23261 chr1_TAD8
-  # 2782 chr1_TAD3
-  stopifnot(!any(duplicated(gene2tad_dt$entrezID)))
-  # check that there is an overlap  
-  tmpDT <- left_join(gene2tad_dt, regionDT,by="region")
-  tmpDT <- left_join(tmpDT, geneDT, by="entrezID") 
-  stopifnot(!any(duplicated(tmpDT$entrezID)))
-  stopifnot(tmpDT$chromo.x == tmpDT$chromo.y)
-  stopifnot((tmpDT$end.y <= tmpDT$end.x & tmpDT$end.y >= tmpDT$start.x) |
-    (tmpDT$end.x <= tmpDT$end.y & tmpDT$end.x >= tmpDT$start.y))
-  
-  return(gene2tad_dt[,c("entrezID", "region")])
-} 
+get_ratioFC <- function(fc_vect) {
+  sum(abs(fc_vect[fc_vect<0]))/sum(abs(fc_vect))
+}
 
 

@@ -1,0 +1,16 @@
+0cleanInputTCGAminCount_prepGeneData.R
+10sameNbr_runEmpPvalMeanTADCorr.R
+11sameNbr_runEmpPvalCombined.R
+1cleanInputTCGAminCount_runGeneDE.R
+3_runMeanTADLogFC.R
+4_runMeanTADCorr.R
+5fastSavePermut_runPermutationsMedian.R
+5sameNbr_runPermutationsCorr.R
+6fastSave_runPermutationsMeanLogFC.R
+7sameNbr_runPermutationsMeanTADCorr.R
+9_runEmpPvalMeanTADLogFC.R
+example_setting_file.R
+main_settings.R
+README.md
+TAD_DE_utils.R
+
