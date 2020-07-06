@@ -6,7 +6,7 @@
 # (cf. plot ratio genes ~ ratio samples in 2_Yuanlong_Cancer_HiC_data_TAD_DA/)
 # (settings in run_pipeline.sh -> written in the setting file)
 
-cat(paste0("> START ", "OcleanInputTCGAminCPM",  "\n"))
+cat(paste0("> START ", "1_prepGeneData",  "\n"))
 
 startTime <- Sys.time()
 
@@ -21,7 +21,7 @@ stopifnot(file.exists(settingF))
 pipScriptDir <- paste0(setDir, "/mnt/ed4/marie/scripts/TAD_DE_pipeline_v2")
 
 # do not change the path of script_name, is used for the output folder name
-script_name <- paste0("0_prepGeneData")
+script_name <- paste0("1_prepGeneData")
 stopifnot(file.exists(paste0(pipScriptDir, "/", script_name, ".R")))
 cat(paste0("> START ", script_name,  "\n"))
 

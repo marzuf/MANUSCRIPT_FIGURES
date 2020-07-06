@@ -23,11 +23,11 @@ stopifnot(file.exists(settingF))
 
 pipScriptDir <- paste0(setDir, "/mnt/ed4/marie/scripts/TAD_DE_pipeline_v2")
 
-script0_name <- "0_prepGeneData"
-script1_name <- "1_runGeneDE"
+script0_name <- "1_prepGeneData"
+script1_name <- "2_runGeneDE"
 script3_name <- "3_runMeanTADLogFC"
 script6_name <- "6_runPermutationsMeanLogFC"
-script_name <- "9_runEmpPvalMeanTADLogFC"
+script_name <- "8_runEmpPvalMeanTADLogFC"
 stopifnot(file.exists(paste0(pipScriptDir, "/", script_name, ".R")))
 cat(paste0("> START ", script_name,  "\n"))
 
