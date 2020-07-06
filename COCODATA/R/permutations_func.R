@@ -3,6 +3,16 @@
 #######################################################################################################################
 #######################################################################################################################
 #######################################################################################################################
+# LAST UPDATE 16.08.2019 => set.seed in get_ShuffledPositions_vFunct using permut idx to make reproducible !
+# add also the stopifnot to check the foreach assignment
+# besides these 2 changes -> same as TAD_DE_utils_fasterPermut.R_noSeed
+
+### same as _vJune but can pass aggregFun for aggregating the expression values
+
+# UPDATE 16.08.2019 => geneAggregExpression is built only once in the multiShuffled function ! and passed here
+# => aggreg expression, computed only once, RNAdt and aggregFun no need to be passed anymore
+
+
 #' Gene-to-TAD permutations
 #' 
 #' Performs the permutation (parallelized).
@@ -19,59 +29,20 @@
 #' @return The permtuation data
 #' @export
 
+
 get_multiShuffledPositions_vFunct <- function(g2TADdt, RNAdt, geneIDlist, nClass, withExprClass, TADonly, nSimu, nCpu, aggregFun) {
+
+  suppressPackageStartupMessages(library(foreach, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))  
+  suppressPackageStartupMessages(library(doMC, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))  
   if(withExprClass) {
     stopifnot(!is.null(RNAdt) & !is.null(nClass))
   }
   g2TADdt$entrezID <- as.character(g2TADdt$entrezID)
   g2TADdt$region <- as.character(g2TADdt$region)
-  doMC::registerDoMC(nCpu)
-  # need to ensure that I get the same order for the genes
-  # do the first one
-  allT <- get_ShuffledPositions_vFunct(g2TADdt = g2TADdt, RNAdt = RNAdt, geneIDlist = geneIDlist, 
-                                      nClass = nClass, TADonly = TADonly, withExprClass = withExprClass, aggregFun=aggregFun) 
-  colnames(allT) <- c(colnames(allT)[1], paste0(colnames(allT)[2], "1")) # region1
-  genes1 <- allT$entrezID
-  if(nSimu >1){
-    tmpDT <- foreach::foreach(i=2:nSimu, .combine='cbind') %dopar% {
-      if(withExprClass) {
-        cat(paste0("... WITH CLASS ", aggregFun, " - shuffle: ", i, "/", nSimu, "\n"))
-      } else{
-        cat(paste0("... NO CLASS - shuffle: ", i, "/", nSimu, "\n"))
-      }
-      x <- get_ShuffledPositions_vFunct(g2TADdt = g2TADdt, RNAdt = RNAdt, geneIDlist = geneIDlist, 
-                                       nClass = nClass, TADonly = TADonly, withExprClass = withExprClass, aggregFun=aggregFun) 
-      stopifnot(all(genes1 == x[,1]))
-      x[,2]
-    }
-    colnames(tmpDT) <- paste0("region", 2:nSimu)
-    allT <- cbind(allT, tmpDT)
-  }
-  return(allT)  
-}  
+  registerDoMC(nCpu)
 
 
-
-#######################################################################################################################
-#######################################################################################################################
-#######################################################################################################################
-#' Gene-to-TAD permutations
-#' 
-#' Performs the permutation (for 1 permutation).
-#'
-#' @param g2TADdt Gene-to-TAD dataframe
-#' @param RNAdt Gene expression dataframe
-#' @param geneIDlist List of gene IDs that should be used
-#' @param nClass The number of classes of expression in which genes are shuffled
-#' @param withExprClass If shuffling should take place within classes
-#' @param TADonly If only genes from TADs should be used
-#' @param aggregFun With which function gene expression should be aggregated (across samples)
-#' @return The permtuation data
-#' @export
-
-### same as _vJune but can pass aggregFun for aggregating the expression values
-
-get_ShuffledPositions_vFunct <- function(g2TADdt, RNAdt, geneIDlist, nClass, withExprClass, TADonly, aggregFun) {
+# update 16.08.2019: this was done in the child function before
   warning("geneIDlist argument should correspond to rownames of RNAdt")
   warning("duplicated - ambiguous - are removed !!! ")
   duplicatedID <- geneIDlist[duplicated(geneIDlist)]
@@ -82,8 +53,7 @@ get_ShuffledPositions_vFunct <- function(g2TADdt, RNAdt, geneIDlist, nClass, wit
     stopifnot(!is.null(RNAdt) & !is.null(nClass))
     stopifnot(!is.null(aggregFun))
   }
-  g2TADdt$entrezID <- as.character(g2TADdt$entrezID)
-  g2TADdt$region <- as.character(g2TADdt$region)
+
   # take only the genes for which we have their positions
   # and subset the rnaseq data for these genes only
   if(TADonly) {
@@ -94,10 +64,11 @@ get_ShuffledPositions_vFunct <- function(g2TADdt, RNAdt, geneIDlist, nClass, wit
     geneListTAD <- geneIDlist[geneIDlist  %in% g2TADdt$entrezID]
     RNAdt <- RNAdt[geneListTAD,]
   }
-  ##########
-  ##### DO IT BY SHUFFLING THE LABELS BY CLASS OF EXPRESSION
-  ##########
+
+
   if(withExprClass) {
+
+# update 16.08.2019: this was done in the child function before
     # define expression classes based on median expression
     geneAggregExpression <- data.frame(gene = geneListTAD, expValue = apply(RNAdt, 1, aggregFun))
     rownames(geneAggregExpression) <- NULL
@@ -118,7 +89,105 @@ get_ShuffledPositions_vFunct <- function(g2TADdt, RNAdt, geneIDlist, nClass, wit
     stopifnot(length(unique(geneAggregExpression$class)) == nClass)
     # add a column with their initial TAD
     geneAggregExpression$initRegion <- sapply(geneAggregExpression$gene, function(x) g2TADdt$region[g2TADdt$entrezID==x])
+
+
+  } else {
+
+    geneAggregExpression <- NULL
+  }
+
+
+# save(geneAggregExpression, file="geneAggregExpression.Rdata", version=2) # used to compare with slower version
+
+
+  # need to ensure that I get the same order for the genes
+  # do the first one
+  allT <- get_ShuffledPositions_vFunct(g2TADdt = g2TADdt, geneIDlist = geneIDlist,  #  aggregFun=aggregFun, RNAdt = RNAdt, 
+                                      nClass = nClass, TADonly = TADonly, withExprClass = withExprClass, geneAggregExpressionDT = geneAggregExpression )  
+  colnames(allT) <- c(colnames(allT)[1], paste0(colnames(allT)[2], "1")) # region1
+  genes1 <- allT$entrezID
+  if(nSimu >1){
+    tmpDT <- foreach(i=2:nSimu, .combine='cbind') %dopar% {
+      if(withExprClass) {
+        cat(paste0("... WITH CLASS ", aggregFun, " - shuffle: ", i, "/", nSimu, "\n"))
+      } else{
+        cat(paste0("... NO CLASS - shuffle: ", i, "/", nSimu, "\n"))
+      }
+    x <- get_ShuffledPositions_vFunct(g2TADdt = g2TADdt,  geneIDlist = geneIDlist,  #  aggregFun=aggregFun, RNAdt = RNAdt, 
+                                         nClass = nClass, TADonly = TADonly, withExprClass = withExprClass, geneAggregExpressionDT = geneAggregExpression, rd_idx=i ) 
+
+
+      stopifnot(all(genes1 == x[,1]))
+      x[,2]
+    }
+    colnames(tmpDT) <- paste0("region", 2:nSimu)
+    allT <- cbind(allT, tmpDT)
+  }
+  return(allT)  
+}  
+
+
+
+#######################################################################################################################
+#######################################################################################################################
+#######################################################################################################################
+#' Gene-to-TAD permutations
+#' 
+#' Performs the permutation (for 1 permutation).
+#'
+#' @param g2TADdt Gene-to-TAD dataframe
+#' @param geneIDlist List of gene IDs that should be used
+#' @param nClass The number of classes of expression in which genes are shuffled
+#' @param TADonly If only genes from TADs should be used
+#' @param withExprClass If shuffling should take place within classes
+#' @param geneAggregExpressionDT Dataframe with aggregated gene expression (across samples)
+#' @param rd_idx For setting seed
+#' @return The permtuation data
+#' @export
+
+### same as _vJune but can pass aggregFun for aggregating the expression values
+
+# LAST UPDATE 16.08.2019 => set.seed in get_ShuffledPositions_vFunct using permut idx to make reproducible !
+# add also the stopifnot to check the foreach assignment
+# besides these 2 changes -> same as TAD_DE_utils_fasterPermut.R_noSeed
+
+### same as _vJune but can pass aggregFun for aggregating the expression values
+
+# UPDATE 16.08.2019 => geneAggregExpression is built only once in the multiShuffled function ! and passed here
+# => aggreg expression, computed only once, RNAdt and aggregFun no need to be passed anymore
+
+get_ShuffledPositions_vFunct <- function(g2TADdt, geneIDlist, nClass, TADonly, withExprClass, geneAggregExpressionDT=NULL, rd_idx=0) { # removed aggregFun and rnaDT
+  set.seed(16082019+rd_idx) # added for reproducibility
+
+  warning("geneIDlist argument should correspond to rownames of RNAdt")
+  warning("duplicated - ambiguous - are removed !!! ")
+  duplicatedID <- geneIDlist[duplicated(geneIDlist)]
+
+  if(withExprClass) {
+    stopifnot( !is.null(nClass))
+  }
+  g2TADdt$entrezID <- as.character(g2TADdt$entrezID)
+  g2TADdt$region <- as.character(g2TADdt$region)
+  # take only the genes for which we have their positions
+  # and subset the rnaseq data for these genes only
+  if(TADonly) {
+    # take only the genes that are in TAD
+    geneListTAD <- geneIDlist[geneIDlist  %in% g2TADdt$entrezID[grep("_TAD", g2TADdt$region)] ]
+  } else {
+    geneListTAD <- geneIDlist[geneIDlist  %in% g2TADdt$entrezID]
+  }
+  ##########
+  ##### DO IT BY SHUFFLING THE LABELS BY CLASS OF EXPRESSION
+  ##########
+  if(withExprClass) {
+
+    stopifnot(!is.null(geneAggregExpressionDT))     # 16.08.2019 now computed once and passed from parent function
+    geneAggregExpression <- geneAggregExpressionDT
+
     # now, for each class, reshuffle the TAD -> new column with the reshuffled positions
+
+	stopifnot(unique(as.character(geneAggregExpression$class)) == paste0(1:nClass)) # => this is why the foreach assignment works !
+
     geneAggregExpression$shuffRegion <- foreach(i_cl = 1:nClass, .combine='c') %do% {
       subDT <- geneAggregExpression[geneAggregExpression$class == i_cl,]
       initPos <- subDT$initRegion
@@ -141,6 +210,5 @@ get_ShuffledPositions_vFunct <- function(g2TADdt, RNAdt, geneIDlist, nClass, wit
   # to be compatible with the functions that use gene2tadDT, return a similar DF
   return(shuffGenePosDT)
 }
-
 
 

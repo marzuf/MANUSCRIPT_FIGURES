@@ -18,8 +18,6 @@ startTime <- Sys.time()
 # - DE_geneList.Rdata
 ################################################################################
 
-setDir <- ""
-
 args <- commandArgs(trailingOnly = TRUE)
 stopifnot(length(args) == 1)
 settingF <- args[1]
@@ -102,8 +100,10 @@ printAndLog(txt, pipLogFile)
 stopifnot(length(rna_geneList) == nrow(rnaseqDT))
 
 # RUN THE DE ANALYSIS
-samp1 <- eval(parse(text=load(file.path(setDir, sample1_file))))
-samp2 <- eval(parse(text=load(file.path(setDir, sample2_file))))
+#samp1 <- eval(parse(text=load(file.path(setDir, sample1_file))))
+#samp2 <- eval(parse(text=load(file.path(setDir, sample2_file))))
+samp1 <- eval(parse(text=load(file.path(sample1_file)))) # for release July 2020
+samp2 <- eval(parse(text=load(file.path(sample2_file)))) # for release July 2020
 # ensure the samples are present in the column names
 stopifnot(all(samp1 %in% colnames(rnaseqDT)))
 stopifnot(all(samp2 %in% colnames(rnaseqDT)))
@@ -160,7 +160,7 @@ stopifnot(length(my_group) == ncol(exprDT))
 my_group_design <- factor(my_group, levels = c(cond1, cond2))
 my_design <- model.matrix( ~ my_group_design)
 
-outFile <- paste0(curr_outFold, "/", "boxplot_MDS_replicates.png")
+outFile <- file.path(curr_outFold,  "boxplot_MDS_replicates.png")
 
 if(inputDataType == "raw" | inputDataType == "RSEM"){
   cpm_expr_tmp <- cpm(exprDT, log=T)
@@ -197,7 +197,7 @@ if(inputDataType == "raw" | inputDataType == "RSEM") {
                         seqData <- DGEList(exprDT, group=my_group, genes = rownames(exprDT))
                         seqData <- calcNormFactors(seqData)
                       }
-  outFile <- paste0(curr_outFold, "/", "mean_variance_voom.png")
+  outFile <- file.path(curr_outFold,  "mean_variance_voom.png")
   png(paste0(outFile))
   voomData <- voom(seqData, design = my_design, plot=T)
   foo <- dev.off()
@@ -248,11 +248,11 @@ if(inputDataType == "DESeq2" | inputDataType == "microarray" | inputDataType == 
 stopifnot(all(DE_topTable$genes %in% rownames(exprDT)))
 stopifnot(all(DE_topTable$genes %in% names(rna_geneList)))
 
-png(paste0(curr_outFold, "/", "MA_plot.png"), width=500)
+png(file.path(curr_outFold, "MA_plot.png"), width=500)
 plotMA(efitData)
 foo <- dev.off()
 
-png(paste0(curr_outFold, "/", "volcano_plot.png"), width=1000)
+png(file.path(curr_outFold, "volcano_plot.png"), width=1000)
 plot(DE_topTable$logFC, -log10(DE_topTable$adj.P.Val), pch=16, xlab="logFC", ylab="-log10(adj. p-val)")
 plot(DE_topTable$logFC, -log10(DE_topTable$adj.P.Val), pch=16, xlab="logFC", ylab="-log10(adj. p-val)")
 text(x = DE_topTable$logFC[1:10], y= -log10(DE_topTable$adj.P.Val[1:10]), 
@@ -312,30 +312,30 @@ stopifnot(length(DE_geneList) > 0)
 ##### WRITE DATA IN FILE
 cat("... write data in files\n")
 # the expression data used for the DE analysis (i.e. CAGE seq after filtering minimum cpm count)
-save(DE_rnaseqDT, file = paste0(curr_outFold, "/", "DE_rnaseqDT.Rdata"))
-cat(paste0("... written: ", paste0(curr_outFold, "/", "DE_rnaseqDT.Rdata"), "\n"))
+save(DE_rnaseqDT, file = file.path(curr_outFold, "DE_rnaseqDT.Rdata"))
+cat(paste0("... written: ", file.path(curr_outFold, "DE_rnaseqDT.Rdata"), "\n"))
 # the same but qqnorm
 if(inputDataType == "microarray") {
-  save(DE_madnorm_rnaseqDT, file = paste0(curr_outFold, "/", "DE_madnorm_rnaseqDT.Rdata"))
-  cat(paste0("... written: ", paste0(curr_outFold, "/", "DE_madnorm_rnaseqDT.Rdata"), "\n"))
+  save(DE_madnorm_rnaseqDT, file = file.path(curr_outFold, "DE_madnorm_rnaseqDT.Rdata"))
+  cat(paste0("... written: ", file.path(curr_outFold, "DE_madnorm_rnaseqDT.Rdata"), "\n"))
 } else{
-  save(DE_qqnorm_rnaseqDT, file = paste0(curr_outFold, "/", "DE_qqnorm_rnaseqDT.Rdata"))
-  cat(paste0("... written: ", paste0(curr_outFold, "/", "DE_qqnorm_rnaseqDT.Rdata"), "\n")) 
+  save(DE_qqnorm_rnaseqDT, file = file.path(curr_outFold,  "DE_qqnorm_rnaseqDT.Rdata"))
+  cat(paste0("... written: ", file.path(curr_outFold,  "DE_qqnorm_rnaseqDT.Rdata"), "\n")) 
 }
 # the DE topTable
-save(DE_topTable, file = paste0(curr_outFold, "/", "DE_topTable.Rdata"))
-cat(paste0("... written: ", paste0(curr_outFold, "/", "DE_topTable.Rdata"), "\n"))
+save(DE_topTable, file = file.path(curr_outFold, "DE_topTable.Rdata"))
+cat(paste0("... written: ", file.path(curr_outFold, "DE_topTable.Rdata"), "\n"))
 # gene list
-save(DE_geneList, file = paste0(curr_outFold, "/", "DE_geneList.Rdata"))
-cat(paste0("... written: ", paste0(curr_outFold, "/", "DE_geneList.Rdata"), "\n"))
+save(DE_geneList, file = file.path(curr_outFold,  "DE_geneList.Rdata"))
+cat(paste0("... written: ", file.path(curr_outFold, "DE_geneList.Rdata"), "\n"))
 
 
 ##################################################################################### ADDED 20.06.2018
 
 # STOPIFNOT IN SCRIPT 8: all(pipeline_geneList %in% DE_topTable$genes) 
 
-check_pipeline_geneList <- eval(parse(text = load(paste0(pipOutFold, "/", script0_name,  "/", "pipeline_geneList.Rdata"))))
-check_DE_topTable <- eval(parse(text = load(paste0(curr_outFold, "/", "DE_topTable.Rdata"))))
+check_pipeline_geneList <- eval(parse(text = load(file.path(pipOutFold,  script0_name,   "pipeline_geneList.Rdata"))))
+check_DE_topTable <- eval(parse(text = load(file.path(curr_outFold,  "DE_topTable.Rdata"))))
 
 #update correct 17.08.2018
 stopifnot(names(check_pipeline_geneList) %in% check_DE_topTable$genes)

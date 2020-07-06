@@ -13,9 +13,6 @@ startTime <- Sys.time()
 # - emp_pval_meanLogFC.Rdata + plots
 ################################################################################
 
-SSHFS <- F
-setDir <- ifelse(SSHFS, "/media/electron", "")
-
 args <- commandArgs(trailingOnly = TRUE)
 stopifnot(length(args) == 1)
 settingF <- args[1]
@@ -28,7 +25,7 @@ script1_name <- "2_runGeneDE"
 script3_name <- "3_runMeanTADLogFC"
 script6_name <- "6_runPermutationsMeanLogFC"
 script_name <- "8_runEmpPvalMeanTADLogFC"
-stopifnot(file.exists(paste0(pipScriptDir, "/", script_name, ".R")))
+stopifnot(file.exists(file.path(pipScriptDir,paste0(script_name, ".R"))))
 cat(paste0("> START ", script_name,  "\n"))
 
 source("main_settings.R")
@@ -36,7 +33,7 @@ source(settingF)
 source(file.path(pipScriptDir, "TAD_DE_utils.R"))
 suppressPackageStartupMessages(library(foreach, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
 suppressPackageStartupMessages(library(doMC, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
-registerDoMC(ifelse(SSHFS, 2, nCpu)) # from main_settings.R
+registerDoMC(nCpu) # from main_settings.R
 
 # create the directories
 curr_outFold <- file.path(pipOutFold, script_name)
@@ -146,11 +143,11 @@ stopifnot(all(emp_pval_meanLogFC > 0 & emp_pval_meanLogFC <= 1 ))
 ####################################################### WRITE OUTPUT
 ################################****************************************************************************************
 
-save(emp_pval_meanLogFC, file= paste0(curr_outFold, "/emp_pval_meanLogFC.Rdata"))
-cat(paste0("... written: ", curr_outFold, "/emp_pval_meanLogFC.Rdata", "\n"))
+save(emp_pval_meanLogFC, file= file.path(curr_outFold, "emp_pval_meanLogFC.Rdata"))
+cat(paste0("... written: ", file.path(curr_outFold, "emp_pval_meanLogFC.Rdata"), "\n"))
 
 
-outFile <- paste0(curr_outFold, "/", "volcano_plot_empPval_meanLogFC.", plotType)
+outFile <- file.path(curr_outFold, paste0("volcano_plot_empPval_meanLogFC.", plotType))
 do.call(plotType, list(outFile, height=ifelse(plotType=="png", 480, 7), width=ifelse(plotType=="png", 600, 10)))
 
 plot( x = obs_TADLogFC[intersectRegions], y = log10(emp_pval_meanLogFC[intersectRegions]),

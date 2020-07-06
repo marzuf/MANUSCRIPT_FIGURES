@@ -13,8 +13,6 @@ startTime <- Sys.time()
 # - all_meanCorr_TAD.Rdata
 ################################################################################
 
-setDir <- ""
-
 args <- commandArgs(trailingOnly = TRUE)
 stopifnot(length(args) == 1)
 settingF <- args[1]
@@ -25,7 +23,7 @@ pipScriptDir <- file.path(".")
 script0_name <- "1_prepGeneData"
 script1_name <- "2_runGeneDE"
 script_name <- "4_runMeanTADCorr"
-stopifnot(file.exists(paste0(pipScriptDir, "/", script_name, ".R")))
+stopifnot(file.exists(file.path(pipScriptDir, paste0(script_name, ".R"))))
 cat(paste0("> START ", script_name,  "\n"))
 
 source("main_settings.R")

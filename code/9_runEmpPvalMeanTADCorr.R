@@ -13,7 +13,6 @@ startTime <- Sys.time()
 # - emp_pval_meanCorr.Rdata
 ################################################################################
 
-setDir <- ""
 
 args <- commandArgs(trailingOnly = TRUE)
 stopifnot(length(args) == 1)
@@ -36,7 +35,7 @@ source(file.path(pipScriptDir, "TAD_DE_utils.R"))
 suppressPackageStartupMessages(library(foreach, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
 suppressPackageStartupMessages(library(doMC, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
 
-registerDoMC(ifelse(SSHFS,2, nCpu)) # loaded from main_settings.R
+registerDoMC(nCpu) # loaded from main_settings.R
 
 # if microarray was not set in the settings file -> by default set to  FALSE
 if(!exists("microarray")) microarray <- FALSE
@@ -77,7 +76,7 @@ all_sampleCorr_files <- all_sampleCorr_files[!grepl("RANDOM", all_sampleCorr_fil
 all_hicds <- list.files(mainPipFold)
 all_hicds <- all_hicds[!grepl("RANDOM", all_hicds) & !grepl("PERMUT", all_hicds)]
 
-all_exprds <- sapply(all_hicds, function(x) list.files(file.path(mainPipFold, x)))
+# all_exprds <- sapply(all_hicds, function(x) list.files(file.path(mainPipFold, x))) # => dont use it for the public release
 
 
 txt <- paste0("sampleCorr_files used (n=", length(all_sampleCorr_files), "):\n")
@@ -85,7 +84,7 @@ printAndLog(txt, pipLogFile)
 txt <- paste0(all_sampleCorr_files, collapse="\n")
 printAndLog(txt, pipLogFile)
 
-stopifnot(length(all_sampleCorr_files) == length(unlist(all_exprds)))
+# stopifnot(length(all_sampleCorr_files) == length(unlist(all_exprds))) # => dont use it for the public release
 
 ### PREPARE THE SAMPLE CORR VALUES FROM ALL DATASETS
 all_sample_corrValues <- foreach(corr_file = all_sampleCorr_files, .combine='c') %dopar% {

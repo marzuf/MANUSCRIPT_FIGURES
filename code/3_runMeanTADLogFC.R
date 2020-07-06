@@ -15,9 +15,6 @@ startTime <- Sys.time()
 # - /all_meanLogFC_TAD.Rdata
 ################################################################################
 
-SSHFS <- F
-setDir <- ifelse(SSHFS, "/media/electron", "")
-
 args <- commandArgs(trailingOnly = TRUE)
 stopifnot(length(args) == 1)
 settingF <- args[1]
@@ -28,24 +25,24 @@ pipScriptDir <- file.path(".")
 script0_name <- "1_prepGeneData"
 script1_name <- "2_runGeneDE"
 script_name <- "3_runMeanTADLogFC"
-stopifnot(file.exists(paste0(pipScriptDir, "/", script_name, ".R")))
+stopifnot(file.exists(file.path(pipScriptDir,  paste0(script_name, ".R"))))
 cat(paste0("> START ", script_name,  "\n"))
 
 source("main_settings.R")
 source(settingF)
-source(paste0(pipScriptDir, "/", "TAD_DE_utils.R"))
+source(file.path(pipScriptDir, "TAD_DE_utils.R"))
 suppressPackageStartupMessages(library(doMC, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
 suppressPackageStartupMessages(library(foreach, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
 suppressPackageStartupMessages(library(dplyr, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
 
 # create the directories
-curr_outFold <- paste0(pipOutFold, "/", script_name)
+curr_outFold <- file.path(pipOutFold,  script_name)
 system(paste0("mkdir -p ", curr_outFold))
 
-pipLogFile <- paste0(pipOutFold, "/", format(Sys.time(), "%Y%d%m%H%M%S"),"_", script_name, "_logFile.txt")
+pipLogFile <- file.path(pipOutFold, paste0(format(Sys.time(), "%Y%d%m%H%M%S"),"_", script_name, "_logFile.txt"))
 system(paste0("rm -f ", pipLogFile))
 
-registerDoMC(ifelse(SSHFS, 2, nCpu)) # from main_settings.R
+registerDoMC(nCpu) # from main_settings.R
 
 # ADDED 16.11.2018 to check using other files
 txt <- paste0("inputDataType\t=\t", inputDataType, "\n")
@@ -63,11 +60,11 @@ printAndLog(txt, pipLogFile)
 gene2tadDT <- read.delim(gene2tadDT_file, header=F, col.names = c("entrezID", "chromo", "start", "end", "region"), stringsAsFactors = F)
 gene2tadDT$entrezID <- as.character(gene2tadDT$entrezID)
 
-DE_topTable <- eval(parse(text = load(paste0(pipOutFold, "/", script1_name, "/DE_topTable.Rdata"))))
-DE_geneList <- eval(parse(text = load(paste0(pipOutFold, "/", script1_name, "/DE_geneList.Rdata"))))
+DE_topTable <- eval(parse(text = load(file.path(pipOutFold, script1_name, "DE_topTable.Rdata"))))
+DE_geneList <- eval(parse(text = load(file.path(pipOutFold, script1_name, "DE_geneList.Rdata"))))
 
-pipeline_geneList <- eval(parse(text = load(paste0(pipOutFold, "/", script0_name, "/pipeline_geneList.Rdata"))))
-pipeline_regionList <- eval(parse(text = load(paste0(pipOutFold, "/", script0_name, "/pipeline_regionList.Rdata"))))
+pipeline_geneList <- eval(parse(text = load(file.path(pipOutFold, script0_name, "pipeline_geneList.Rdata"))))
+pipeline_regionList <- eval(parse(text = load(file.path(pipOutFold, script0_name, "pipeline_regionList.Rdata"))))
 
 if(useTADonly) {
   if(any(grepl("_BOUND", pipeline_regionList))) {
@@ -124,8 +121,8 @@ if(useTADonly) {
     printAndLog(txt, pipLogFile)
 }
 
-save(all_meanLogFC_TAD, file= paste0(curr_outFold, "/all_meanLogFC_TAD.Rdata"))
-cat(paste0("... written: ", curr_outFold, "/all_meanLogFC_TAD.Rdata", "\n"))
+save(all_meanLogFC_TAD, file= file.path(curr_outFold, "all_meanLogFC_TAD.Rdata"))
+cat(paste0("... written: ", file.path(curr_outFold, "all_meanLogFC_TAD.Rdata"), "\n"))
 
 txt <- paste0(startTime, "\n", Sys.time(), "\n")
 printAndLog(txt, pipLogFile)

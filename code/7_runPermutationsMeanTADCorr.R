@@ -19,8 +19,6 @@ startTime <- Sys.time()
 
 ### !!! TAKE ALL DATA FROM THE DS IN THE FOLDER !!!
 
-SSHFS <- F
-setDir <- ifelse(SSHFS, "/media/electron", "")
 
 args <- commandArgs(trailingOnly = TRUE)
 stopifnot(length(args) == 1)
@@ -43,7 +41,7 @@ source(file.path(pipScriptDir,  "TAD_DE_utils_meanCorr.R"))
 
 suppressPackageStartupMessages(library(foreach, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
 suppressPackageStartupMessages(library(doMC, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
-registerDoMC(ifelse(SSHFS, 2, nCpu)) # from main_settings.R
+registerDoMC(nCpu) # from main_settings.R
 suppressPackageStartupMessages(library(reshape2, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
 
 # if microarray was not set in the settings file -> by default set to  FALSE
@@ -78,8 +76,6 @@ regionList_file <- file.path(pipOutFold, script0_name, "pipeline_regionList.Rdat
 stopifnot(file.exists(regionList_file))
 regionList <- eval(parse(text = load(regionList_file)))
 
-sample1_file <- file.path(setDir, sample1_file)
-sample2_file <- file.path(setDir, sample2_file)
 stopifnot(file.exists(sample1_file))
 stopifnot(file.exists(sample2_file))
 

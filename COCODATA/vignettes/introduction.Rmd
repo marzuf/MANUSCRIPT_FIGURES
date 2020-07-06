@@ -15,9 +15,51 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup}
+if(!require(COCODATA))
+  devtools::install_github("marzuf/MANUSCRIPT_FIGURES", subdir="COCODATA")
+  # alternatively: 
+  # install.packages("COCODATA_0.0.0.1.tar.gz", repos = NULL, type ="source")
+ # data("norm_ID")
 library(COCODATA)
 ```
 
+``` {r load_data}
+# ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_DE_topTable.Rdata
+# ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_meanLogFC_permDT.Rdata
+# ENCSR489OCU_NCI-H460_all_assigned_regions.txt
+# ENCSR489OCU_NCI-H460_all_genes_positions.txt
+# luad_ID.Rdata
+# norm_ID.Rdata
+# TCGAluad_norm_luad_fpkmDT.Rdata
+# TCGAluad_norm_luad_rnaseqDT_v2.Rdata
+
+system.file("extdata", "model-coef.tsv", package = "myfirstpackage")
+
+```
+
+
+
+``` {r TO_FUNCTION_TO_DOCUMENT}
+# auc.Rd
+# get_downByRegion_v2.Rd
+# get_fcc.Rd
+# get_FCdownByRegion_v2.Rd
+# get_multiShuffledPositions_vFunct.Rd
+# get_ratioDown.Rd
+# get_ratioFC.Rd
+# get_ShuffledPositions_vFunct.Rd
+# get_statFromShuffle_para.Rd
+# madNorm.Rd
+# printAndLog.Rd
+# quantNorm.Rd
+# stouffer.Rd
+``` 
+
+##### Compute ratioDown for a list of TADs
+
+##### Compute ratioFC for a list of TADs
+
+##### Compute FCC for a list of TADs
 
 ``` {r FCC_example}
 foldChanges_values <- c(-1.2, -0.2, 0.1, 0.3, 0.9, 1.33, 0.4)

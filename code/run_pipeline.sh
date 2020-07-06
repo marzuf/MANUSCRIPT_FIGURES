@@ -1,8 +1,7 @@
 #!/usr/bin/bash
 
 # running like:
-#  ./zzz_run_given_step_given_data_v2.sh run_settings_TCGAcrc_entrez.R 14
-#  ./zzz_run_given_step_given_data_v2.sh <run_file> <step#>
+#  ./run_pipeline.sh <run_file> <step#>
 
 
 scriptFolder="."  # where the script files are located

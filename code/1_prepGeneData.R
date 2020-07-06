@@ -10,8 +10,6 @@ cat(paste0("> START ", "1_prepGeneData",  "\n"))
 
 startTime <- Sys.time()
 
-setDir <- ""
-
 args <- commandArgs(trailingOnly = TRUE)
 stopifnot(length(args) == 1)
 settingF <- args[1]
@@ -56,7 +54,7 @@ cat(paste0("> inputDataType: ", inputDataType, "\n"))
 #####################
 
 # create the directories
-curr_outFold <- paste0(pipOutFold, "/", script_name)
+curr_outFold <- file.path(pipOutFold, script_name)
 system(paste0("mkdir -p ", curr_outFold))
 
 pipLogFile <- paste0(pipOutFold, "/", format(Sys.time(), "%Y%d%m%H%M%S"),"_", script_name, "_logFile.txt")
@@ -64,13 +62,16 @@ system(paste0("rm -f ", pipLogFile))
 
 # load the expression data
 if(inRdata) {
-  x <- load(paste0(setDir, rnaseqDT_file))
+#  x <- load(paste0(setDir, rnaseqDT_file))
+  x <- load(paste0(rnaseqDT_file)) # for release July 2020
   rnaseqDT <- eval(parse(text=x))
 } else {
   if(geneID_loc == "rn"){
-    rnaseqDT <- read.delim(paste0(setDir, rnaseqDT_file), sep=my_sep, header=T, row.names = 1)
+#    rnaseqDT <- read.delim(paste0(setDir, rnaseqDT_file), sep=my_sep, header=T, row.names = 1)
+    rnaseqDT <- read.delim(file.path(rnaseqDT_file), sep=my_sep, header=T, row.names = 1) # for release July 2020
   } else {
-    rnaseqDT <- read.delim(paste0(setDir, rnaseqDT_file), sep=my_sep, header=T)
+#    rnaseqDT <- read.delim(paste0(setDir, rnaseqDT_file), sep=my_sep, header=T)
+    rnaseqDT <- read.delim(file.path(rnaseqDT_file), sep=my_sep, header=T) # for release July 2020
     rownames(rnaseqDT) <- rnaseqDT[, geneID_loc]
     rnaseqDT <- rnaseqDT[,-geneID_loc]
   }
@@ -164,14 +165,16 @@ if(removeDupGeneID) {
 }
 
 ##### TAKE ONLY THE SAMPLES OF INTEREST
-samp1 <- eval(parse(text=load(paste0(setDir, "/", sample1_file))))
-samp2 <- eval(parse(text=load(paste0(setDir, "/", sample2_file))))
+#samp1 <- eval(parse(text=load(paste0(setDir, "/", sample1_file))))
+#samp2 <- eval(parse(text=load(paste0(setDir, "/", sample2_file))))
+samp1 <- eval(parse(text=load(file.path(sample1_file)))) # for release July 2020
+samp2 <- eval(parse(text=load(file.path(sample2_file)))) # for release July 2020
 rnaseqDT <- rnaseqDT[, c(samp1, samp2)]
 stopifnot( ncol(rnaseqDT) == (length(samp1) + length(samp2)) )
 
 # rna_geneList will hold the list of genes for which I have 1) genomic positions 2) expression data
-save(rna_geneList, file = paste0(curr_outFold, "/", "rna_geneList.Rdata"))
-cat(paste0("... written: ", paste0(curr_outFold, "/", "rna_geneList.Rdata"), "\n"))
+save(rna_geneList, file = file.path(curr_outFold, "rna_geneList.Rdata"))
+cat(paste0("... written: ", file.path(curr_outFold,  "rna_geneList.Rdata"), "\n"))
 
 rna_rnaseqDT <- rnaseqDT
 stopifnot(nrow(rna_rnaseqDT) > 0)
@@ -184,8 +187,8 @@ rna_qqnorm_rnaseqDT <- t(apply(rna_rnaseqDT, 1, quantNorm))
 stopifnot(all(dim(rna_qqnorm_rnaseqDT) == dim(rna_rnaseqDT)))
 rownames(rna_qqnorm_rnaseqDT) <- rownames(rna_rnaseqDT)
 colnames(rna_qqnorm_rnaseqDT) <- colnames(rna_rnaseqDT)
-save(rna_qqnorm_rnaseqDT, file = paste0(curr_outFold, "/", "rna_qqnorm_rnaseqDT.Rdata"))
-cat(paste0("... written: ", paste0(curr_outFold, "/", "rna_qqnorm_rnaseqDT.Rdata"), "\n"))
+save(rna_qqnorm_rnaseqDT, file = file.path(curr_outFold,  "rna_qqnorm_rnaseqDT.Rdata"))
+cat(paste0("... written: ", file.path(curr_outFold, "rna_qqnorm_rnaseqDT.Rdata"), "\n"))
 
 # => rna_geneList: all the genes for which I have position information
 # => countFilter_geneList: all the genes for which I have position information and that are >= CPM threshold
@@ -343,8 +346,8 @@ save(gene_nbr_filter, file = outFile)
 cat(paste0("... written: ", outFile, "\n"))
 
 rangeTADgenes <- c(minNbrGeneTAD, upperLimit)
-save(rangeTADgenes, file = paste0(curr_outFold, "/", "rangeTADgenes.Rdata"))
-cat(paste0("... written: ", paste0(curr_outFold, "/", "rangeTADgenes.Rdata"), "\n"))
+save(rangeTADgenes, file = file.path(curr_outFold,  "rangeTADgenes.Rdata"))
+cat(paste0("... written: ", file.path(curr_outFold, "rangeTADgenes.Rdata"), "\n"))
 
 p2 <- ggdensity(tadGeneNbr_DT, x = "nbrLog10",
           title ="Distribution log10(# genes) after filtering",
@@ -380,21 +383,21 @@ if(useFilterSizeData){
 
 txt <- paste0(toupper(script_name), "> pipeline_geneList compared to available genes: ", length(pipeline_geneList), "/", length(rna_geneList), "\n")
 printAndLog(txt, pipLogFile)
-save(pipeline_geneList, file = paste0(curr_outFold, "/", "pipeline_geneList.Rdata"))
-cat(paste0("... written: ", paste0(curr_outFold, "/", "pipeline_geneList.Rdata"), "\n"))
+save(pipeline_geneList, file = file.path(curr_outFold, "pipeline_geneList.Rdata"))
+cat(paste0("... written: ", file.path(curr_outFold,  "pipeline_geneList.Rdata"), "\n"))
 
 pipeline_regionList <- unique(as.character(gene2tadDT$region))
 txt <- paste0(toupper(script_name), "> pipeline_regionList compared to available regions: ", length(pipeline_regionList), "/", initRegionsLen, "\n")
 printAndLog(txt, pipLogFile)
-save(pipeline_regionList, file = paste0(curr_outFold, "/", "pipeline_regionList.Rdata"))
-cat(paste0("... written: ", paste0(curr_outFold, "/", "pipeline_regionList.Rdata"), "\n"))
+save(pipeline_regionList, file = file.path(curr_outFold,  "pipeline_regionList.Rdata"))
+cat(paste0("... written: ", file.path(curr_outFold, "pipeline_regionList.Rdata"), "\n"))
 
 
 ########################################################################################
 # added 21.02 => create a FPKM data table ! [if not already fpkm provided]
 ########################################################################################
-rna_rnaseqDT <- eval(parse(text = load(paste0(curr_outFold, "/", "rna_rnaseqDT.Rdata"))))
-rna_geneList <- eval(parse(text = load(paste0(curr_outFold, "/", "rna_geneList.Rdata"))))
+rna_rnaseqDT <- eval(parse(text = load(file.path(curr_outFold,  "rna_rnaseqDT.Rdata"))))
+rna_geneList <- eval(parse(text = load(file.path(curr_outFold,  "rna_geneList.Rdata"))))
 stopifnot(length(rna_geneList) == nrow(rna_rnaseqDT))
 stopifnot(all(names(rna_geneList) == rownames(rna_rnaseqDT)))
 stopifnot(all(rna_geneList %in% entrezDT$entrezID))
@@ -437,8 +440,8 @@ if(inputDataType == "RSEM") {
 
 stopifnot(dim(rna_fpkmDT) == dim(rna_rnaseqDT))
 
-save(rna_fpkmDT, file = paste0(curr_outFold, "/", "rna_fpkmDT.Rdata"))
-cat(paste0("... written: ", paste0(curr_outFold, "/", "rna_fpkmDT.Rdata"), "\n"))
+save(rna_fpkmDT, file = file.path(curr_outFold,  "rna_fpkmDT.Rdata"))
+cat(paste0("... written: ", file.path(curr_outFold,  "rna_fpkmDT.Rdata"), "\n"))
 
 
 ################################################################################################################################################################################

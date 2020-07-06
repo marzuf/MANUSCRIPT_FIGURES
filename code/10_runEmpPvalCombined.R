@@ -17,8 +17,6 @@ startTime <- Sys.time()
 # - emp_pval_combined.Rdata + tables
 ################################################################################
 
-setDir <- ""
-
 args <- commandArgs(trailingOnly = TRUE)
 stopifnot(length(args) == 1)
 settingF <- args[1]

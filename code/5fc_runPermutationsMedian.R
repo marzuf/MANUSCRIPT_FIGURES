@@ -20,8 +20,6 @@ set.seed(20180202) # this row was added 08.03.18, the files in OUTPUTFOLDER so f
 # - permutationsDT.Rdata
 ################################################################################
 
-setDir <- ""
-
 args <- commandArgs(trailingOnly = TRUE)
 stopifnot(length(args) == 1)
 settingF <- args[1]
@@ -48,7 +46,7 @@ system(paste0("mkdir -p ", curr_outFold))
 pipLogFile <- file.path(pipOutFold, paste0(format(Sys.time(), "%Y%d%m%H%M%S"),"_", script_name, "_logFile.txt"))
 system(paste0("rm -f ", pipLogFile))
 
-nRandom <- ifelse(SSHFS, 5, nRandomPermut)
+nRandom <- nRandomPermut
 
 if(withExprClass)
   nClass <- permutExprClass  # number of class of expression
@@ -80,10 +78,10 @@ aggregFction <- "median"
 # UPDATE SELECT THE GENES ACCORDING TO THE SETTINGS PREPARED IN 0_PREPGENEDATA
 if(withExprClass) {
     # rnaseqDT <- eval(parse(text = load(paste0(pipOutFold, "/", script0_name, "/rna_rnaseqDT.Rdata"))))
-    rnaseqDT <- eval(parse(text = load(paste0(pipOutFold, "/", script0_name, "/rna_fpkmDT.Rdata"))))
+    rnaseqDT <- eval(parse(text = load(file.path(pipOutFold, script0_name, "rna_fpkmDT.Rdata"))))
 }
-initList <- eval(parse(text = load(paste0(pipOutFold, "/", script0_name, "/rna_geneList.Rdata"))))
-geneList <- eval(parse(text = load(paste0(pipOutFold, "/", script0_name, "/pipeline_geneList.Rdata"))))
+initList <- eval(parse(text = load(file.path(pipOutFold, script0_name, "rna_geneList.Rdata"))))
+geneList <- eval(parse(text = load(file.path(pipOutFold, script0_name, "pipeline_geneList.Rdata"))))
 
 txt <- paste0(toupper(script_name), "> Start with # genes: ", length(geneList), "/", length(initList), "\n")
 printAndLog(txt, pipLogFile)
@@ -99,7 +97,7 @@ gene2tadDT$entrezID <- as.character(gene2tadDT$entrezID)
 gene2tadDT <- gene2tadDT[gene2tadDT$entrezID %in% as.character(geneList),]
 
 ### take only the filtered data according to initial settings
-pipeline_regionList <- eval(parse(text = load(paste0(pipOutFold, "/", script0_name, "/pipeline_regionList.Rdata"))))
+pipeline_regionList <- eval(parse(text = load(file.path(pipOutFold, script0_name, "pipeline_regionList.Rdata"))))
 if(useTADonly) {
   if(any(grepl("_BOUND", pipeline_regionList))) {
     stop("! data were not prepared for \"useTADonly\" !")
@@ -155,8 +153,8 @@ printAndLog(txt, pipLogFile)
 
 #save(permutationsDT, file = paste0(curr_outFold, "/permutationsDT.Rdata"))
 # update 16.08.2019 => faster save version
-my_save.pigz(permutationsDT, pigz_exec_path = pigz_exec_path, file = paste0(curr_outFold, "/permutationsDT.Rdata") )
-cat(paste0("... written: ", paste0(curr_outFold, "/permutationsDT.Rdata"), "\n"))
+my_save.pigz(permutationsDT, pigz_exec_path = pigz_exec_path, file = file.path(curr_outFold, "permutationsDT.Rdata") )
+cat(paste0("... written: ", file.path(curr_outFold, "permutationsDT.Rdata"), "\n"))
 
 txt <- paste0(startTime, "\n", Sys.time(), "\n")
 printAndLog(txt, pipLogFile)
