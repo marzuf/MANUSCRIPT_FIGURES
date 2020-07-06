@@ -13,28 +13,26 @@ startTime <- Sys.time()
 # - emp_pval_meanCorr.Rdata
 ################################################################################
 
-SSHFS <- F
-setDir <- ifelse(SSHFS, "/media/electron", "")
+setDir <- ""
 
 args <- commandArgs(trailingOnly = TRUE)
 stopifnot(length(args) == 1)
 settingF <- args[1]
 stopifnot(file.exists(settingF))
 
-pipScriptDir <- paste0(setDir, "/mnt/ed4/marie/scripts/TAD_DE_pipeline_v2")
+pipScriptDir <- file.path(".")
 
 script0_name <- "1_prepGeneData"
 script1_name <- "2_runGeneDE"
 script4_name <- "4_runMeanTADCorr"
 script7sameNbr_name <- "7_runPermutationsMeanTADCorr"
 script_name <- "9_runEmpPvalMeanTADCorr"
-stopifnot(file.exists(paste0(pipScriptDir, "/", script_name, ".R")))
+stopifnot(file.exists(file.path(pipScriptDir, paste0(script_name, ".R"))))
 cat(paste0("> START ", script_name,  "\n"))
 
 source("main_settings.R")
-#source("run_settings.R")
 source(settingF)
-source(paste0(pipScriptDir, "/", "TAD_DE_utils.R"))
+source(file.path(pipScriptDir, "TAD_DE_utils.R"))
 suppressPackageStartupMessages(library(foreach, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
 suppressPackageStartupMessages(library(doMC, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
 
@@ -45,10 +43,10 @@ if(!exists("microarray")) microarray <- FALSE
 
 
 # create the directories
-curr_outFold <- paste0(pipOutFold, "/", script_name)
+curr_outFold <- file.path(pipOutFold, script_name)
 system(paste0("mkdir -p ", curr_outFold))
 
-pipLogFile <- paste0(pipOutFold, "/", format(Sys.time(), "%Y%d%m%H%M%S"),"_", script_name, "_logFile.txt")
+pipLogFile <- file.path(pipOutFold, paste0(format(Sys.time(), "%Y%d%m%H%M%S"),"_", script_name, "_logFile.txt"))
 system(paste0("rm -f ", pipLogFile))
 
 # ADDED 16.11.2018 to check using other files
@@ -90,7 +88,6 @@ printAndLog(txt, pipLogFile)
 stopifnot(length(all_sampleCorr_files) == length(unlist(all_exprds)))
 
 ### PREPARE THE SAMPLE CORR VALUES FROM ALL DATASETS
-corr_file="/media/electron/mnt/etemp/marie/Yuanlong_Cancer_HiC_data_TAD_DA/PIPELINE/OUTPUT_FOLDER/GSE105381_HepG2_40kb/TCGAlihc_norm_lihc/7sameNbr_runPermutationsMeanTADCorr/meanCorr_sample_around_TADs_sameNbr.Rdata"
 all_sample_corrValues <- foreach(corr_file = all_sampleCorr_files, .combine='c') %dopar% {
   stopifnot(file.exists(corr_file))
   corr_data <- eval(parse(text = load(corr_file)))

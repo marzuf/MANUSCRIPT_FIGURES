@@ -10,19 +10,18 @@ cat(paste0("> START ", "1_prepGeneData",  "\n"))
 
 startTime <- Sys.time()
 
-SSHFS <- F
-setDir <- ifelse(SSHFS, "/media/electron", "")
+setDir <- ""
 
 args <- commandArgs(trailingOnly = TRUE)
 stopifnot(length(args) == 1)
 settingF <- args[1]
 stopifnot(file.exists(settingF))
 
-pipScriptDir <- paste0(setDir, "/mnt/ed4/marie/scripts/TAD_DE_pipeline_v2")
+pipScriptDir <- file.path(".")
 
 # do not change the path of script_name, is used for the output folder name
 script_name <- paste0("1_prepGeneData")
-stopifnot(file.exists(paste0(pipScriptDir, "/", script_name, ".R")))
+stopifnot(file.exists(file.path(pipScriptDir, paste0(script_name, ".R"))))
 cat(paste0("> START ", script_name,  "\n"))
 
 # cat(paste0("setDir = ", setDir, "\n"))
@@ -30,7 +29,7 @@ cat("source main_settings \n")
 source("main_settings.R") # setDir is the main_settings not in run_settings
 cat("source settingF \n")
 source(settingF)
-source(paste0(pipScriptDir, "/", "TAD_DE_utils.R"))
+source(file.path(pipScriptDir,"TAD_DE_utils.R"))
 suppressPackageStartupMessages(library(edgeR, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
 suppressPackageStartupMessages(library(ggplot2, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
 suppressPackageStartupMessages(library(ggpubr, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))

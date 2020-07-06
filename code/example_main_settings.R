@@ -1,52 +1,26 @@
 cat("load main_settings.R\n")
 
 ########################################################
-### general settings
+### set paths to main files needed accross the workflow + general settings
 ########################################################
 
-nCpu <- 30
-
-########################################################
-### set paths to main files needed accross the workflow
-########################################################
-
-historyDT_file <- <PATH_TO_ANCIENT_ENTREZ_FILE>
-#entrezID        mappingID
-#7003    8
-#51596   42
-#1261    44
-#54714   45
-#7291    57
+historyDT_file <- paste0(setDir, "/mnt/ed4/marie/entrez2synonym/entrez/data/gene_history_reordered.txt")
 
 # file with mapping from entrez to chromosomic positions
 #entrezDT_file <- paste0(setDir, "/mnt/ed4/marie/entrez2position/filter_entrez_map.Rdata") # previous also held symbols
 # holds only netrezID and positions
-entrezDT_file <- <PATH_TO_GFF_FILE>
-#entrezID        chromo  start   end     assembly        strand  symbol
-#100287102       chr1    11874   14409   GRCh37.p13      +       DDX11L1
-#653635  chr1    14362   29370   GRCh37.p13      -       WASH7P
-#100302278       chr1    30366   30503   GRCh37.p13      +       MIR1302-2
+entrezDT_file <- paste0(setDir, "/mnt/ed4/marie/entrez2synonym/entrez/ENTREZ_POS/gff_entrez_position_GRCh37p13_nodup.txt")
 
 # file with symbol synonyms to entrezID
-symbolDT_file <- <PATH_TO_ENTREZ_TO_SYMBOL_FILE>
-#entrezID        symbol
-#1       A1BG
-#1       A1B
-#1       ABG
-#1       GAB
-#1       HYST2477
-#2       A2M
-#2       A2MD
-#2       CPAMD5
-#2       FWP007
+#synoDT_file <- paste0(setDir, "/mnt/ed4/marie/entrez2synonym/all_entrez_syno_1.Rdata")
+# mapping entrezID and all possible symbols
+symbolDT_file <- paste0(setDir, "/mnt/ed4/marie/entrez2synonym/entrez/ENTREZ_SYMBOL/final_entrez2syno.txt")
 
 # mapping entrezID and ensemblID
-ensemblDT_file <-  <PATH_TO_ENTREZ_TO_ENSEMBLE_FILE>
-#entrezID        ensemblID
-#1       ENSG00000121410
-#2       ENSG00000175899
-#3       ENSG00000256069
+ensemblDT_file <- paste0(setDir, "/mnt/ed4/marie/entrez2synonym/entrez/ENTREZ_ENSEMBL/final_entrez2ensembl.txt")
 
+
+nCpu <- 30
 
 ########################################################
 ### which kind of data to prepare and use across pipeline
@@ -74,15 +48,16 @@ maxQuantGeneTAD <- 0.99
 
 
 ########################################################
-### permutation settings - 5fc_runPermutationsMedian.R        => STEP 5
+### permutation settings - 5_runPermutationsMedian.R        => STEP 5
 ########################################################
 
 withExprClass <- TRUE
 # number of classes of expression used for permutate expression data
 permutExprClass <- 5
 
+
 ########################################################
 ### for fast saving in step 5fc and 6
 ########################################################
 
-pigz_exec_path <- <PATH_TO_PIGZ_EXECUTABLE>
+pigz_exec_path <- file.path("/mnt/ed4/marie/pigz-2.4/pigz")

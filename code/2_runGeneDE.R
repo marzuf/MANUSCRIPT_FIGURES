@@ -18,24 +18,23 @@ startTime <- Sys.time()
 # - DE_geneList.Rdata
 ################################################################################
 
-SSHFS <- F
-setDir <- ifelse(SSHFS, "/media/electron", "")
+setDir <- ""
 
 args <- commandArgs(trailingOnly = TRUE)
 stopifnot(length(args) == 1)
 settingF <- args[1]
 stopifnot(file.exists(settingF))
 
-pipScriptDir <- paste0(setDir, "/mnt/ed4/marie/scripts/TAD_DE_pipeline_v2")
+pipScriptDir <- file.path(".")
 
 script0_name <- "1_prepGeneData"
 script_name <- "2_runGeneDE"
-stopifnot(file.exists(paste0(pipScriptDir, "/",script_name, ".R")))
+stopifnot(file.exists(file.path(pipScriptDir, paste0(script_name, ".R"))))
 cat(paste0("> START ", script_name,  "\n"))
 
 source("main_settings.R")
 source(settingF)
-source(paste0(pipScriptDir, "/", "TAD_DE_utils.R"))
+source(file.path(pipScriptDir, "TAD_DE_utils.R"))
 suppressPackageStartupMessages(library(edgeR, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))  
 suppressPackageStartupMessages(library(limma, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))  
 
@@ -48,7 +47,7 @@ stopifnot(inputDataType %in% c("raw", "RSEM", "FPKM", "DESeq2", "microarray"))
 cat(paste0("> input data type: ", as.character(inputDataType), "\n"))
 
 # create the directories
-curr_outFold <- paste0(pipOutFold, "/", script_name)
+curr_outFold <- file.path(pipOutFold, script_name)
 system(paste0("mkdir -p ", curr_outFold))
 
 pipLogFile <- paste0(pipOutFold, "/", format(Sys.time(), "%Y%d%m%H%M%S"),"_", script_name, "_logFile.txt")
@@ -64,8 +63,8 @@ printAndLog(txt, pipLogFile)
 txt <- paste0("settingF\t=\t", settingF, "\n")
 printAndLog(txt, pipLogFile)
 
-stopifnot(file.exists(paste0(pipOutFold, "/", script0_name, "/rna_rnaseqDT.Rdata")))
-rnaseqDT <- eval(parse(text = load(paste0(pipOutFold, "/", script0_name, "/rna_rnaseqDT.Rdata"))))
+stopifnot(file.exists(file.path(pipOutFold, script0_name, "rna_rnaseqDT.Rdata")))
+rnaseqDT <- eval(parse(text = load(file.path(pipOutFold, script0_name, "rna_rnaseqDT.Rdata"))))
 if(ncol(rnaseqDT) >= 5 & nrow(rnaseqDT) >= 5)
     rnaseqDT[1:5,1:5]
 initRowNbr <- nrow(rnaseqDT)
@@ -82,9 +81,8 @@ txt <- paste0("inputDataType\t=\t", inputDataType, "\n")
 printAndLog(txt, pipLogFile)
 
 # TAKE ONLY THE GENES FOR WHICH I HAVE POSITIONS
-stopifnot(file.exists(paste0(pipOutFold, "/", script0_name,  "/", "rna_geneList.Rdata")))
-# init_geneList <- eval(parse(text = load(paste0(pipOutFold, "/", script0_name,  "/", "rna_geneList.Rdata"))))
-rna_geneList <- eval(parse(text = load(paste0(pipOutFold, "/", script0_name,  "/", "rna_geneList.Rdata"))))
+stopifnot(file.exists(file.path(pipOutFold, script0_name,  "rna_geneList.Rdata")))
+rna_geneList <- eval(parse(text = load(file.path(pipOutFold, script0_name,  "rna_geneList.Rdata"))))
 # => UPDATE: TAKE ONLY THE GENE LIST PREPARED IN 0_prepGeneData ACCORDING TO CURRENT SETTINGS
 # UPDATE: compute RNA DE for all the genes, not the filtered ones !
 # (in the previous version: DE analysis was done only for the filtered genes; i.e. e.g. those belonging to TADs)
@@ -104,8 +102,8 @@ printAndLog(txt, pipLogFile)
 stopifnot(length(rna_geneList) == nrow(rnaseqDT))
 
 # RUN THE DE ANALYSIS
-samp1 <- eval(parse(text=load(paste0(setDir, "/", sample1_file))))
-samp2 <- eval(parse(text=load(paste0(setDir, "/", sample2_file))))
+samp1 <- eval(parse(text=load(file.path(setDir, sample1_file))))
+samp2 <- eval(parse(text=load(file.path(setDir, sample2_file))))
 # ensure the samples are present in the column names
 stopifnot(all(samp1 %in% colnames(rnaseqDT)))
 stopifnot(all(samp2 %in% colnames(rnaseqDT)))

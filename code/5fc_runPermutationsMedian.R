@@ -20,34 +20,32 @@ set.seed(20180202) # this row was added 08.03.18, the files in OUTPUTFOLDER so f
 # - permutationsDT.Rdata
 ################################################################################
 
-SSHFS <- F
-setDir <- ifelse(SSHFS, "/media/electron", "")
+setDir <- ""
 
 args <- commandArgs(trailingOnly = TRUE)
 stopifnot(length(args) == 1)
 settingF <- args[1]
 stopifnot(file.exists(settingF))
 
-pipScriptDir <- paste0(setDir, "/mnt/ed4/marie/scripts/TAD_DE_pipeline_v2")
+pipScriptDir <- file.path(".")
 
 script0_name <- "1_prepGeneData"
 script1_name <- "2_runGeneDE"
 script_name <- "5fc_runPermutationsMedian"
-stopifnot(file.exists(paste0(pipScriptDir, "/", script_name, ".R")))
+stopifnot(file.exists(file.path(pipScriptDir, paste0(script_name, ".R"))))
 cat(paste0("> START ", script_name,  "\n"))
 
 source("main_settings.R")
 source(settingF)
-source(paste0(pipScriptDir, "/", "TAD_DE_utils.R"))
+source(file.path(pipScriptDir, "TAD_DE_utils.R"))
 
-source(paste0(pipScriptDir, "/", "my_save_pigz.R")) # UPDATE 16.08.2019 -> to use customed fastSave save.pigz() => faster save
-source(paste0(pipScriptDir, "/", "TAD_DE_utils_fasterPermut.R")) # UPDATE 16.08.2019 -> modified function for tad shuffling => faster permuts
+source(file.path(pipScriptDir, "TAD_DE_utils_fasterPermut.R")) # UPDATE 16.08.2019 -> modified function for tad shuffling => faster permuts
 
 # create the directories
-curr_outFold <- paste0(pipOutFold, "/", script_name)
+curr_outFold <- file.path(pipOutFold, script_name)
 system(paste0("mkdir -p ", curr_outFold))
 
-pipLogFile <- paste0(pipOutFold, "/", format(Sys.time(), "%Y%d%m%H%M%S"),"_", script_name, "_logFile.txt")
+pipLogFile <- file.path(pipOutFold, paste0(format(Sys.time(), "%Y%d%m%H%M%S"),"_", script_name, "_logFile.txt"))
 system(paste0("rm -f ", pipLogFile))
 
 nRandom <- ifelse(SSHFS, 5, nRandomPermut)

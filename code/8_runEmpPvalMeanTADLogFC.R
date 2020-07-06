@@ -21,7 +21,7 @@ stopifnot(length(args) == 1)
 settingF <- args[1]
 stopifnot(file.exists(settingF))
 
-pipScriptDir <- paste0(setDir, "/mnt/ed4/marie/scripts/TAD_DE_pipeline_v2")
+pipScriptDir <- file.path(".")
 
 script0_name <- "1_prepGeneData"
 script1_name <- "2_runGeneDE"
@@ -33,16 +33,16 @@ cat(paste0("> START ", script_name,  "\n"))
 
 source("main_settings.R")
 source(settingF)
-source(paste0(pipScriptDir, "/", "TAD_DE_utils.R"))
+source(file.path(pipScriptDir, "TAD_DE_utils.R"))
 suppressPackageStartupMessages(library(foreach, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
 suppressPackageStartupMessages(library(doMC, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
 registerDoMC(ifelse(SSHFS, 2, nCpu)) # from main_settings.R
 
 # create the directories
-curr_outFold <- paste0(pipOutFold, "/", script_name)
+curr_outFold <- file.path(pipOutFold, script_name)
 system(paste0("mkdir -p ", curr_outFold))
 
-pipLogFile <- paste0(pipOutFold, "/", format(Sys.time(), "%Y%d%m%H%M%S"),"_", script_name, "_logFile.txt")
+pipLogFile <- file.path(pipOutFold, paste0(format(Sys.time(), "%Y%d%m%H%M%S"),"_", script_name, "_logFile.txt"))
 system(paste0("rm -f ", pipLogFile))
 
 # ADDED 27.11.2018 to check using other files
@@ -74,13 +74,13 @@ nTop <- 10
 ################################****************************************************************************************
 
 # LOAD DATA AND DISCARD THE REGIONS WITH NA 
-obs_TADLogFC <- eval(parse(text = load(paste0(pipOutFold, "/", script3_name, "/all_meanLogFC_TAD.Rdata"))))
+obs_TADLogFC <- eval(parse(text = load(file.path(pipOutFold, script3_name, "all_meanLogFC_TAD.Rdata"))))
 initLen <- length(obs_TADLogFC)
 obs_TADLogFC <- na.omit(obs_TADLogFC)
 txt <- paste0(toupper(script_name), "> Discard rows with NA in observed logFC. Retain: ", length(obs_TADLogFC), "/", initLen, "\n")
 printAndLog(txt, pipLogFile)
 
-permut_TADLogFC_DT <- eval(parse(text = load(paste0(pipOutFold, "/", script6_name, "/meanLogFC_permDT.Rdata"))))
+permut_TADLogFC_DT <- eval(parse(text = load(file.path(pipOutFold, script6_name, "meanLogFC_permDT.Rdata"))))
 initNrow <- nrow(permut_TADLogFC_DT)
 permut_TADLogFC_DT <- na.omit(permut_TADLogFC_DT)
 txt <- paste0(toupper(script_name), "> Discard rows with NA in permutation logFC. Retain: ", nrow(permut_TADLogFC_DT), "/", initNrow, "\n")

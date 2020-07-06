@@ -17,15 +17,14 @@ startTime <- Sys.time()
 # - emp_pval_combined.Rdata + tables
 ################################################################################
 
-SSHFS <- F
-setDir <- ifelse(SSHFS, "/media/electron", "")
+setDir <- ""
 
 args <- commandArgs(trailingOnly = TRUE)
 stopifnot(length(args) == 1)
 settingF <- args[1]
 stopifnot(file.exists(settingF))
 
-pipScriptDir <- paste0(setDir, "/mnt/ed4/marie/scripts/TAD_DE_pipeline_v2")
+pipScriptDir <- file.path(".")
 
 script0_name <- "1_prepGeneData"
 script1_name <- "2_runGeneDE"
@@ -33,19 +32,19 @@ script3_name <- "3_runMeanTADLogFC"
 script9_name <- "8_runEmpPvalMeanTADLogFC"
 script10sameNbr_name <- "9_runEmpPvalMeanTADCorr"
 script_name <- "10_runEmpPvalCombined"
-stopifnot(file.exists(paste0(pipScriptDir, "/", script_name, ".R")))
+stopifnot(file.exists(file.path(pipScriptDir, paste0(script_name, ".R"))))
 cat(paste0("> START ", script_name,  "\n"))
 
 source("main_settings.R")
 source(settingF)
-source(paste0(pipScriptDir, "/", "TAD_DE_utils.R"))
+source(file.path(pipScriptDir, "TAD_DE_utils.R"))
 suppressPackageStartupMessages(library(foreach, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE)) # error bar
 
 # create the directories
-curr_outFold <- paste0(pipOutFold, "/", script_name)
+curr_outFold <- file.path(pipOutFold, script_name)
 system(paste0("mkdir -p ", curr_outFold))
 
-pipLogFile <- paste0(pipOutFold, "/", format(Sys.time(), "%Y%d%m%H%M%S"),"_", script_name, "_logFile.txt")
+pipLogFile <- file.path(pipOutFold, paste0(format(Sys.time(), "%Y%d%m%H%M%S"),"_", script_name, "_logFile.txt"))
 system(paste0("rm -f ", pipLogFile))
 
 twoTailsStouffer <- FALSE # discussion with Marco -> do it one-sided (compared two- and one- -> similar)
@@ -119,14 +118,12 @@ names(emp_pval_combined) <- intersectRegions
 
 stopifnot(length(emp_pval_combined) == length(intersectRegions))
 
-save(emp_pval_combined, file= paste0(curr_outFold, "/emp_pval_combined.Rdata"))
-cat(paste0("... written: ", curr_outFold, "/emp_pval_combined.Rdata", "\n"))
+save(emp_pval_combined, file= file.path(curr_outFold, "emp_pval_combined.Rdata"))
+cat(paste0("... written: ", file.path(curr_outFold, "emp_pval_combined.Rdata"), "\n"))
 
 
 txt <- paste0(startTime, "\n", Sys.time(), "\n")
 printAndLog(txt, pipLogFile)
 cat(paste0("*** DONE: ", script_name, "\n"))
-#txt <- paste0("!!! WARNING: USE 10000 PERMUTATIONS DATA !!!\n")
-#printAndLog(txt, pipLogFile)
-#cat(paste0("*** DONE: ", script_name, "\n"))
+
 

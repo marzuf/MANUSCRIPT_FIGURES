@@ -13,15 +13,14 @@ startTime <- Sys.time()
 # - all_meanCorr_TAD.Rdata
 ################################################################################
 
-SSHFS <- F
-setDir <- ifelse(SSHFS, "/media/electron", "")
+setDir <- ""
 
 args <- commandArgs(trailingOnly = TRUE)
 stopifnot(length(args) == 1)
 settingF <- args[1]
 stopifnot(file.exists(settingF))
 
-pipScriptDir <- paste0(setDir, "/mnt/ed4/marie/scripts/TAD_DE_pipeline_v2")
+pipScriptDir <- file.path(".")
 
 script0_name <- "1_prepGeneData"
 script1_name <- "2_runGeneDE"
@@ -31,20 +30,20 @@ cat(paste0("> START ", script_name,  "\n"))
 
 source("main_settings.R")
 source(settingF)
-source(paste0(pipScriptDir, "/", "TAD_DE_utils.R"))
-suppressPackageStartupMessages(library(tools, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
+source(file.path(pipScriptDir, "TAD_DE_utils.R"))
+#suppressPackageStartupMessages(library(tools, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
 suppressPackageStartupMessages(library(doMC, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
 suppressPackageStartupMessages(library(foreach, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
-registerDoMC(ifelse(SSHFS, 2, nCpu)) # from main_settings.R
+registerDoMC(nCpu) # from main_settings.R
 
 # if microarray was not set in the settings file -> by default set to  FALSE
 if(!exists("microarray")) microarray <- FALSE
 
 # create the directories
-curr_outFold <- paste0(pipOutFold, "/", script_name)
+curr_outFold <- file.path(pipOutFold, script_name)
 system(paste0("mkdir -p ", curr_outFold))
 
-pipLogFile <- paste0(pipOutFold, "/", format(Sys.time(), "%Y%d%m%H%M%S"),"_", script_name, "_logFile.txt")
+pipLogFile <- file.path(pipOutFold, paste0(format(Sys.time(), "%Y%d%m%H%M%S"),"_", script_name, "_logFile.txt"))
 system(paste0("rm -f ", pipLogFile))
 
 # ADDED 16.11.2018 to check using other files
@@ -72,12 +71,12 @@ printAndLog(txt, pipLogFile)
 #*******************************************************************************
 # UPDATE SELECT THE GENES ACCORDING TO THE SETTINGS PREPARED IN 0_PREPGENEDATA
 if(microarray) {
-  norm_rnaseqDT <- eval(parse(text = load(paste0(pipOutFold, "/", script0_name, "/rna_madnorm_rnaseqDT.Rdata"))))
+  norm_rnaseqDT <- eval(parse(text = load(file.path(pipOutFold, script0_name, "rna_madnorm_rnaseqDT.Rdata"))))
 } else{
-  norm_rnaseqDT <- eval(parse(text = load(paste0(pipOutFold, "/", script0_name, "/rna_qqnorm_rnaseqDT.Rdata")))) 
+  norm_rnaseqDT <- eval(parse(text = load(file.path(pipOutFold, script0_name, "rna_qqnorm_rnaseqDT.Rdata")))) 
 }
-initList <- eval(parse(text = load(paste0(pipOutFold, "/", script0_name, "/rna_geneList.Rdata"))))
-geneList <- eval(parse(text = load(paste0(pipOutFold, "/", script0_name, "/pipeline_geneList.Rdata"))))
+initList <- eval(parse(text = load(file.path(pipOutFold, script0_name, "rna_geneList.Rdata"))))
+geneList <- eval(parse(text = load(file.path(pipOutFold, script0_name, "pipeline_geneList.Rdata"))))
 
 txt <- paste0(toupper(script_name), "> Start with # genes: ", length(geneList), "/", length(initList), "\n")
 printAndLog(txt, pipLogFile)
@@ -94,7 +93,7 @@ stopifnot(as.character(geneList) %in% gene2tadDT$entrezID)
 gene2tadDT <- gene2tadDT[gene2tadDT$entrezID %in% as.character(geneList),]
 
 ### take only the filtered data according to initial settings
-pipeline_regionList <- eval(parse(text = load(paste0(pipOutFold, "/", script0_name, "/pipeline_regionList.Rdata"))))
+pipeline_regionList <- eval(parse(text = load(file.path(pipOutFold, script0_name, "pipeline_regionList.Rdata"))))
 if(useTADonly) {
   if(any(grepl("_BOUND", pipeline_regionList))) {
     stop("! data were not prepared for \"useTADonly\" !")
@@ -153,8 +152,8 @@ cat(paste0("... end intra TAD correlation\n"))
 names(all_meanCorr_TAD) <- all_regions
 stopifnot(length(all_meanCorr_TAD) == length(all_regions))
 
-save(all_meanCorr_TAD, file= paste0(curr_outFold, "/all_meanCorr_TAD.Rdata"))
-cat(paste0("... written: ", curr_outFold, "/all_meanCorr_TAD.Rdata", "\n"))
+save(all_meanCorr_TAD, file= file.path(curr_outFold, "all_meanCorr_TAD.Rdata"))
+cat(paste0("... written: ", file.path(curr_outFold, "all_meanCorr_TAD.Rdata", "\n")))
 
 txt <- paste0(startTime, "\n", Sys.time(), "\n")
 printAndLog(txt, pipLogFile)
