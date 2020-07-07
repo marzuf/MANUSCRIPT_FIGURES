@@ -29,21 +29,21 @@ Settings from this file will overwrite settings from "main_settings.R" (hence ca
 The names of the scripts explicitly describe to which step they correspond, namely:
 <ul>
 <li><em>1_prepGeneData.R</em>: prepare some data for the rest of the pipeline</li>
-<li>*2_runGeneDE.R*: gene-level differential expression analysis (needed for logFC values)</li>
-<li>*3_runMeanTADLogFC.R*: prepare TAD-level average FC</li>
-<li>*4_runMeanTADCorr.R*: prepare TAD-level average correlation</li>
-<li>*5fc_runPermutationsMedian.R*: run permutation for logFC values (can take some times depending on the number of permutations !)</li>
-<li>*5corr_runPermutationsCorr.R*: run permutation for correlation values</li>
-<li>*6_runPermutationsMeanLogFC.R*: compute TAD-level average FC for the permutation data</li>
-<li>*7_runPermutationsMeanTADCorr.R*:  compute TAD-level average correlation for the permutation data</li>
-<li>*8_runEmpPvalMeanTADLogFC.R*: compute empirical p-values for the FC</li>
-<li>*9_runEmpPvalMeanTADCorr.R*: compute empirical p-values for correlation</li>
-<li>*10_runEmpPvalCombined.R*: combine empirical p-values for FC and correlation</li>
+<li><em>2_runGeneDE.R</em>: gene-level differential expression analysis (needed for logFC values)</li>
+<li><em>3_runMeanTADLogFC.R</em>: prepare TAD-level average FC</li>
+<li><em>4_runMeanTADCorr.R</em>: prepare TAD-level average correlation</li>
+<li><em>5fc_runPermutationsMedian.R</em>: run permutation for logFC values (can take some times depending on the number of permutations !)</li>
+<li><em>5corr_runPermutationsCorr.R</em>: run permutation for correlation values</li>
+<li><em>6_runPermutationsMeanLogFC.R</em>: compute TAD-level average FC for the permutation data</li>
+<li><em>7_runPermutationsMeanTADCorr.R</em>:  compute TAD-level average correlation for the permutation data</li>
+<li><em>8_runEmpPvalMeanTADLogFC.R</em>: compute empirical p-values for the FC</li>
+<li><em>9_runEmpPvalMeanTADCorr.R</em>: compute empirical p-values for correlation</li>
+<li><em>10_runEmpPvalCombined.R</em>: combine empirical p-values for FC and correlation</li>
 </ul>
 
 ##### Outputs
 
-Each script outputs files in a folder with the same name as the script (e.g. files written in "1_prepGeneData" for "1_prepGeneData.R").
+Each script outputs files in a folder with the same name as the script (e.g. files written in <em>1_prepGeneData</em> for <em>1_prepGeneData.R</em>).
 
 
 ##### Dependencies
@@ -51,7 +51,7 @@ Each script outputs files in a folder with the same name as the script (e.g. fil
 [pigz](https://zlib.net/pigz) is required for fast saving in Rdata files in the scripts 5fc and 6 (we used version 2.4).
 
 
-R packages used in the pipeline: foreach, doMC, dplyr
+R packages used in the pipeline: foreach, doMC, dplyr, limma and edge  (for gene-level differential expression analysis in step 2)
 
 
 ##### Notes
@@ -62,17 +62,17 @@ The pipeline is designed to run the steps one after the other (some depedencies 
 In step 9, there are two possibilities for retrieving correlation permutation data to be set in the setting files:
 
 <ul>
-<li>if `all_permutCorr_data` is a folder:</li>
+<li>if <em>all_permutCorr_data</em> is a folder:</li>
 <ul>
 <li>the correlation values from permutation data are loaded from files in `all_permutCorr_data` that (recursively) match the pattern "corrMatchPattern" (set to "meanCorr_sample_around_TADs_sameNbr.Rdata" in the main settings but can be overwritten in the additional settings)</li>
-<li>if "refineMatchPattern" is provided, used for a second pattern matching to refine file retrieval</li>
-<li>if "corrDiscardPattern" is provided in setting files, files that match that pattern are discarded</li>
-<li>if "nbrCorrPermutCheck" is provided, it is checked that "nbrCorrPermutCheck" files have been loaded</li>
-<li>it is expected to correspond to the format of script 7: each file should correspond to a list of lists storing a correlation value in my_list[[idx]][["meanCorr"]] with as many "idx" as TADs
+<li>if <em>refineMatchPattern</em> is provided, used for a second pattern matching to refine file retrieval</li>
+<li>if <em>corrDiscardPattern</em> is provided in setting files, files that match that pattern are discarded</li>
+<li>if <em>nbrCorrPermutCheck</em> is provided, it is checked that "nbrCorrPermutCheck" files have been loaded</li>
+<li>it is expected to correspond to the format of script 7: each file should correspond to a list of lists storing a correlation value in `my_list[[idx]][["meanCorr"]]` with as many <em>idx</em> as TADs
 </ul>
-<li>if `all_permutCorr_data` is a file:</li>
+<li>if <em>all_permutCorr_data</em> is a file:</li>
 <ul>
-<li>`all_permutCorr_file` should provide the path to correlation values for the permutation data (we provide the values from our permuation data in "data/all_sample_corrValues.Rdata"); the data should be a Rdata file containing a list/vector of permutation correlation values</li>
+<li><em>all_permutCorr_file</em> should provide the path to correlation values for the permutation data (we provide the values from our permuation data in <em>data/all_sample_corrValues.Rdata</em>); the data should be a Rdata file containing a list/vector of permutation correlation values</li>
 </ul>
 </ul>
 
