@@ -28,7 +28,7 @@ Settings from this file will overwrite settings from "main_settings.R" (hence ca
 
 The names of the scripts explicitly describe to which step they correspond, namely:
 <ul>
-<li>*1_prepGeneData.R*: prepare some data for the rest of the pipeline</li>
+<li><em>1_prepGeneData.R</em>: prepare some data for the rest of the pipeline</li>
 <li>*2_runGeneDE.R*: gene-level differential expression analysis (needed for logFC values)</li>
 <li>*3_runMeanTADLogFC.R*: prepare TAD-level average FC</li>
 <li>*4_runMeanTADCorr.R*: prepare TAD-level average correlation</li>
