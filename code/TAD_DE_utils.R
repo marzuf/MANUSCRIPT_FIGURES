@@ -271,7 +271,7 @@ geneAggregExpression <- NULL
   # do the first one
   allT <- get_ShuffledPositions_vFunct(g2TADdt = g2TADdt, geneIDlist = geneIDlist,  #  aggregFun=aggregFun, RNAdt = RNAdt, 
                                       nClass = nClass, TADonly = TADonly, withExprClass = withExprClass, geneAggregExpressionDT = geneAggregExpression )  
-  colnames(allT) <- c(colnames(allT)[1], paste0(colnames(allT)[2], "1")) # region1
+  colnames(allT) <- c(colnames(allT)[1], paste0("permut", "1")) # permut1
   genes1 <- allT$entrezID
   if(nSimu >1){
     tmpDT <- foreach(i=2:nSimu, .combine='cbind') %dopar% {
@@ -287,7 +287,7 @@ geneAggregExpression <- NULL
       stopifnot(all(genes1 == x[,1]))
       x[,2]
     }
-    colnames(tmpDT) <- paste0("region", 2:nSimu)
+    colnames(tmpDT) <- paste0("permut", 2:nSimu)
     allT <- cbind(allT, tmpDT)
   }
   return(allT)  

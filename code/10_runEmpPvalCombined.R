@@ -14,7 +14,7 @@ startTime <- Sys.time()
 ################################################################################
 
 ################  OUTPUT
-# - emp_pval_combined.Rdata + tables
+# - emp_pval_combined.Rdata 
 ################################################################################
 
 args <- commandArgs(trailingOnly = TRUE)
@@ -138,12 +138,12 @@ names(emp_pval_combined) <- intersectRegions
 
 stopifnot(length(emp_pval_combined) == length(intersectRegions))
 
-outFile <- file.path(curr_outFold, paste0(filePrefix, "emp_pval_combined.Rdata"))
+outFile <- file.path(curr_outFold, paste0(gsub("_", "", filePrefix), "PermCorr_emp_pval_combined.Rdata"))
 save(emp_pval_combined, file=outFile)
 cat(paste0("... written: ", outFile, "\n"))
 
 # added for the release: 7.7.2020
-outFile <- file.path(curr_outFold, paste0(filePrefix, "adj_emp_pval_combined.Rdata"))
+outFile <- file.path(curr_outFold, paste0(gsub("_", "", filePrefix), "PermCorr_adj_emp_pval_combined.Rdata"))
 adj_emp_pval_combined <- p.adjust(emp_pval_combined, method="BH")
 save(adj_emp_pval_combined, file=outFile)
 cat(paste0("... written: ", outFile, "\n"))

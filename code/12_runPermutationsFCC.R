@@ -5,15 +5,12 @@ options(scipen=100)
 startTime <- Sys.time()
 
 ################  USE THE FOLLOWING FILES FROM PREVIOUS STEPS
-# - script0: pipeline_regionList.Rdata
-# - script0: pipeline_geneList.Rdata
-# - script0: rangeTADgenes.Rdata
-# - script1: DE_topTable.Rdata
-# - script1: DE_geneList.Rdata
-# - script5: permutationsDT.Rdata
-# - script5b: permutationsDT_<sizeRatio>.Rdata
-# - script5c: permutationsDT_<sizeRatio>.Rdata
-# - script5d: permutationsDT_shuffle.Rdata
+# - script1: pipeline_regionList.Rdata
+# - script1: pipeline_geneList.Rdata
+# - script1: rangeTADgenes.Rdata
+# - script2: DE_topTable.Rdata
+# - script2: DE_geneList.Rdata
+# - script5fc: permutationsDT.Rdata
 ################################################################################
 
 ################  OUTPUT

@@ -8,7 +8,7 @@ get_ShuffledPositions_vFunct(g2TADdt, geneIDlist, nClass, TADonly,
   withExprClass, geneAggregExpressionDT = NULL, rd_idx = 0)
 }
 \arguments{
-\item{g2TADdt}{Gene-to-TAD dataframe}
+\item{g2TADdt}{Gene-to-TAD dataframe (expected columns: entrezID, region)}
 
 \item{geneIDlist}{List of gene IDs that should be used}
 

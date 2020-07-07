@@ -3,14 +3,12 @@
 # gives path to output folder
 pipOutFold <- "EXAMPLE/OUTPUT_FOLDER/ENCSR489OCU_NCI-H460_TCGAluad_norm_luad"
 
-# full path (starting with /mnt/...)
-# following format expected for the input
-# colnames = samplesID
-# rownames = geneID
-# !!! geneID are expected not difficulted
+# to have compatible versions of Rdata
+options(save.defaults = list(version = 2))
+
 
 # *************************************************************************************************************************
-# ************************************ SETTINGS FOR 0_prepGeneData
+# ************************************ SETTINGS FOR 1_prepGeneData
 # *************************************************************************************************************************
 
 # UPDATE 07.12.2018: for RSEM data, the "analog" FPKM file is provided separately (built in prepData)
@@ -33,8 +31,13 @@ stopifnot(geneID_loc == "rn" | is.numeric(geneID_loc))
 
 removeDupGeneID <- TRUE
 
+
+min_counts <- 5
+min_sampleRatio <- 0.8
+
+
 # *************************************************************************************************************************
-# ************************************ SETTINGS FOR 1_runGeneDE
+# ************************************ SETTINGS FOR 2_runGeneDE
 # *************************************************************************************************************************
 
 # labels for conditions
@@ -71,32 +74,26 @@ gene2tadDT_file <- file.path("EXAMPLE/DATA/ENCSR489OCU_NCI-H460_all_genes_positi
 nCpu <- 40
 
 # *************************************************************************************************************************
-# ************************************ SETTINGS FOR PERMUTATIONS (5#_, 8c_)
+# ************************************ SETTINGS FOR PERMUTATIONS (5fc_runPermutationsMedian)
 # *************************************************************************************************************************
 
 # number of permutations
 nRandomPermut <- 1000
 
 
-min_counts <- 5
-min_sampleRatio <- 0.8
-
-
-# to have compatible versions of Rdata
-options(save.defaults = list(version = 2))
-
-
 # *************************************************************************************************************************
-# ************************************ SETTINGS FOR PERMUTATION DATA FOR CORRELATION
+# ************************************ SETTINGS FOR PERMUTATION DATA FOR CORRELATION (9_runEmpPvalMeanTADCorr and 10_runEmpPvalCombined)
 # *************************************************************************************************************************
 
-all_permutCorr_data <- "/mnt/etemp/marie/PIPELINE/OUTPUT_FOLDER"
-nbrCorrPermutCheck <- 58 
-corrDiscardPattern <- "RANDOM|PERMUT"
-refineMatchPattern <- "7sameNbr_"
-
-#all_permutCorr_data <- "data/all_sample_corrValues.RData"
+#vFolder
+#all_permutCorr_data <- "/mnt/etemp/marie/v2_Yuanlong_Cancer_HiC_data_TAD_DA/PIPELINE/OUTPUT_FOLDER"
 #nbrCorrPermutCheck <- 58 
+#corrDiscardPattern <- "RANDOM|PERMUT"
+#refineMatchPattern <- "7sameNbr_"
+
+#vFile
+all_permutCorr_data <- "data/all_sample_corrValues.RData"
+nbrCorrPermutCheck <- 58 
 
 
 

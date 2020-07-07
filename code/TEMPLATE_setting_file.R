@@ -15,7 +15,7 @@ pipOutFold <- <PATH_TO_OUTPUT_FOLDER>
 # !!! geneID are expected not difficulted
 
 # *************************************************************************************************************************
-# ************************************ SETTINGS FOR 0_prepGeneData
+# ************************************ SETTINGS FOR 1_prepGeneData
 # *************************************************************************************************************************
 
 # UPDATE 07.12.2018: for RSEM data, the "analog" FPKM file is provided separately (built in prepData)
@@ -37,8 +37,12 @@ stopifnot(geneID_loc == "rn" | is.numeric(geneID_loc))
 
 removeDupGeneID <- TRUE # not tested with FALSE
 
+min_counts <- <MIN_COUNT># we used 5
+min_sampleRatio <- <MIN_RATIO_SAMPLES_THAT_SHOULD_HAVE_min_counts> # we used 0.8
+s
+
 # *************************************************************************************************************************
-# ************************************ SETTINGS FOR 1_runGeneDE
+# ************************************ SETTINGS FOR 2_runGeneDE
 # *************************************************************************************************************************
 
 # labels for conditions
@@ -65,20 +69,18 @@ gene2tadDT_file <- <PATH_TO_TAD_GENE_TO_TAD_ASSIGNMENT_FILE>
 
 
 # *************************************************************************************************************************
-# ************************************ SETTINGS FOR PERMUTATIONS (5#_, 8c_)
+# ************************************ SETTINGS FOR PERMUTATIONS (5fc_runPermutationsMedian)
 # *************************************************************************************************************************
 nRandomPermut <- <NBR_PERMUT> # we used 100000
-min_counts <- <MIN_COUNT># we used 5
-min_sampleRatio <- <MIN_RATIO_SAMPLES_THAT_SHOULD_HAVE_min_counts> # we used 0.8
 
 
 # *************************************************************************************************************************
-# ************************************ SETTINGS FOR PERMUTATION DATA FOR CORRELATION
+# ************************************ SETTINGS FOR PERMUTATION DATA FOR CORRELATION (9_runEmpPvalMeanTADCorr and 10_runEmpPvalCombined)
 # *************************************************************************************************************************
 
 all_permutCorr_data <- <PATH_TO_CORRELATION_PERMUTATION_DATA> # a file or a folder
 # corrMatchPattern <- <PATTERN_TO_MATCH> # <optional> (default in main_settings: meanCorr_sample_around_TADs_sameNbr.Rdata) if all_permutCorr_data is a folder, matching pattern to retrieve files in all_permutCorr_data
-refineMatchPattern <- <2ND_PATTERN_TO_MATCH> # <optional> can be used as a second matching pattern to refine file retrieval from all_permutCorr_data
+refineMatchPattern <- <2ND_PATTERN_TO_MATCH> # <optional> if all_permutCorr_data is a folder, can be used as a second matching pattern to refine file retrieval from all_permutCorr_data
 corrDiscardPattern <- <PATTERN_TO_DISCARD> # <optional>, if set, will be used only if all_permutCorr_data is a folder to possibly discard some files [!grepl(corrDiscardPattern, x]
 nbrCorrPermutCheck <- <NBR_CORRELATION_PERMUTATION_DATA> # <optional>, if set, will be used to check the number of retrieved permutation data
 

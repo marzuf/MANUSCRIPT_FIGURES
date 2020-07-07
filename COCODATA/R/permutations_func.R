@@ -17,8 +17,8 @@
 #' 
 #' Performs the permutation (parallelized).
 #'
-#' @param g2TADdt Gene-to-TAD dataframe
-#' @param RNAdt Gene expression dataframe
+#' @param g2TADdt Gene-to-TAD dataframe (expected columns: entrezID, region)
+#' @param RNAdt Gene expression dataframe (rownames should correspond to entrezID, samples in columns)
 #' @param geneIDlist List of gene IDs that should be used
 #' @param nClass The number of classes of expression in which genes are shuffled
 #' @param withExprClass If shuffling should take place within classes
@@ -30,7 +30,7 @@
 #' @export
 
 
-get_multiShuffledPositions_vFunct <- function(g2TADdt, RNAdt, geneIDlist, nClass, withExprClass, TADonly, nSimu, nCpu, aggregFun) {
+get_gene2tad_multiPermut <- function(g2TADdt, RNAdt, geneIDlist, nClass, withExprClass, TADonly, nSimu, nCpu, aggregFun) {
 
   suppressPackageStartupMessages(library(foreach, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))  
   suppressPackageStartupMessages(library(doMC, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))  
@@ -104,7 +104,7 @@ get_multiShuffledPositions_vFunct <- function(g2TADdt, RNAdt, geneIDlist, nClass
   # do the first one
   allT <- get_ShuffledPositions_vFunct(g2TADdt = g2TADdt, geneIDlist = geneIDlist,  #  aggregFun=aggregFun, RNAdt = RNAdt, 
                                       nClass = nClass, TADonly = TADonly, withExprClass = withExprClass, geneAggregExpressionDT = geneAggregExpression )  
-  colnames(allT) <- c(colnames(allT)[1], paste0(colnames(allT)[2], "1")) # region1
+  colnames(allT) <- c(colnames(allT)[1], paste0("permut", "1")) # region1
   genes1 <- allT$entrezID
   if(nSimu >1){
     tmpDT <- foreach(i=2:nSimu, .combine='cbind') %dopar% {
@@ -120,7 +120,7 @@ get_multiShuffledPositions_vFunct <- function(g2TADdt, RNAdt, geneIDlist, nClass
       stopifnot(all(genes1 == x[,1]))
       x[,2]
     }
-    colnames(tmpDT) <- paste0("region", 2:nSimu)
+    colnames(tmpDT) <- paste0("permut", 2:nSimu)
     allT <- cbind(allT, tmpDT)
   }
   return(allT)  
@@ -135,7 +135,7 @@ get_multiShuffledPositions_vFunct <- function(g2TADdt, RNAdt, geneIDlist, nClass
 #' 
 #' Performs the permutation (for 1 permutation).
 #'
-#' @param g2TADdt Gene-to-TAD dataframe
+#' @param g2TADdt Gene-to-TAD dataframe (expected columns: entrezID, region)
 #' @param geneIDlist List of gene IDs that should be used
 #' @param nClass The number of classes of expression in which genes are shuffled
 #' @param TADonly If only genes from TADs should be used
@@ -210,5 +210,169 @@ get_ShuffledPositions_vFunct <- function(g2TADdt, geneIDlist, nClass, TADonly, w
   # to be compatible with the functions that use gene2tadDT, return a similar DF
   return(shuffGenePosDT)
 }
+
+
+#######################################################################################################################
+#######################################################################################################################
+#######################################################################################################################
+#' Sample genes across TAD boundaries
+#' 
+#' Sample genes across TAD boundaries (as many as there are in a given TAD).
+#'
+#' @param g2t_DT Gene-to-TAD dataframe (expected columns: entrezID, region, end, start)
+#' @param tadpos_DT Dataframe with TAD positions (expected columns: region, end, start)
+#' @return A list with permutation data (either left or right/left only/right only)
+#' @export
+
+
+getSampleAcrossBD <- function(g2t_DT, tadpos_DT){
+  
+  stopifnot(c("start", "end", "region") %in% colnames(g2t_DT))
+  stopifnot(c("start", "end", "region") %in% colnames(tadpos_DT))
+
+  all_genes <- as.character(g2t_DT$entrezID)
+  
+  g2t_DT$region <- as.character(g2t_DT$region)
+  tadpos_DT$region <- as.character(tadpos_DT$region)
+  tadpos_DT$chromo <- as.character(tadpos_DT$chromo)
+  
+  g2t_DT$end <- as.numeric(g2t_DT$end)
+  stopifnot(!is.na(g2t_DT$end))
+  g2t_DT$start <- as.numeric(g2t_DT$start)
+  stopifnot(!is.na(g2t_DT$start))
+  tadpos_DT$end <- as.numeric(tadpos_DT$end)
+  stopifnot(!is.na(tadpos_DT$end))
+  tadpos_DT$start <- as.numeric(tadpos_DT$start)
+  stopifnot(!is.na(tadpos_DT$start))
+  
+  tadpos_DT$mid_pos <- (tadpos_DT$start+tadpos_DT$end)/2
+  g2t_DT$mid_pos <- (g2t_DT$start+g2t_DT$end)/2
+  
+  stopifnot(g2t_DT$region %in% tadpos_DT$region)
+  
+  all_tads <- sort(unique(as.character(g2t_DT$region)))
+  
+  
+  
+  sample_around_TADs <- foreach(reg = all_tads) %dopar% {
+    cat("...... start TAD : \t", reg, "\n")
+    
+    curr_chromo <- as.character(tadpos_DT$chromo[tadpos_DT$region == reg])
+    
+    curr_start <- (tadpos_DT$start[tadpos_DT$region == reg])
+    stopifnot(is.numeric(curr_start))
+    
+    curr_end <- (tadpos_DT$end[tadpos_DT$region == reg])
+    stopifnot(is.numeric(curr_end))
+    
+    stopifnot(length(curr_chromo) == 1)
+    stopifnot(length(curr_start) == 1)
+    stopifnot(length(curr_end) == 1)
+    
+    curr_midPos <- (curr_start+curr_end)/2
+    stopifnot(curr_midPos == tadpos_DT$mid_pos[tadpos_DT$region == reg])
+    
+    reg_genes <- g2t_DT$entrezID[g2t_DT$region == reg]
+    stopifnot(length(reg_genes) > 0)
+    
+    curr_nGenes <- length(reg_genes)
+    
+    # !!! EXTRACT GENES BASED ON START POSITION RELATIVE TO BD
+    # !!! SMALLER THAN / GREATER *OR EQUAL* THAN BD POSITION (smaller not equal otherwise genes could come twice)
+    
+    curr_g2t <- g2t_DT[g2t_DT$chromo == curr_chromo,,drop=FALSE]
+    stopifnot(nrow(curr_g2t) > 0)
+    
+    stopifnot(is.numeric(curr_g2t$start), is.numeric(curr_g2t$end))
+    curr_g2t <- curr_g2t[order(curr_g2t$start, curr_g2t$end),,drop=FALSE]
+    
+    # distance to TAD center
+    curr_genesOutsideDT <- curr_g2t[ !curr_g2t$entrezID %in% reg_genes,,drop=FALSE]
+    stopifnot(nrow(curr_genesOutsideDT) > 0)
+    
+    #>>> take the same number of genes, either on left or right
+    curr_genesOutsideDT$distToTAD <- abs(curr_genesOutsideDT$mid_pos - curr_midPos)
+    curr_genesOutsideDT <- curr_genesOutsideDT[order(curr_genesOutsideDT$distToTAD, decreasing=FALSE),,drop=FALSE]
+    
+    sample_around_genes <- curr_genesOutsideDT$entrezID[1:curr_nGenes]
+    
+    all_dist <- curr_genesOutsideDT$distToTAD[1:curr_nGenes]
+    stopifnot(!is.na(all_dist))
+    
+    stopifnot(!is.na(curr_genesOutsideDT))
+    
+    stopifnot(length(all_dist) == length(sample_around_genes))
+    
+    #>>> take the same number of genes on the left
+    curr_genesOutsideDT_left <- curr_genesOutsideDT[curr_genesOutsideDT$mid_pos < curr_midPos,]  # SMALLER
+    curr_nGenes_left <- min(curr_nGenes, nrow(curr_genesOutsideDT_left)) 
+    
+    if(curr_nGenes_left > 0) {
+      sample_around_genes_left <- curr_genesOutsideDT_left$entrezID[1:curr_nGenes_left]
+      all_dist_left <- curr_genesOutsideDT_left$distToTAD[1:curr_nGenes_left]  
+      stopifnot(!is.na(all_dist_left))
+      ### ONLY CONSIDER IN COEXPR GENES USED IN PIPELINE ???
+      stopifnot(sample_around_genes_left %in% all_genes)
+      stopifnot(!sample_around_genes_left %in% reg_genes)
+      
+    } else {
+      sample_around_genes_left <- character(0)
+      all_dist_left <- c()
+    }
+    
+    curr_genesOutsideDT_right <- curr_genesOutsideDT[curr_genesOutsideDT$mid_pos >= curr_midPos,]  # BIGGER OR EQUAL
+    curr_nGenes_right <- min(curr_nGenes, nrow(curr_genesOutsideDT_right)) 
+    
+    if(curr_nGenes_right > 0) {
+      sample_around_genes_right <- curr_genesOutsideDT_right$entrezID[1:curr_nGenes_right]
+      all_dist_right <- curr_genesOutsideDT_right$distToTAD[1:curr_nGenes_right]
+      stopifnot(!is.na(all_dist_right))
+      
+      stopifnot(sample_around_genes_right %in% all_genes)
+      stopifnot(!sample_around_genes_right %in% reg_genes)
+      
+    } else {
+      sample_around_genes_right <- character(0)
+      all_dist_right <- c()
+      
+    }
+    
+    stopifnot(length(sample_around_genes) == curr_nGenes)
+    stopifnot(length(sample_around_genes_left) <= curr_nGenes)
+    stopifnot(length(sample_around_genes_right) <= curr_nGenes)
+    
+    stopifnot(length(all_dist) == length(sample_around_genes))
+    stopifnot(length(all_dist_right) == length(sample_around_genes_right))
+    stopifnot(length(all_dist_left) == length(sample_around_genes_left))
+    
+    ### ONLY CONSIDER IN COEXPR GENES USED IN PIPELINE ???
+    stopifnot(sample_around_genes %in% all_genes)
+	stopifnot(! sample_around_genes_left %in% sample_around_genes_right)
+	stopifnot( sample_around_genes %in% sample_around_genes_left | sample_around_genes %in% sample_around_genes_right)
+    
+    list(
+      tad_genes = reg_genes,
+      
+      genes = sample_around_genes,
+      nGenes = length(sample_around_genes),
+      minDist = min(all_dist),
+      maxDist = max(all_dist),
+      
+      genes_left = sample_around_genes_left,
+      nGenes_left = curr_nGenes_left,
+      minDist_left = min(all_dist_left),
+      maxDist_left = max(all_dist_left),
+      
+      genes_right = sample_around_genes_right,
+      nGenes_right =  curr_nGenes_right,
+      minDist_right = min(all_dist_right),
+      maxDist_right = max(all_dist_right)
+    )
+  } # end foreach-iterating over TADs
+  names(sample_around_TADs) <- all_tads
+  return(sample_around_TADs)
+}
+
+
 
 

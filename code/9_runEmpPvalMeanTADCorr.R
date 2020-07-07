@@ -77,7 +77,7 @@ if(dir.exists(all_permutCorr_data)){
   all_sampleCorr_files <- all_sampleCorr_files[!grepl(corrDiscardPattern, all_sampleCorr_files)]
   txt <- paste0(toupper(script_name), "> sampleCorr_files used (n=", length(all_sampleCorr_files), "):\n")
   printAndLog(txt, pipLogFile)
-  txt <- paste0(all_sampleCorr_files, collapse="\n")
+  txt <- paste0(paste0(all_sampleCorr_files, collapse="\n"), "\n")
   printAndLog(txt, pipLogFile)
   if(exists("nbrCorrPermutCheck")) {
 	stopifnot(is.numeric(nbrCorrPermutCheck))
@@ -94,9 +94,9 @@ if(dir.exists(all_permutCorr_data)){
   }
   filePrefix <- "fromFolder_" 
 } else if(file.exists(all_permutCorr_data)) {
-  txt <- paste0(toupper(script_name), "> use provided all_permutCorr_data\t=\t",all_permutCorr_data, "\n"))
+  txt <- paste0(toupper(script_name), "> use provided all_permutCorr_data\t=\t",all_permutCorr_data, "\n")
   printAndLog(txt, pipLogFile)
-  all_permut_corrValues <- get(load(file.path(all_sampleCorr_files)))
+  all_permut_corrValues <- get(load(file.path(all_permutCorr_data)))
   if(exists("nbrCorrPermutCheck")) {
 	stopifnot(is.numeric(nbrCorrPermutCheck))
 	stopifnot(length(all_permut_corrValues) == nbrCorrPermutCheck)
@@ -105,9 +105,9 @@ if(dir.exists(all_permutCorr_data)){
   stopifnot(is.numeric(all_permut_corrValues))
   filePrefix <- "fromFile_" 
 } else  {
-  stop("error with permutation correlation data - should be a file or a folder")
+  stop(paste0("error with permutation correlation data\nall_permutCorr_data should be a file or a folder\nall_permutCorr_data\t=\t",all_permutCorr_data,"\n"))
 }
-txt <- paste0(toupper(script_name), "> # of permutation correlation values\t=\t", length(all_permut_corrValues), collapse="\n")
+txt <- paste0(toupper(script_name), "> # of permutation correlation values\t=\t", length(all_permut_corrValues),"\n")
 printAndLog(txt, pipLogFile)
 
 

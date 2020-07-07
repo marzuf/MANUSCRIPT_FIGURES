@@ -145,7 +145,7 @@ get_ratioFC <- function(fc_vect) {
 #' Function that calculates the AUC ratio for FCC cumsum curves (observed/permutation)
 #'
 #' @param fcc_vect Vector of observed FCCs
-#' @param fcc_permDT Dataframe with permutation FCCs
+#' @param fcc_permDT Dataframe with permutation FCCs (each column is a permutation)
 #' @param permQt Quantile of the permutation (default: 0.95) used for computing the AUC ratio.
 #' @param doPlot If true, plot the cumsum wave curves
 #' @param plotCex Cex value for the axis labs and titles (default: 1.2)
@@ -153,12 +153,13 @@ get_ratioFC <- function(fc_vect) {
 #' @param qt95PermutCol Color for the line for the permQt permutation values (default: darker grey)
 #' @param lwdObs Width of the line of the observed data (default: 1.2)
 #' @param colObs Color for the observed data (default: "darkred")
-#' @return A list containing the observed AUC (observed_auc), the AUC for the permutation (permut_auc) and the AUC ratio (auc_ratio)
+#' @param ... Other arguments are passed to plot() function
+#' @return (invisible) A list containing the observed AUC (observed_auc), the AUC for the permutation (permut_auc) and the AUC ratio (auc_ratio)
 #' @export
 
 get_auc_ratio <- function(fcc_vect, fcc_permDT, permQt=0.95, doPlot=FALSE,
   							plotCex=1.2, polygonPermutCol=rgb(188/255,188/255,188/255, 0.3), qt95PermutCol=rgb(140/255,140/255,140/255),
-								lwdObs=1.2, colObs="darkred") {
+								lwdObs=1.2, colObs="darkred", ...) {
   pointObsCol <- colObs
   # sort decreasing the FCC
   obs_fcc <- sort(fcc_vect, decreasing = TRUE)
@@ -188,11 +189,11 @@ get_auc_ratio <- function(fcc_vect, fcc_permDT, permQt=0.95, doPlot=FALSE,
   )
   
   if(doPlot){
-    pct_inc <- round(auc_obs/auc_permut,2)
     pct_inc_qt <- round(auc_obs/auc_permutQt,2)
+    my_xlab <- paste0("TADs ranked by FCC")
+	my_ylab <- paste0("FCC cumulative sum")
     par(bty="l")
     plot(obs_cumsum ~ x_val,
-         main= my_main,
          type = "l",
          pch = 16, cex = 0.7,
          xlab= my_xlab, 
@@ -203,11 +204,10 @@ get_auc_ratio <- function(fcc_vect, fcc_permDT, permQt=0.95, doPlot=FALSE,
          col = colObs,
          axes=FALSE,
          lwd = lwdObs,
-         bty="l")
+         bty="l", ...)
     box()
     axis(2, cex.axis=plotCex, cex.lab=plotCex)
     axis(1, cex.axis=plotCex, cex.lab=plotCex, at = seq(from=0, to=maxRankPlot, by=maxRankPlot/10)) # we used 2000 and 200 hard-coded
-    mtext(my_sub, font=3)
     polygon(x = c(x_val, rev(x_val)), 
             y = c( apply(cumsum_permut_dt, 1, function(x) min(x)), rev(apply(cumsum_permut_dt, 1, function(x) max(x)))),
             border=NA,
@@ -228,7 +228,7 @@ get_auc_ratio <- function(fcc_vect, fcc_permDT, permQt=0.95, doPlot=FALSE,
     legtxt <- as.expression(bquote(frac(AUC[obs.], AUC[permut.]) == .(pct_inc_qt)))
     legend("right", legend=c(legtxt), bty="n")
   }
-  return(fcc_auc_ratios)
+  invisible(fcc_auc_ratios)
 }
 
 

@@ -81,7 +81,7 @@ gene2tadDT <- gene2tadDT[gene2tadDT$entrezID %in% entrezList,]
 cat("... load permutation data ...\n")
 permutationsDT <- eval(parse(text = load(file.path(pipOutFold, script5fc_name, "permutationsDT.Rdata"))))
 if(ncol(permutationsDT) != nRandomPermut)
-  stop("! NEED TO CHECK: different settings were used for running the permutations !\n")
+  stop(paste0("! NEED TO CHECK: different settings were used for running the permutations !\n ncol(permutationsDT)\t=\t", ncol(permutationsDT), "\nnRandomPermut\t=\t", nRandomPermut, "\n"))
 
 pipeline_geneList <- eval(parse(text = load(file.path(pipOutFold, script1_name, "pipeline_geneList.Rdata"))))
 if(!setequal(pipeline_geneList, rownames(permutationsDT))) {

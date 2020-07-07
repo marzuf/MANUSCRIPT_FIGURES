@@ -128,7 +128,7 @@ sample_around_TADs <- foreach(reg = pipeline_tadList) %dopar% {
     
   #>>> take the same number of genes, either on left or right
   curr_genesOutsideDT$distToTAD <- abs(curr_genesOutsideDT$mid_pos - curr_midPos)
-  curr_genesOutsideDT <- curr_genesOutsideDT[order(curr_genesOutsideDT$distToTAD, decreasing=F),,drop=FALSE]
+  curr_genesOutsideDT <- curr_genesOutsideDT[order(curr_genesOutsideDT$distToTAD, decreasing=FALSE),,drop=FALSE]
   
   sample_around_genes <- curr_genesOutsideDT$entrezID[1:curr_nGenes]
   

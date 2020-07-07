@@ -32,9 +32,9 @@ The names of the scripts explicitly describe to which step they correspond, name
 <li><em>2_runGeneDE.R</em>: gene-level differential expression analysis (needed for logFC values)</li>
 <li><em>3_runMeanTADLogFC.R</em>: prepare TAD-level average FC</li>
 <li><em>4_runMeanTADCorr.R</em>: prepare TAD-level average correlation</li>
-<li><em>5fc_runPermutationsMedian.R</em>: run permutation for logFC values (can take some time - especially for saving the file - (and disk space) depending on the number of permutations !; from our experience: with 40 CPU, ~20 min. for 1000 permutations; )</li>
+<li><em>5fc_runPermutationsMedian.R</em>: run permutation for logFC values (! can take some time - especially for saving the file - (and disk space) depending on the number of permutations !; from our experience (40 CPU): ~20 min for 1000 permutations, ~2 h for 100'000)</li>
 <li><em>5corr_runPermutationsCorr.R</em>: run permutation for correlation values</li>
-<li><em>6_runPermutationsMeanLogFC.R</em>: compute TAD-level average FC for the permutation data</li>
+<li><em>6_runPermutationsMeanLogFC.R</em>: compute TAD-level average FC for the permutation data (! take ca. ~2 min for 1000 permutations, ~2 h for 100'000)</li>
 <li><em>7_runPermutationsMeanTADCorr.R</em>:  compute TAD-level average correlation for the permutation data</li>
 <li><em>8_runEmpPvalMeanTADLogFC.R</em>: compute empirical p-values for the FC</li>
 <li><em>9_runEmpPvalMeanTADCorr.R</em>: compute empirical p-values for correlation</li>
