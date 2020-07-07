@@ -37,7 +37,7 @@ source("main_settings.R")
 source(settingF)
 source(file.path(pipScriptDir, "TAD_DE_utils.R"))
 
-source(file.path(pipScriptDir, "TAD_DE_utils_fasterPermut.R")) # UPDATE 16.08.2019 -> modified function for tad shuffling => faster permuts
+#source(file.path(pipScriptDir, "TAD_DE_utils_fasterPermut.R")) # UPDATE 16.08.2019 -> modified function for tad shuffling => faster permuts
 
 # create the directories
 curr_outFold <- file.path(pipOutFold, script_name)

@@ -31,13 +31,13 @@ script1_name <- "1_prepGeneData"
 script2_name <- "2_runGeneDE"
 script5corr_name <- "5corr_runPermutationsCorr"
 script_name <- "7_runPermutationsMeanTADCorr"
-stopifnot(file.exists(file.path(pipScriptDir, script_name, ".R")))
+stopifnot(file.exists(file.path(pipScriptDir, paste0(script_name, ".R"))))
 cat(paste0("> START ", script_name,  "\n"))
 
 source("main_settings.R")
 source(settingF)
 source(file.path(pipScriptDir, "TAD_DE_utils.R"))
-source(file.path(pipScriptDir,  "TAD_DE_utils_meanCorr.R"))
+#source(file.path(pipScriptDir,  "TAD_DE_utils_meanCorr.R"))
 
 suppressPackageStartupMessages(library(foreach, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
 suppressPackageStartupMessages(library(doMC, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))

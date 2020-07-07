@@ -135,6 +135,104 @@ get_ratioFC <- function(fc_vect) {
 
 
 
+#######################################################################################################################
+#######################################################################################################################
+#######################################################################################################################
+
+
+#' AUC ratio 
+#'
+#' Function that calculates the AUC ratio for FCC cumsum curves (observed/permutation)
+#'
+#' @param fcc_vect Vector of observed FCCs
+#' @param fcc_permDT Dataframe with permutation FCCs
+#' @param permQt Quantile of the permutation (default: 0.95) used for computing the AUC ratio.
+#' @param doPlot If true, plot the cumsum wave curves
+#' @param plotCex Cex value for the axis labs and titles (default: 1.2)
+#' @param ploygonPermutCol Color for the area of permutation value (default: grey color)
+#' @param qt95PermutCol Color for the line for the permQt permutation values (default: darker grey)
+#' @param lwdObs Width of the line of the observed data (default: 1.2)
+#' @param colObs Color for the observed data (default: "darkred")
+#' @return A list containing the observed AUC (observed_auc), the AUC for the permutation (permut_auc) and the AUC ratio (auc_ratio)
+#' @export
+
+get_auc_ratio <- function(fcc_vect, fcc_permDT, permQt=0.95, doPlot=FALSE,
+  							plotCex=1.2, polygonPermutCol=rgb(188/255,188/255,188/255, 0.3), qt95PermutCol=rgb(140/255,140/255,140/255),
+								lwdObs=1.2, colObs="darkred") {
+  pointObsCol <- colObs
+  # sort decreasing the FCC
+  obs_fcc <- sort(fcc_vect, decreasing = TRUE)
+  permut_FCC_unsort <- fcc_permDT
+  permut_FCC <- apply(permut_FCC_unsort, 2, sort, decreasing=TRUE)
+  rownames(permut_FCC) <- NULL
+  cat(paste0("... found obs. TADs:\t", length(obs_fcc), "\n"))
+  cat(paste0("... found permut. TADs:\t", nrow(permut_FCC), "\n"))
+  maxTADs <- max(c(length(obs_fcc), nrow(permut_FCC)))
+  
+  maxRankPlot <- ceiling(maxTADs/1000)*1000
+  x_val <- c(1:length(obs_fcc))
+  cumsum_permut_dt <- apply(permut_FCC, 2, function(x) cumsum(x))
+  qt95Permut_cumsum <- apply(cumsum_permut_dt, 1, quantile, probs=permQt) # for each rank, take the quantile
+  
+  obs_cumsum <- cumsum(obs_fcc)
+  
+  auc_obs <- auc(x = x_val, y = obs_cumsum)
+  auc_permutQt <- auc(x = x_val, y = qt95Permut_cumsum)
+  auc_ratioQt <- auc_obs/auc_permutQt
+  
+  
+  fcc_auc_ratios <- list(
+    observed_auc=auc_obs,
+    permut_auc=auc_permutQt,
+    auc_ratio = auc_ratioQt
+  )
+  
+  if(doPlot){
+    pct_inc <- round(auc_obs/auc_permut,2)
+    pct_inc_qt <- round(auc_obs/auc_permutQt,2)
+    par(bty="l")
+    plot(obs_cumsum ~ x_val,
+         main= my_main,
+         type = "l",
+         pch = 16, cex = 0.7,
+         xlab= my_xlab, 
+         ylab= my_ylab,
+         cex.main = plotCex,
+         cex.lab = plotCex,
+         cex.axis = plotCex,
+         col = colObs,
+         axes=FALSE,
+         lwd = lwdObs,
+         bty="l")
+    box()
+    axis(2, cex.axis=plotCex, cex.lab=plotCex)
+    axis(1, cex.axis=plotCex, cex.lab=plotCex, at = seq(from=0, to=maxRankPlot, by=maxRankPlot/10)) # we used 2000 and 200 hard-coded
+    mtext(my_sub, font=3)
+    polygon(x = c(x_val, rev(x_val)), 
+            y = c( apply(cumsum_permut_dt, 1, function(x) min(x)), rev(apply(cumsum_permut_dt, 1, function(x) max(x)))),
+            border=NA,
+            col = polygonPermutCol)
+    lines(
+      x = x_val,
+      y= qt95Permut_cumsum,
+      col = qt95PermutCol
+    )
+    legend("topleft",
+           xjust=0.5, yjust=0,
+           pch = c(16, 15, -1 ),
+           lty=c(-1,-1,1),
+           legend = c(paste0("observed (n=", length(obs_fcc), ")"), "min-max permut.", paste0(permQt, "-qt permut.")), 
+           pt.cex = c(0.7, 2),
+           col = c(pointObsCol, polygonPermutCol, qt95PermutCol),
+           bty="n")
+    legtxt <- as.expression(bquote(frac(AUC[obs.], AUC[permut.]) == .(pct_inc_qt)))
+    legend("right", legend=c(legtxt), bty="n")
+  }
+  return(fcc_auc_ratios)
+}
+
+
+
 
 
 

@@ -32,7 +32,7 @@ The names of the scripts explicitly describe to which step they correspond, name
 <li><em>2_runGeneDE.R</em>: gene-level differential expression analysis (needed for logFC values)</li>
 <li><em>3_runMeanTADLogFC.R</em>: prepare TAD-level average FC</li>
 <li><em>4_runMeanTADCorr.R</em>: prepare TAD-level average correlation</li>
-<li><em>5fc_runPermutationsMedian.R</em>: run permutation for logFC values (can take some times depending on the number of permutations !)</li>
+<li><em>5fc_runPermutationsMedian.R</em>: run permutation for logFC values (can take some time - especially for saving the file - (and disk space) depending on the number of permutations !; from our experience: with 40 CPU, ~20 min. for 1000 permutations; )</li>
 <li><em>5corr_runPermutationsCorr.R</em>: run permutation for correlation values</li>
 <li><em>6_runPermutationsMeanLogFC.R</em>: compute TAD-level average FC for the permutation data</li>
 <li><em>7_runPermutationsMeanTADCorr.R</em>:  compute TAD-level average correlation for the permutation data</li>
@@ -51,7 +51,7 @@ Each script outputs files in a folder with the same name as the script (e.g. fil
 [pigz](https://zlib.net/pigz) is required for fast saving in Rdata files in the scripts 5fc and 6 (we used version 2.4).
 
 
-R packages used in the pipeline: limma and edge  (for gene-level differential expression analysis in step 2), foreach, doMC, dplyr, tools
+R packages used in the pipeline: limma and edge  (for gene-level differential expression analysis in step 2), foreach, doMC, dplyr, tools, flux
 
 
 ##### Notes

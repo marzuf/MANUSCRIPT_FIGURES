@@ -49,10 +49,11 @@ system.file("extdata", "model-coef.tsv", package = "myfirstpackage")
 # get_ratioFC.Rd
 # get_ShuffledPositions_vFunct.Rd
 # get_statFromShuffle_para.Rd
-# madNorm.Rd
+# madNorm.Rd # not used, this was for microarray data
 # printAndLog.Rd
 # quantNorm.Rd
 # stouffer.Rd
+# get_auc_ratio
 ``` 
 
 ##### Compute ratioDown for a list of TADs

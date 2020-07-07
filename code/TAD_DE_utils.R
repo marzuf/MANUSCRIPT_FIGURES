@@ -2,31 +2,31 @@
 # - genome assembly used with biomart: GRCh37
 ##########################
 
-# FLUX: (instead of installing flux package)
-auc <- function (x, y, thresh = NULL, dens = 100, sort.x = TRUE) {
-    x <- x[!is.na(x)]
-    y <- y[!is.na(x)]
-    x <- x[!is.na(y)]
-    y <- y[!is.na(y)]
-    if (sort.x) {
-        ord <- order(x)
-        x <- x[ord]
-        y <- y[ord]
-    }
-    idx = 2:length(x)
-    x <- as.vector(apply(cbind(x[idx - 1], x[idx]), 1, function(x) seq(x[1], 
-        x[2], length.out = dens)))
-    y <- as.vector(apply(cbind(y[idx - 1], y[idx]), 1, function(x) seq(x[1], 
-        x[2], length.out = dens)))
-    if (!is.null(thresh)) {
-        y.0 <- y <= thresh
-        y[y.0] <- thresh
-    }
-    idx = 2:length(x)
-    integral <- as.double((x[idx] - x[idx - 1]) %*% (y[idx] + 
-        y[idx - 1]))/2
-    integral
-}
+# FLUX: (instead of installing flux package) if not working
+#auc <- function (x, y, thresh = NULL, dens = 100, sort.x = TRUE) {
+#    x <- x[!is.na(x)]
+#    y <- y[!is.na(x)]
+#    x <- x[!is.na(y)]
+#    y <- y[!is.na(y)]
+#    if (sort.x) {
+#        ord <- order(x)
+#        x <- x[ord]
+#        y <- y[ord]
+#    }
+#    idx = 2:length(x)
+#    x <- as.vector(apply(cbind(x[idx - 1], x[idx]), 1, function(x) seq(x[1], 
+#        x[2], length.out = dens)))
+#    y <- as.vector(apply(cbind(y[idx - 1], y[idx]), 1, function(x) seq(x[1], 
+#        x[2], length.out = dens)))
+#    if (!is.null(thresh)) {
+#        y.0 <- y <= thresh
+#        y[y.0] <- thresh
+#    }
+#    idx = 2:length(x)
+#    integral <- as.double((x[idx] - x[idx - 1]) %*% (y[idx] + 
+#        y[idx - 1]))/2
+#    integral
+#}
 
 #######################################################################################################################
 #######################################################################################################################
@@ -37,23 +37,23 @@ quantNorm <- function(x) {qqnorm(x, plot.it=F)$x}
 #######################################################################################################################
 #######################################################################################################################
 #######################################################################################################################
-
-madNorm <- function(x) {
-  rna_rnaseqDT_tmp <- x
-  # median center
-  all_meds <- apply(rna_rnaseqDT_tmp, 1, median)
-  rna_rnaseqDT_tmp <- sweep(rna_rnaseqDT_tmp, 1, all_meds, "-")  # substract from each row their corresponding median
-  # mad norm
-  # In order to use the MAD as a consistent estimator for the estimation of the standard deviation σ, one takes
-  # σ ^ = k ⋅ MAD where k is a constant scale factor, which depends on the distribution.[1]
-  # For normally distributed data k is taken to be: ~1.4826
-  all_mads <-1.4826 * apply(abs(rna_rnaseqDT_tmp), 1, median)
-  rna_madnorm_rnaseqDT <- sweep(rna_rnaseqDT_tmp, 1, all_mads, "/") 
-  stopifnot( all ( dim(x) == dim(rna_madnorm_rnaseqDT)))
-  rownames(rna_madnorm_rnaseqDT) <- rownames(x)
-  colnames(rna_madnorm_rnaseqDT) <- colnames(x)
-  return(rna_madnorm_rnaseqDT)
-}
+# this was used for microarray data
+#madNorm <- function(x) {
+#  rna_rnaseqDT_tmp <- x
+#  # median center
+#  all_meds <- apply(rna_rnaseqDT_tmp, 1, median)
+#  rna_rnaseqDT_tmp <- sweep(rna_rnaseqDT_tmp, 1, all_meds, "-")  # substract from each row their corresponding median
+#  # mad norm
+#  # In order to use the MAD as a consistent estimator for the estimation of the standard deviation σ, one takes
+#  # σ ^ = k ⋅ MAD where k is a constant scale factor, which depends on the distribution.[1]
+#  # For normally distributed data k is taken to be: ~1.4826
+#  all_mads <-1.4826 * apply(abs(rna_rnaseqDT_tmp), 1, median)
+#  rna_madnorm_rnaseqDT <- sweep(rna_rnaseqDT_tmp, 1, all_mads, "/") 
+#  stopifnot( all ( dim(x) == dim(rna_madnorm_rnaseqDT)))
+#  rownames(rna_madnorm_rnaseqDT) <- rownames(x)
+#  colnames(rna_madnorm_rnaseqDT) <- colnames(x)
+#  return(rna_madnorm_rnaseqDT)
+#}
 
 #######################################################################################################################
 #######################################################################################################################
@@ -146,7 +146,7 @@ printAndLog <- function(mytext, mylogf) {
 }
 
 #######################################################################################################################
-#######################################################################################################################
+####################################################################################################################### added updates from TAD_DE_utils_fasterPermut
 #######################################################################################################################
 
 #get_multiShuffledPositions_vFunct <- function(g2TADdt, RNAdt, geneIDlist, nClass, withExprClass, TADonly, nSimu, nCpu, aggregFun) {
@@ -293,7 +293,7 @@ geneAggregExpression <- NULL
   return(allT)  
 }  
 #######################################################################################################################
-#######################################################################################################################
+####################################################################################################################### added updates from TAD_DE_utils_fasterPermut
 #######################################################################################################################
 
 #### same as _vJune but can pass aggregFun for aggregating the expression values
@@ -636,3 +636,47 @@ my_save.pigz <- function (..., list = character(), file = stop("'file' must be s
 # x
 # myx <- get(load("myx.Rdata"))
 # myx
+
+#############################################################################################################################
+#############################################################################################################################  # added from TAD_DE_utils_meanCorr
+#############################################################################################################################
+
+get_meanCorr_value <- function(exprMatrix, inside_genes, outside_genes, cormet) {
+  stopifnot(inside_genes %in% rownames(exprMatrix))
+  stopifnot(outside_genes %in% rownames(exprMatrix))
+  stopifnot(setequal(c(inside_genes, outside_genes), rownames(exprMatrix)))
+  
+  nAllGenes <- length(inside_genes) + length(outside_genes)
+  
+  coexprMatrix <- cor(t(exprMatrix), method = cormet)
+  stopifnot(dim(coexprMatrix) == nAllGenes)
+  
+  coexprMatrix[lower.tri(coexprMatrix, diag = TRUE)] <- NA   # because after I filter that 1 gene should be inside, and 1 gene should be outside -> can never happen to take the diag. value of coexpression
+  coexprMatrix <- na.omit(melt(coexprMatrix))
+  colnames(coexprMatrix)[1:2] <- c("Var1", "Var2")
+  stopifnot(colnames( coexprMatrix)[3] == "value" )
+  coexprMatrix$Var1 <- as.character(coexprMatrix$Var1)
+  coexprMatrix$Var2 <- as.character(coexprMatrix$Var2)
+  
+  stopifnot(coexprMatrix$Var1 %in% outside_genes | coexprMatrix$Var1 %in% inside_genes)
+  stopifnot(coexprMatrix$Var2 %in% outside_genes | coexprMatrix$Var2 %in% inside_genes)
+  stopifnot(inside_genes %in% coexprMatrix$Var1 | inside_genes %in% coexprMatrix$Var2)
+  stopifnot(outside_genes %in% coexprMatrix$Var1 | outside_genes %in% coexprMatrix$Var2)
+  
+  # take only if one of the two genes outside and the other inside
+  coexprMatrix <- coexprMatrix[!  (coexprMatrix$Var1 %in% outside_genes & coexprMatrix$Var2 %in% outside_genes),]  # do not take correlation between pairs of genes in  the same TAD
+  coexprMatrix <- coexprMatrix[ ! (coexprMatrix$Var1 %in% inside_genes & coexprMatrix$Var2 %in% inside_genes),]  # do not take correlation between pairs of genes in  the same TAD
+  
+  stopifnot(     (coexprMatrix$Var1 %in% outside_genes & coexprMatrix$Var2 %in% inside_genes) | 
+                   (coexprMatrix$Var2 %in% outside_genes & coexprMatrix$Var1 %in% inside_genes) )
+  
+  
+
+  stopifnot(nrow(coexprMatrix) == (length(inside_genes) * length(outside_genes) ))
+  
+  meanCorr_value <- mean(coexprMatrix$value)
+  stopifnot(!is.na(meanCorr_value))
+  return(meanCorr_value)
+}
+
+

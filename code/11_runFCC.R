@@ -1,51 +1,50 @@
 #!/usr/bin/Rscript
 
+options(scipen=100)
+
 startTime <- Sys.time()
 
 ################  USE THE FOLLOWING FILES FROM PREVIOUS STEPS
 # - script0: pipeline_regionList.Rdata
-# - script0: rna_geneList.Rdata
 # - script0: pipeline_geneList.Rdata
-# - script0: rna_madnorm_rnaseqDT.Rdata
 # - script1: DE_topTable.Rdata
 # - script1: DE_geneList.Rdata
 ################################################################################
 
 ################  OUTPUT
-# - /all_meanLogFC_TAD.Rdata
+# - all_FCC_TAD.Rdata
 ################################################################################
+
+suppressPackageStartupMessages(library(doMC, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))  
+suppressPackageStartupMessages(library(foreach, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))  
 
 args <- commandArgs(trailingOnly = TRUE)
 stopifnot(length(args) == 1)
 settingF <- args[1]
 stopifnot(file.exists(settingF))
 
-pipScriptDir <- file.path(".")
+pipScriptDir <- paste0(".")
 
 script1_name <- "1_prepGeneData"
 script2_name <- "2_runGeneDE"
-script_name <- "3_runMeanTADLogFC"
-stopifnot(file.exists(file.path(pipScriptDir,  paste0(script_name, ".R"))))
+script_name <- "11_runFCC"
+stopifnot(file.exists(file.path(pipScriptDir, paste0(script_name, ".R"))))
 cat(paste0("> START ", script_name,  "\n"))
 
 source("main_settings.R")
 source(settingF)
 source(file.path(pipScriptDir, "TAD_DE_utils.R"))
-suppressPackageStartupMessages(library(doMC, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
-suppressPackageStartupMessages(library(foreach, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
+
+registerDoMC(nCpu) # loaded from main_settings.R
 
 # create the directories
-curr_outFold <- file.path(pipOutFold,  script_name)
+curr_outFold <- file.path(pipOutFold, script_name)
 system(paste0("mkdir -p ", curr_outFold))
 
 pipLogFile <- file.path(pipOutFold, paste0(format(Sys.time(), "%Y%d%m%H%M%S"),"_", script_name, "_logFile.txt"))
 system(paste0("rm -f ", pipLogFile))
 
-registerDoMC(nCpu) # from main_settings.R
-
-# ADDED 16.11.2018 to check using other files
-txt <- paste0(toupper(script_name), "> inputDataType\t=\t", inputDataType, "\n")
-printAndLog(txt, pipLogFile)
+# ADDED 27.11.2018 to check using other files
 txt <- paste0(toupper(script_name), "> gene2tadDT_file\t=\t", gene2tadDT_file, "\n")
 printAndLog(txt, pipLogFile)
 txt <- paste0(toupper(script_name), "> TADpos_file\t=\t", TADpos_file, "\n")
@@ -96,35 +95,44 @@ txt <- paste0(toupper(script_name), "> Take only filtered regions: ", length(uni
 printAndLog(txt, pipLogFile)
 
 ################################***********************************************************************************
-################################********************************************* get observed logFC for all regions
+################################********************************************* get observed FCC for all regions
 ################################***********************************************************************************
 
-cat(paste0("... start computing mean logFC by TAD \n"))
+cat(paste0("... start computing FCC by TAD \n"))
 
 head(logFC_DT)
 
 mergedDT <- merge(logFC_DT, gene2tadDT[,c("entrezID", "region")], by="entrezID", all.x=TRUE, all.y=FALSE)
 
 stopifnot(nrow(mergedDT) == nrow(na.omit(mergedDT)))
+stopifnot(!is.na(mergedDT))
+stopifnot(nrow(mergedDT) == length(pipeline_geneList))
 
-mean_DT <- aggregate(logFC ~ region, data=mergedDT, FUN=mean)
-all_meanLogFC_TAD <- setNames(mean_DT$logFC, mean_DT$region)
-stopifnot(length(all_meanLogFC_TAD) == length(unique(gene2tadDT$region)))
-txt <- paste0(toupper(script_name), "> Number of regions for which mean logFC computed: ", length(all_meanLogFC_TAD), "\n")
+fcc_DT <- aggregate(logFC ~ region, data=mergedDT, FUN=get_fcc)
+all_FCC_TAD <- setNames(fcc_DT$logFC, fcc_DT$region)
+stopifnot(length(all_FCC_TAD) == length(unique(gene2tadDT$region)))
+txt <- paste0(toupper(script_name), "> Number of regions for which FCC computed: ", length(all_FCC_TAD), "\n")
 printAndLog(txt, pipLogFile)
 
+stopifnot(setequal(pipeline_regionList, names(all_FCC_TAD)))
+
 if(useTADonly) {
-    initLen <- length(all_meanLogFC_TAD)
-    all_meanLogFC_TAD <- all_meanLogFC_TAD[grep("_TAD", names(all_meanLogFC_TAD))]
-    txt <- paste0(toupper(script_name), "> Take only the TAD regions: ", length(all_meanLogFC_TAD),"/", initLen, "\n")
+    initLen <- length(all_FCC_TAD)
+    all_FCC_TAD <- all_FCC_TAD[grep("_TAD", names(all_FCC_TAD))]
+    txt <- paste0(toupper(script_name), "> Take only the TAD regions: ", length(all_FCC_TAD),"/", initLen, "\n")
     printAndLog(txt, pipLogFile)
 }
 
-save(all_meanLogFC_TAD, file= file.path(curr_outFold, "all_meanLogFC_TAD.Rdata"))
-cat(paste0("... written: ", file.path(curr_outFold, "all_meanLogFC_TAD.Rdata"), "\n"))
+save(all_FCC_TAD, file= file.path(curr_outFold, "all_FCC_TAD.Rdata"))
+cat(paste0("... written: ", file.path(curr_outFold, "all_FCC_TAD.Rdata"), "\n"))
 
+
+################################***********************************************************************************
 txt <- paste0(startTime, "\n", Sys.time(), "\n")
 printAndLog(txt, pipLogFile)
 
 cat(paste0("*** DONE: ", script_name, "\n"))
+
+
+
 
