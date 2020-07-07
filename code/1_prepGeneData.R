@@ -249,26 +249,26 @@ if(useFilterCountData) {
                                                                 #    printAndLog(txt, pipLogFile)
 
   
-  } else if(inputDataType == "FPKM") {
-    stop("!!! unimplemented in the 13.08.2019 version\n")
-    txt <- paste0(toupper(script_name), "> !!! FPKM filter applied !!!", "\n")
-    printAndLog(txt, pipLogFile)
-    cpm_exprDT <- countFilter_rnaseqDT
-# not used in the 13.08.2019 version    
-#    txt <- paste0(toupper(script_name), "> NA in cpm_exprDT: ", 
-#                  sum(is.na(cpm_exprDT)), "/", dim(cpm_exprDT)[1]*dim(cpm_exprDT)[2], " (",
-#                  round((sum(is.na(cpm_exprDT))/(dim(cpm_exprDT)[1]*dim(cpm_exprDT)[2]) * 100),2), "%)\n")
+#  } else if(inputDataType == "FPKM") {
+#    stop("!!! unimplemented in the 13.08.2019 version\n")
+#    txt <- paste0(toupper(script_name), "> !!! FPKM filter applied !!!", "\n")
 #    printAndLog(txt, pipLogFile)
-#    rowsToKeep <- rowSums(cpm_exprDT, na.rm=T) >= (minCpmRatio * ncol(countFilter_rnaseqDT))   
-  } else if(inputDataType == "microarray" | inputDataType == "DESeq2") {
-    stop("!!! unimplemented in the 13.08.2019 version\n")
-    # CANNOT APPLY CPM FILTER  !
-    txt <- paste0(toupper(script_name), "> !!! CPM filter not applied !!!", "\n")
-    printAndLog(txt, pipLogFile)
-    cpm_exprDT <- countFilter_rnaseqDT
-    rowsToKeep <- rep(TRUE, nrow(cpm_exprDT))
-    txt <- paste0(toupper(script_name), "> useFilterCountData is TRUE -> CPM(FPKM)-filtered geneList; to keep: ", sum(rowsToKeep), "/", length(pipeline_geneList), "\n")
-    printAndLog(txt, pipLogFile)
+#    cpm_exprDT <- countFilter_rnaseqDT
+## not used in the 13.08.2019 version    
+##    txt <- paste0(toupper(script_name), "> NA in cpm_exprDT: ", 
+##                  sum(is.na(cpm_exprDT)), "/", dim(cpm_exprDT)[1]*dim(cpm_exprDT)[2], " (",
+##                  round((sum(is.na(cpm_exprDT))/(dim(cpm_exprDT)[1]*dim(cpm_exprDT)[2]) * 100),2), "%)\n")
+##    printAndLog(txt, pipLogFile)
+##    rowsToKeep <- rowSums(cpm_exprDT, na.rm=T) >= (minCpmRatio * ncol(countFilter_rnaseqDT))   
+#  } else if(inputDataType == "microarray" | inputDataType == "DESeq2") {
+#    stop("!!! unimplemented in the 13.08.2019 version\n")
+#    # CANNOT APPLY CPM FILTER  !
+#    txt <- paste0(toupper(script_name), "> !!! CPM filter not applied !!!", "\n")
+#    printAndLog(txt, pipLogFile)
+#    cpm_exprDT <- countFilter_rnaseqDT
+#    rowsToKeep <- rep(TRUE, nrow(cpm_exprDT))
+#    txt <- paste0(toupper(script_name), "> useFilterCountData is TRUE -> CPM(FPKM)-filtered geneList; to keep: ", sum(rowsToKeep), "/", length(pipeline_geneList), "\n")
+#    printAndLog(txt, pipLogFile)
   } else {
     stop("ERROR\n")
   }
@@ -417,23 +417,23 @@ if(inputDataType == "RSEM") {
 
 
 
-} else if(inputDataType == "FPKM" | inputDataType == "microarray") {
-  cat("... already FPKM/RSEM/microarray data, save provided data under correct file name\n")  
-  rna_fpkmDT <- rna_rnaseqDT
-} else if(inputDataType == "raw" | inputDataType == "DESeq2") {
-  cat("... perform FPKM normalization \n")
-  # retrieve gene length
-  entrezDT <- read.delim(entrezDT_file, header=T, stringsAsFactors = F)
-  entrezDT$entrezID <- as.character(entrezDT$entrezID)
-  entrezDT$gene_length <- entrezDT$end - entrezDT$start
-  # curr_outFold = "/media/electron/mnt/ed4/marie/scripts/TAD_DE_pipeline_v2_DI/OUTPUT_FOLDER/GSE101521_control_mdd/0_prepGeneData"
-  # load the saved file to be sure I use the correct corresponding data
-  # checked: the entrezID from rna_geneList is in the same order as the corresponding row names of rna_rnaseqDT
-  stopifnot(!any(duplicated(entrezDT$entrezID)))
-  geneLengths <- unlist(sapply(rna_geneList, function(x) entrezDT$gene_length[entrezDT$entrezID == x]))
-  stopifnot(length(geneLengths) == length(rna_geneList))
-  stopifnot(!any(is.na(geneLengths)))
-  rna_fpkmDT <- rpkm(x = rna_rnaseqDT, gene.length = geneLengths)
+#} else if(inputDataType == "FPKM" | inputDataType == "microarray") {
+#  cat("... already FPKM/RSEM/microarray data, save provided data under correct file name\n")  
+#  rna_fpkmDT <- rna_rnaseqDT
+#} else if(inputDataType == "raw" | inputDataType == "DESeq2") {
+#  cat("... perform FPKM normalization \n")
+#  # retrieve gene length
+#  entrezDT <- read.delim(entrezDT_file, header=T, stringsAsFactors = F)
+#  entrezDT$entrezID <- as.character(entrezDT$entrezID)
+#  entrezDT$gene_length <- entrezDT$end - entrezDT$start
+#  # curr_outFold = "/media/electron/mnt/ed4/marie/scripts/TAD_DE_pipeline_v2_DI/OUTPUT_FOLDER/GSE101521_control_mdd/0_prepGeneData"
+#  # load the saved file to be sure I use the correct corresponding data
+#  # checked: the entrezID from rna_geneList is in the same order as the corresponding row names of rna_rnaseqDT
+#  stopifnot(!any(duplicated(entrezDT$entrezID)))
+#  geneLengths <- unlist(sapply(rna_geneList, function(x) entrezDT$gene_length[entrezDT$entrezID == x]))
+#  stopifnot(length(geneLengths) == length(rna_geneList))
+#  stopifnot(!any(is.na(geneLengths)))
+#  rna_fpkmDT <- rpkm(x = rna_rnaseqDT, gene.length = geneLengths)
 } else {
   stop("error\n")
 }

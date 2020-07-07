@@ -1,0 +1,16 @@
+2_RUNGENEDE> input data type: RSEM
+2_RUNGENEDE> inputDataType	=	RSEM
+2_RUNGENEDE> gene2tadDT_file	=	EXAMPLE/DATA/ENCSR489OCU_NCI-H460_all_genes_positions.txt
+2_RUNGENEDE> TADpos_file	=	EXAMPLE/DATA/ENCSR489OCU_NCI-H460_all_assigned_regions.txt
+2_RUNGENEDE> settingF	=	example_ENCSR489OCU_NCI-H460_40kb_run_settings_TCGAlusc_norm_lusc.R
+2_RUNGENEDE> gene2tadDT_file	=	EXAMPLE/DATA/ENCSR489OCU_NCI-H460_all_genes_positions.txt
+2_RUNGENEDE> TADpos_file	=	EXAMPLE/DATA/ENCSR489OCU_NCI-H460_all_assigned_regions.txt
+2_RUNGENEDE> settingF	=	example_ENCSR489OCU_NCI-H460_40kb_run_settings_TCGAlusc_norm_lusc.R
+2_RUNGENEDE> inputDataType	=	RSEM
+2_RUNGENEDE> Start with # genes: 19504
+2_RUNGENEDE> Number of genes available (with position information) for DE analysis: 19504/19504
+2_RUNGENEDE> useFilterCountData is TRUE -> minCount-filtered geneList; to keep: 14005/19504 (71.81%)
+2_RUNGENEDE> Gene 2823 logFC = -6.11; mean_norm = 1327.77; mean_luad = 55.69
+2_RUNGENEDE> logFC < 0 when norm > luad => direction is luad/norm
+2020-07-07 10:43:04
+2020-07-07 10:43:32

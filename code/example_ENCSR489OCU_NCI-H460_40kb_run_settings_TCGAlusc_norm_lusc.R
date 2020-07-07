@@ -1,7 +1,7 @@
 # in this file, settings that are specific for a run on a dataset
 
 # gives path to output folder
-pipOutFold <- "EXAMPLE/OUTPUT_FOLDER/TCGAluad_norm_luad"
+pipOutFold <- "EXAMPLE/OUTPUT_FOLDER/ENCSR489OCU_NCI-H460_TCGAluad_norm_luad"
 
 # full path (starting with /mnt/...)
 # following format expected for the input
@@ -15,9 +15,9 @@ pipOutFold <- "EXAMPLE/OUTPUT_FOLDER/TCGAluad_norm_luad"
 
 # UPDATE 07.12.2018: for RSEM data, the "analog" FPKM file is provided separately (built in prepData)
 # cp /mnt/ed4/marie/other_datasets/TCGAluad_norm_luad/fpkmDT.Rdata EXAMPLE/DATA/TCGAluad_norm_luad_fpkmDT.Rdata
-rna_fpkmDT_file <- "EXAMPLE/DATA/TCGAluad_norm_luad_fpkmDT.Rdata"
+rna_fpkmDT_file <- "EXAMPLE/DATA/TCGAluad_norm_luad_fpkmDT.RData"
 # cp /mnt/ed4/marie/other_datasets/TCGAluad_norm_luad/rnaseqDT_v2.Rdata EXAMPLE/DATA/TCGAluad_norm_luad_rnaseqDT_v2.Rdata 
-rnaseqDT_file <- "EXAMPLE/DATA/TCGAluad_norm_luad_rnaseqDT_v2.Rdata"
+rnaseqDT_file <- "EXAMPLE/DATA/TCGAluad_norm_luad_rnaseqDT_v2.RData"
 my_sep <- "\t"
 # input is Rdata or txt file ?
 # TRUE if the input is Rdata
@@ -44,8 +44,8 @@ cond2 <- "luad"
 # path to sampleID for each condition - should be Rdata ( ! sample1 for cond1, sample2 for cond2 ! )
 # cp /mnt/ed4/marie/other_datasets/TCGAluad_norm_luad/norm_ID.Rdata EXAMPLE/DATA/norm_ID.Rdata
 # cp /mnt/ed4/marie/other_datasets/TCGAluad_norm_luad/luad_ID.Rdata EXAMPLE/DATA/luad_ID.Rdata
-sample1_file <- "EXAMPLE/DATA/norm_ID.Rdata"
-sample2_file <- "EXAMPLE/DATA/luad_ID.Rdata"
+sample1_file <- "EXAMPLE/DATA/norm_ID.RData"
+sample2_file <- "EXAMPLE/DATA/luad_ID.RData"
 
 
 inputDataType <- "RSEM"

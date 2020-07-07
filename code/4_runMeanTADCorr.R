@@ -29,7 +29,7 @@ cat(paste0("> START ", script_name,  "\n"))
 source("main_settings.R")
 source(settingF)
 source(file.path(pipScriptDir, "TAD_DE_utils.R"))
-#suppressPackageStartupMessages(library(tools, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
+suppressPackageStartupMessages(library(tools, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))  # for toTitleCase
 suppressPackageStartupMessages(library(doMC, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
 suppressPackageStartupMessages(library(foreach, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
 registerDoMC(nCpu) # from main_settings.R
@@ -151,7 +151,7 @@ names(all_meanCorr_TAD) <- all_regions
 stopifnot(length(all_meanCorr_TAD) == length(all_regions))
 
 save(all_meanCorr_TAD, file= file.path(curr_outFold, "all_meanCorr_TAD.Rdata"))
-cat(paste0("... written: ", file.path(curr_outFold, "all_meanCorr_TAD.Rdata", "\n")))
+cat(paste0("... written: ", file.path(curr_outFold, "all_meanCorr_TAD.Rdata"), "\n"))
 
 txt <- paste0(startTime, "\n", Sys.time(), "\n")
 printAndLog(txt, pipLogFile)

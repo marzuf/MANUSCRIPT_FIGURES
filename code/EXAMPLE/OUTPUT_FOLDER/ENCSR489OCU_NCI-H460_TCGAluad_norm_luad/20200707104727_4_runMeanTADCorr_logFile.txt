@@ -1,0 +1,5 @@
+4_RUNMEANTADCORR> inputDataType	=	RSEM
+4_RUNMEANTADCORR> gene2tadDT_file	=	EXAMPLE/DATA/ENCSR489OCU_NCI-H460_all_genes_positions.txt
+4_RUNMEANTADCORR> TADpos_file	=	EXAMPLE/DATA/ENCSR489OCU_NCI-H460_all_assigned_regions.txt
+4_RUNMEANTADCORR> settingF	=	example_ENCSR489OCU_NCI-H460_40kb_run_settings_TCGAlusc_norm_lusc.R
+4_RUNMEANTADCORR> Take the diagonal when computing the mean of lower triangle: FALSE

@@ -40,7 +40,12 @@ suppressPackageStartupMessages(library(limma, warn.conflicts = FALSE, quietly = 
 # UPDATE 21.02.2018
 # add specification for input data type
 stopifnot(exists("inputDataType"))
-stopifnot(inputDataType %in% c("raw", "RSEM", "FPKM", "DESeq2", "microarray"))
+#stopifnot(inputDataType %in% c("raw", "RSEM", "FPKM", "DESeq2", "microarray"))
+stopifnot(inputDataType == "RSEM")
+
+
+pipLogFile <- paste0(pipOutFold, "/", format(Sys.time(), "%Y%d%m%H%M%S"),"_", script_name, "_logFile.txt")
+system(paste0("rm -f ", pipLogFile))
 
 txt <- paste0(toupper(script_name), "> input data type: ", as.character(inputDataType), "\n")
 printAndLog(txt, pipLogFile)
@@ -48,9 +53,6 @@ printAndLog(txt, pipLogFile)
 # create the directories
 curr_outFold <- file.path(pipOutFold, script_name)
 system(paste0("mkdir -p ", curr_outFold))
-
-pipLogFile <- paste0(pipOutFold, "/", format(Sys.time(), "%Y%d%m%H%M%S"),"_", script_name, "_logFile.txt")
-system(paste0("rm -f ", pipLogFile))
 
 # ADDED 27.11.2018 to check using other files
 txt <- paste0(toupper(script_name), "> inputDataType\t=\t", inputDataType, "\n")
@@ -134,7 +136,7 @@ totSamples <- length(samp1) + length(samp2)
 
     stopifnot(names(rowsToKeep) == rownames(countFilter_rnaseqDT))
     keptRatio <- sum(rowsToKeep)/length(rowsToKeep)
-    txt <- paste0(toupper(script_name), "> useFilterCountData is TRUE -> minCount-filtered geneList; to keep: ", sum(rowsToKeep), "/", length(rowsToKeep), "(", round(keptRatio*100,2), "%)\n")
+    txt <- paste0(toupper(script_name), "> useFilterCountData is TRUE -> minCount-filtered geneList; to keep: ", sum(rowsToKeep), "/", length(rowsToKeep), " (", round(keptRatio*100,2), "%)\n")
     printAndLog(txt, pipLogFile)
 } else {
 stop("error")
@@ -164,10 +166,11 @@ my_design <- model.matrix( ~ my_group_design)
 outFile <- file.path(curr_outFold,  "boxplot_MDS_replicates.png")
 
 if(inputDataType == "raw" | inputDataType == "RSEM"){
+
   cpm_expr_tmp <- cpm(exprDT, log=T)
   cpm_expr_tmp[is.na(cpm_expr_tmp)] <- 0
-}else{
-  cpm_expr_tmp <- exprDT
+} else{
+	stop("")
 }
 
 labcol <- unlist(sapply(colnames(cpm_expr_tmp), function(x) ifelse(x %in% samp1, "blue", "red") ))
@@ -182,6 +185,7 @@ cat(paste0("... start DE analysis", "\t", Sys.time(), "\n"))
 # printAndLog(txt, pipLogFile)
 
 if(inputDataType == "raw" | inputDataType == "RSEM") {
+
   ## NORMAL RNASEQ DE ANALYSIS WITH RAW COUNTS
   # create the DGE object with the alredy filtered data
                       seqDataTmp <- DGEList(exprDT, group=my_group, genes = rownames(exprDT))
@@ -205,43 +209,46 @@ if(inputDataType == "raw" | inputDataType == "RSEM") {
   cat(paste0("... written: ", outFile, "\n"))
   vfitData <- lmFit(voomData, voomData$design)
   efitData <- eBayes(vfitData)
-} else if(inputDataType == "microarray") {
-  ## RNASEQ ANALYSIS FOR MICROARRAY
-  ## https://support.bioconductor.org/p/67590/
-  #fit <- lmFit(y, design)
-  #fit <- eBayes(fit, trend=TRUE)
-  ## gives (for microarray data) essentially the same effect as:
-  #v <- vooma(y, design)
-  #fit <- lmFit(v, design)
-  #fit <- eBayes(fit)
-  ##We generally recommend the former pipeline over the second for microarray data.
-  vfitData <- lmFit(exprDT, my_design)
-  efitData <- eBayes(vfitData, trend=TRUE)
-} else if(inputDataType == "FPKM"){
-  ## RNASEQ DE ANALYSIS FOR FPKM DATA
-  #https://stat.ethz.ch/pipermail/bioconductor/2013-November/056309.html
-  #If FPKM is really all you have, then convert the values to a log2 scale 
-  #and do an ordinary limma analysis as you would for microarray data, using 
-  #eBayes() with trend=TRUE. 
-  exprDT <- exprDT + 0.0001
-  exprDT <- log2(exprDT)
-  vfitData <- lmFit(exprDT, my_design) 
-  efitData <- eBayes(vfitData, trend = TRUE)
-} else if(inputDataType == "DESeq2"){
-  ## RNASEQ FOR ALREADY NORMALIZED/LOG-TRANSFORMED COUNTS
-  vfitData <- lmFit(exprDT, my_design) 
-  efitData <- eBayes(vfitData)
-} else {
-  stop("error\n")
-}
+} 
+
+#else if(inputDataType == "microarray") {
+#  ## RNASEQ ANALYSIS FOR MICROARRAY
+#  ## https://support.bioconductor.org/p/67590/
+#  #fit <- lmFit(y, design)
+#  #fit <- eBayes(fit, trend=TRUE)
+#  ## gives (for microarray data) essentially the same effect as:
+#  #v <- vooma(y, design)
+#  #fit <- lmFit(v, design)
+#  #fit <- eBayes(fit)
+#  ##We generally recommend the former pipeline over the second for microarray data.
+#  vfitData <- lmFit(exprDT, my_design)
+#  efitData <- eBayes(vfitData, trend=TRUE)
+#} else if(inputDataType == "FPKM"){
+#  ## RNASEQ DE ANALYSIS FOR FPKM DATA
+#  #https://stat.ethz.ch/pipermail/bioconductor/2013-November/056309.html
+#  #If FPKM is really all you have, then convert the values to a log2 scale 
+#  #and do an ordinary limma analysis as you would for microarray data, using 
+#  #eBayes() with trend=TRUE. 
+#  exprDT <- exprDT + 0.0001
+#  exprDT <- log2(exprDT)
+#  vfitData <- lmFit(exprDT, my_design) 
+#  efitData <- eBayes(vfitData, trend = TRUE)
+#} else if(inputDataType == "DESeq2"){
+#  ## RNASEQ FOR ALREADY NORMALIZED/LOG-TRANSFORMED COUNTS
+#  vfitData <- lmFit(exprDT, my_design) 
+#  efitData <- eBayes(vfitData)
+#} else {
+#  stop("error\n")
+#}
 
 cat(paste0("... end DE analysis", "\t", Sys.time(), "\n"))
 # printAndLog(txt, pipLogFile)
 
-if(inputDataType == "DESeq2" | inputDataType == "microarray" | inputDataType == "FPKM"){
-  DE_topTable <- topTable(efitData, coef=ncol(my_design), number=Inf, sort.by="p")
-  DE_topTable$genes <- rownames(DE_topTable)
-}else if(inputDataType == "raw" | inputDataType == "RSEM") {
+#if(inputDataType == "DESeq2" | inputDataType == "microarray" | inputDataType == "FPKM"){
+#  DE_topTable <- topTable(efitData, coef=ncol(my_design), number=Inf, sort.by="p")
+#  DE_topTable$genes <- rownames(DE_topTable)
+#}else 
+if(inputDataType == "raw" | inputDataType == "RSEM") {
   DE_topTable <- topTable(efitData, coef=ncol(voomData$design), number=Inf, sort.by="p") 
 } else{
   stop("error\n")
@@ -284,29 +291,30 @@ if(DE_topTable$logFC[1] > 0) {
 printAndLog(txt, pipLogFile)
 cat("... end DE\n... prepare output data\n")
 #### PREPARE THE QQNORM DATA FOR THE GENES I USED FOR DE ANALYSIS
-if(inputDataType == "microarray") {
-  cat("... madnorm the data for other analyses \n")
-  madnorm_exprDT <- madNorm(exprDT)
-  stopifnot(all(dim(madnorm_exprDT) == dim(exprDT)))
-  rownames(madnorm_exprDT) <- rownames(exprDT)
-  colnames(madnorm_exprDT) <- colnames(exprDT)
-} else {
+#if(inputDataType == "microarray") {
+#  cat("... madnorm the data for other analyses \n")
+#  madnorm_exprDT <- madNorm(exprDT)
+#  stopifnot(all(dim(madnorm_exprDT) == dim(exprDT)))
+#  rownames(madnorm_exprDT) <- rownames(exprDT)
+#  colnames(madnorm_exprDT) <- colnames(exprDT)
+#} else {
+	
   cat("... qqnorm the data for other analyses \n")
   qqnorm_exprDT <- t(apply(exprDT, 1, quantNorm))
   stopifnot(all(dim(qqnorm_exprDT) == dim(exprDT)))
   rownames(qqnorm_exprDT) <- rownames(exprDT)
   colnames(qqnorm_exprDT) <- colnames(exprDT)
-}
+#}
 #### PREPARE DATA TO WRITE IN FILES
 if(inputDataType == "raw" | inputDataType == "RSEM") stopifnot(all(dim(voomData$E) == dim(exprDT)))
 stopifnot(all(rownames(exprDT) == geneList))
 
 DE_rnaseqDT <- exprDT
-if(inputDataType == "microarray") {
-  DE_madnorm_rnaseqDT <- madnorm_exprDT
-} else {
+#if(inputDataType == "microarray") {
+#  DE_madnorm_rnaseqDT <- madnorm_exprDT
+#} else {
   DE_qqnorm_rnaseqDT <- qqnorm_exprDT 
-}
+#}
 DE_geneList <- rna_geneList[rownames(exprDT)]
 stopifnot(length(DE_geneList) > 0)
 
@@ -316,13 +324,13 @@ cat("... write data in files\n")
 save(DE_rnaseqDT, file = file.path(curr_outFold, "DE_rnaseqDT.Rdata"))
 cat(paste0("... written: ", file.path(curr_outFold, "DE_rnaseqDT.Rdata"), "\n"))
 # the same but qqnorm
-if(inputDataType == "microarray") {
-  save(DE_madnorm_rnaseqDT, file = file.path(curr_outFold, "DE_madnorm_rnaseqDT.Rdata"))
-  cat(paste0("... written: ", file.path(curr_outFold, "DE_madnorm_rnaseqDT.Rdata"), "\n"))
-} else{
+#if(inputDataType == "microarray") {
+#  save(DE_madnorm_rnaseqDT, file = file.path(curr_outFold, "DE_madnorm_rnaseqDT.Rdata"))
+#  cat(paste0("... written: ", file.path(curr_outFold, "DE_madnorm_rnaseqDT.Rdata"), "\n"))
+#} else{
   save(DE_qqnorm_rnaseqDT, file = file.path(curr_outFold,  "DE_qqnorm_rnaseqDT.Rdata"))
   cat(paste0("... written: ", file.path(curr_outFold,  "DE_qqnorm_rnaseqDT.Rdata"), "\n")) 
-}
+#}
 # the DE topTable
 save(DE_topTable, file = file.path(curr_outFold, "DE_topTable.Rdata"))
 cat(paste0("... written: ", file.path(curr_outFold, "DE_topTable.Rdata"), "\n"))
