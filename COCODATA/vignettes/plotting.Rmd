@@ -1,0 +1,71 @@
+---
+title: "plotting"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{plotting}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+
+rm(list=ls())
+
+if(!require(COCODATA))
+  devtools::install_github("marzuf/MANUSCRIPT_FIGURES", subdir="COCODATA")
+  # alternatively: 
+  # install.packages("COCODATA_0.0.0.1.tar.gz", repos = NULL, type ="source")
+ # data("norm_ID")
+library(COCODATA)
+
+```
+
+
+
+##### Conserved region
+
+``` {r plot_conserved}
+
+
+
+```
+
+##### Volcano-like intra-TAD corr. vs. TAD meanLogFC
+
+``` {r plot_volcano}
+nExprClass <- 5
+nPermut <- 10
+aggFunc <- "median"
+
+permut_dt <- get_gene2tad_multiPermut(g2TADdt=pip_g2t_dt, 
+                                          RNAdt=fpkmDT, 
+                                          geneIDlist=pipeline_geneList, 
+                                          nClass = nExprClass, 
+                                          TADonly=FALSE, # already filtred 
+                                          nSimu=nPermut, 
+                                          withExprClass=TRUE, 
+                                          nCpu=nCpu, 
+                                          aggregFun = aggFunc)
+head_sq(permut_dt)
+rownames(permut_dt) <- permut_dt$entrezID
+permut_dt$entrezID <- NULL
+
+stopifnot(ncol(permut_dt) == nPermut)
+stopifnot(setequal(rownames(permut_dt), pipeline_geneList))
+save(permut_dt, file="package_permut_dt.Rdata")
+
+```
+
+
+
+##### FCC cumsum curves
+
+see <em>introduction</em> vignette !
+

@@ -126,7 +126,7 @@ all_permut_FCC_dt <- foreach(i = 1:ncol(permutationsDT), .combine='cbind') %dopa
 }
 head_sq(all_permut_FCC_dt)
 
-## ----FCC_AUC_ratio_example-----------------------------------------------
+## ----FCC_AUC_ratio_example, fig.height=8, fig.width=12-------------------
 stopifnot(setequal(names(obs_FCC), rownames(all_permut_FCC_dt)))
 get_auc_ratio(fcc_vect=obs_FCC, 
               fcc_permDT=all_permut_FCC_dt, 

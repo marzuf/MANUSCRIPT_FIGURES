@@ -3,6 +3,9 @@
 
 #  ./example_run_pipeline.sh example_ENCSR489OCU_NCI-H460_40kb_run_settings_TCGAlusc_norm_lusc.R 11 
 
+script_name="$0"
+
+start_time=$(date -R)    
 
 scriptFolder="."  # where the script files are located
 
@@ -21,5 +24,12 @@ while [[ $i -lt args_len ]]; do
     $cmd
     ((i++))
 done
+
+echo "*** DONE - $script_name"
+end_time=$(date -R)    
+echo $start_time
+echo $end_time
+exit 0
+
 
 

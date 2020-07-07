@@ -32,6 +32,7 @@ cat(paste0("> START ", script_name,  "\n"))
 source("main_settings.R")
 source(settingF)
 
+source(file.path(pipScriptDir, "TAD_DE_utils.R"))
 
 registerDoMC(nCpu) # loaded from main_settings.R
 
@@ -67,6 +68,10 @@ qtPermutAUC <- 0.95
 
 ### SOME SETTINGS FOR THE PLOT
 # set colors for plotting:
+plotType <- "png"
+myHeight <- 600
+myWidth <- 800
+plotCex <- 1.2
 polygonPermutCol <- rgb(188/255,188/255,188/255, 0.3)
 qt95PermutCol <- rgb(140/255,140/255,140/255)
 lwdObs <- 1.2
@@ -80,7 +85,15 @@ my_ylab <- paste0("FCC cumulative sum")
 
 
 obs_fcc <- eval(parse(text = load(file.path(pipOutFold, script11_name, "all_FCC_TAD.Rdata"))))
-permut_fcc <- eval(parse(text = load(file.path(pipOutFold, script12_name,  "FCC_permDT.Rdata"))))
+permut_FCC <- eval(parse(text = load(file.path(pipOutFold, script12_name,  "FCC_permDT.Rdata"))))
+
+if(ncol(permut_FCC) != nRandomPermut)
+  stop(paste0("! NEED TO CHECK: different settings were used for running the permutations !\nncol(permut_FCC) != nRandomPermut\nnncol(permut_FCC)\t=\t", nncol(permut_FCC),"\nnRandomPermut\t=\t", nRandomPermut, "\n"))
+
+nPermut <- ncol(permut_FCC)
+
+my_sub <- paste0(my_sub, " - # permut=", nPermut)
+
 stopifnot(all(names(obs_fcc) %in% rownames(permut_FCC)))
 stopifnot(all(rownames(permut_FCC) %in% names(obs_fcc)))
 stopifnot(setequal(rownames(permut_FCC), names(obs_fcc)))
@@ -125,9 +138,9 @@ fcc_auc_ratios <- list(
 
 saveFile <- file.path(curr_outFold, paste0("fcc_auc_ratios.Rdata"))      
 save(fcc_auc_ratios, file= saveFile)
-cat(paste0("... written: ", outFile, "\n"))
+cat(paste0("... written: ", saveFile, "\n"))
       
-pct_inc <- round(auc_obs/auc_permut,2)
+
 pct_inc_qt <- round(auc_obs/auc_permutQt,2)
       
 outFile <- file.path(curr_outFold, paste0("genomeWide_FCC_cumsum_obs_permut.", plotType))
