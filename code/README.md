@@ -1,30 +1,30 @@
 ##### Main settings
 
-Set main settings in "main_settings.R" (cf. template file: "TEMPLATE_setting_file.R").
+Set main settings in <em>main_settings.R</em> (cf. template file: <em>TEMPLATE_main_settings.R</em>).
 
 Do not change the name of this file.
 
-The current "main_settings.R" file was used to run the example as explained below.
+The current <em>main_settings.R</em> file was used to run the example as explained below.
 
 
 ##### Additional settings
 
-Set additional (e.g. dataset-specific) settings in another file (cf. template file: "example_setting_file.R")
+Set additional (e.g. dataset-specific) settings in another file (cf. template file: <em>TEMPLATE_setting_file.R</em>)
 
 The name of this file can be user-defined.
 
-Settings from this file will overwrite settings from "main_settings.R" (hence can be used for this purpose).
+Settings from this file will overwrite settings from <em>main_settings.R</em> (hence can be used for this purpose).
 
 
 ##### Launch the pipeline
 
 ```{bash}
- ./run_pipeline.sh <setting_file> <stepNbr>
+ ./run_pipeline.sh <setting_file> <stepNbr> <stepNbr> <...>
 ```
 
 `setting_file` should be path to the additional settings file.
 
-`stepNbr` indicates the step of the pipeline that should be run (should be what comes before the "_" in the script name, e.g. 10 or 10provided for the 10-th step)
+`stepNbr` indicates the step(s) of the pipeline that should be run (should be what comes before the "_" in the script name, e.g. `1` or `5fc`)
 
 The names of the scripts explicitly describe to which step they correspond, namely:
 <ul>
