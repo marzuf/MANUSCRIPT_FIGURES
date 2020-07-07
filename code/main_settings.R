@@ -19,7 +19,6 @@ symbolDT_file <- paste0("/mnt/ed4/marie/entrez2synonym/entrez/ENTREZ_SYMBOL/fina
 # mapping entrezID and ensemblID
 ensemblDT_file <- paste0("/mnt/ed4/marie/entrez2synonym/entrez/ENTREZ_ENSEMBL/final_entrez2ensembl.txt")
 
-
 nCpu <- 30
 
 ########################################################
@@ -61,3 +60,9 @@ permutExprClass <- 5
 ########################################################
 
 pigz_exec_path <- file.path("/mnt/ed4/marie/pigz-2.4/pigz")
+
+
+########################################################
+### matching pattern to retrieve permutation correlation files step 9
+########################################################
+corrMatchPattern <- "meanCorr_sample_around_TADs_sameNbr.Rdata" 

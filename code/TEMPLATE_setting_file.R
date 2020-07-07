@@ -72,3 +72,19 @@ min_counts <- <MIN_COUNT># we used 5
 min_sampleRatio <- <MIN_RATIO_SAMPLES_THAT_SHOULD_HAVE_min_counts> # we used 0.8
 
 
+# *************************************************************************************************************************
+# ************************************ SETTINGS FOR PERMUTATION DATA FOR CORRELATION
+# *************************************************************************************************************************
+
+all_permutCorr_data <- <PATH_TO_CORRELATION_PERMUTATION_DATA> # a file or a folder
+# corrMatchPattern <- <PATTERN_TO_MATCH> # <optional> (default in main_settings: meanCorr_sample_around_TADs_sameNbr.Rdata) if all_permutCorr_data is a folder, matching pattern to retrieve files in all_permutCorr_data
+refineMatchPattern <- <2ND_PATTERN_TO_MATCH> # <optional> can be used as a second matching pattern to refine file retrieval from all_permutCorr_data
+corrDiscardPattern <- <PATTERN_TO_DISCARD> # <optional>, if set, will be used only if all_permutCorr_data is a folder to possibly discard some files [!grepl(corrDiscardPattern, x]
+nbrCorrPermutCheck <- <NBR_CORRELATION_PERMUTATION_DATA> # <optional>, if set, will be used to check the number of retrieved permutation data
+
+
+
+
+
+
+

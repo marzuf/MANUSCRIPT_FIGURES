@@ -23,9 +23,9 @@ stopifnot(file.exists(settingF))
 
 pipScriptDir <- file.path(".")
 
-script0_name <- "1_prepGeneData"
-script1_name <- "2_runGeneDE"
-script5_name <- "5fc_runPermutationsMedian"
+script1_name <- "1_prepGeneData"
+script2_name <- "2_runGeneDE"
+script5fc_name <- "5fc_runPermutationsMedian"
 script_name <- "6_runPermutationsMeanLogFC"
 stopifnot(file.exists(file.path(pipScriptDir, paste0(script_name, ".R"))))
 cat(paste0("> START ", script_name,  "\n"))
@@ -45,13 +45,13 @@ pipLogFile <- file.path(pipOutFold, paste0(format(Sys.time(), "%Y%d%m%H%M%S"),"_
 system(paste0("rm -f ", pipLogFile))
 
 # ADDED 27.11.2018 to check using other files
-txt <- paste0("inputDataType\t=\t", inputDataType, "\n")
+txt <- paste0(toupper(script_name), "> inputDataType\t=\t", inputDataType, "\n")
 printAndLog(txt, pipLogFile)
-txt <- paste0("gene2tadDT_file\t=\t", gene2tadDT_file, "\n")
+txt <- paste0(toupper(script_name), "> gene2tadDT_file\t=\t", gene2tadDT_file, "\n")
 printAndLog(txt, pipLogFile)
-txt <- paste0("TADpos_file\t=\t", TADpos_file, "\n")
+txt <- paste0(toupper(script_name), "> TADpos_file\t=\t", TADpos_file, "\n")
 printAndLog(txt, pipLogFile)
-txt <- paste0("settingF\t=\t", settingF, "\n")
+txt <- paste0(toupper(script_name), "> settingF\t=\t", settingF, "\n")
 printAndLog(txt, pipLogFile)
 
 
@@ -62,8 +62,8 @@ printAndLog(txt, pipLogFile)
 gene2tadDT <- read.delim(gene2tadDT_file, header=F, col.names = c("entrezID", "chromo", "start", "end", "region"), stringsAsFactors = F)
 gene2tadDT$entrezID <- as.character(gene2tadDT$entrezID)
 
-DE_topTable <- eval(parse(text = load(file.path(pipOutFold, script1_name, "DE_topTable.Rdata"))))
-DE_geneList <- eval(parse(text = load(file.path(pipOutFold, script1_name, "DE_geneList.Rdata"))))
+DE_topTable <- eval(parse(text = load(file.path(pipOutFold, script2_name, "DE_topTable.Rdata"))))
+DE_geneList <- eval(parse(text = load(file.path(pipOutFold, script2_name, "DE_geneList.Rdata"))))
 
 stopifnot(all(DE_topTable$genes %in% names(DE_geneList)))
 stopifnot(!any(duplicated(names(DE_geneList))))
@@ -79,11 +79,11 @@ rownames(logFC_DT) <- NULL
 gene2tadDT <- gene2tadDT[gene2tadDT$entrezID %in% entrezList,]
 
 cat("... load permutation data ...\n")
-permutationsDT <- eval(parse(text = load(file.path(pipOutFold, script5_name, "permutationsDT.Rdata"))))
+permutationsDT <- eval(parse(text = load(file.path(pipOutFold, script5fc_name, "permutationsDT.Rdata"))))
 if(ncol(permutationsDT) != nRandomPermut)
   stop("! NEED TO CHECK: different settings were used for running the permutations !\n")
 
-pipeline_geneList <- eval(parse(text = load(file.path(pipOutFold, script0_name, "pipeline_geneList.Rdata"))))
+pipeline_geneList <- eval(parse(text = load(file.path(pipOutFold, script1_name, "pipeline_geneList.Rdata"))))
 if(!setequal(pipeline_geneList, rownames(permutationsDT))) {
   txtWarningGene <- paste0(toupper(script_name), "> Not the same set of genes in permutDT and pipeline_geneList\n")
   printAndLog(txtWarningGene, pipLogFile)    
@@ -92,7 +92,7 @@ if(!setequal(pipeline_geneList, rownames(permutationsDT))) {
   txtWarningGene <- ""
 }
 
-pipeline_regionList <- eval(parse(text = load(file.path(pipOutFold, script0_name, "pipeline_regionList.Rdata"))))
+pipeline_regionList <- eval(parse(text = load(file.path(pipOutFold, script1_name, "pipeline_regionList.Rdata"))))
 if(useTADonly) {
   if(any(grepl("_BOUND", pipeline_regionList))) {
     stop("! data were not prepared for \"useTADonly\" !")

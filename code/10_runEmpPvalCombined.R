@@ -24,11 +24,11 @@ stopifnot(file.exists(settingF))
 
 pipScriptDir <- file.path(".")
 
-script0_name <- "1_prepGeneData"
-script1_name <- "2_runGeneDE"
+script1_name <- "1_prepGeneData"
+script2_name <- "2_runGeneDE"
 script3_name <- "3_runMeanTADLogFC"
-script9_name <- "8_runEmpPvalMeanTADLogFC"
-script10sameNbr_name <- "9_runEmpPvalMeanTADCorr"
+script8_name <- "8_runEmpPvalMeanTADLogFC"
+script9_name <- "9_runEmpPvalMeanTADCorr"
 script_name <- "10_runEmpPvalCombined"
 stopifnot(file.exists(file.path(pipScriptDir, paste0(script_name, ".R"))))
 cat(paste0("> START ", script_name,  "\n"))
@@ -49,30 +49,52 @@ twoTailsStouffer <- FALSE # discussion with Marco -> do it one-sided (compared t
 # stouffer(c(emp_pval_intraCorr[x], emp_pval_logFC[x]), two.tails = twoTailsStouffer)))
 
 # ADDED 16.11.2018 to check using other files
-txt <- paste0("inputDataType\t=\t", inputDataType, "\n")
+txt <- paste0(toupper(script_name), "> inputDataType\t=\t", inputDataType, "\n")
 printAndLog(txt, pipLogFile)
-txt <- paste0("gene2tadDT_file\t=\t", gene2tadDT_file, "\n")
+txt <- paste0(toupper(script_name), "> gene2tadDT_file\t=\t", gene2tadDT_file, "\n")
 printAndLog(txt, pipLogFile)
-txt <- paste0("TADpos_file\t=\t", TADpos_file, "\n")
+txt <- paste0(toupper(script_name), "> TADpos_file\t=\t", TADpos_file, "\n")
 printAndLog(txt, pipLogFile)
-txt <- paste0("settingF\t=\t", settingF, "\n")
+txt <- paste0(toupper(script_name), "> settingF\t=\t", settingF, "\n")
 printAndLog(txt, pipLogFile)
-txt <- paste0("twoTailsStouffer\t=\t", as.character(twoTailsStouffer), "\n")
+txt <- paste0(toupper(script_name), "> twoTailsStouffer\t=\t", as.character(twoTailsStouffer), "\n")
 printAndLog(txt, pipLogFile)
+
+stopifnot(exists("all_permutCorr_data"))
+if(dir.exists(all_permutCorr_data)){
+  txt <- paste0(toupper(script_name), "> use emp p-val. from folder\t=\t", all_permutCorr_data, "\n")
+  printAndLog(txt, pipLogFile)
+  filePrefix <- "fromFolder_"
+} else if(file.exists(all_permutCorr_data)){
+  txt <- paste0(toupper(script_name), "> use emp p-val. from file\t=\t", all_permutCorr_data, "\n")
+  printAndLog(txt, pipLogFile)
+  filePrefix <- "fromFile_"
+}
+
 
 
 ################################****************************************************************************************
 ####################################################### PREPARE INPUT
 ################################****************************************************************************************
 # load emp. p-val logFC 
-emp_pval_logFC <- eval(parse(text = load(file.path(pipOutFold,  script9_name, "emp_pval_meanLogFC.Rdata"))))
+fc_file <- file.path(pipOutFold,  script8_name, "emp_pval_meanLogFC.Rdata")
+emp_pval_logFC <- eval(parse(text = load(fc_file)))
+txt <- paste0(toupper(script_name), "> retrieve emp. p-val. for FC from\t=\t", fc_file, "\n")
+printAndLog(txt, pipLogFile)
 
 # load emp. p-val intraTAD corr
-emp_pval_intraCorr <- eval(parse(text = load(file.path(pipOutFold, script10sameNbr_name, "emp_pval_meanCorr.Rdata"))))
+corr_file <- file.path(pipOutFold, script9_name, paste0(filePrefix, "emp_pval_meanCorr.Rdata"))
+emp_pval_intraCorr <- eval(parse(text = load(corr_file)))
+txt <- paste0(toupper(script_name), "> retrieve emp. p-val. for corr. from\t=\t", corr_file, "\n")
+printAndLog(txt, pipLogFile)
 
 intersectRegions <- sort(intersect(names(emp_pval_logFC), names(emp_pval_intraCorr)))
 txt <- paste0(toupper(script_name), "> Take regions in common between permutations and observed data \n")
 printAndLog(txt, pipLogFile)
+if(length(intersectRegions) < length(emp_pval_logFC) | length(intersectRegions) < length(emp_pval_intraCorr)) {
+  txt <- paste0(toupper(script_name), "> !!! WARNING: regions for empirical p-val logFC and corr. do not match !!!\n")
+  printAndLog(txt, pipLogFile)    
+}
 
 ### filter TAD only regions
 if(useTADonly) {
@@ -116,8 +138,15 @@ names(emp_pval_combined) <- intersectRegions
 
 stopifnot(length(emp_pval_combined) == length(intersectRegions))
 
-save(emp_pval_combined, file= file.path(curr_outFold, "emp_pval_combined.Rdata"))
-cat(paste0("... written: ", file.path(curr_outFold, "emp_pval_combined.Rdata"), "\n"))
+outFile <- file.path(curr_outFold, paste0(filePrefix, "emp_pval_combined.Rdata"))
+save(emp_pval_combined, file=outFile)
+cat(paste0("... written: ", outFile, "\n"))
+
+# added for the release: 7.7.2020
+outFile <- file.path(curr_outFold, paste0(filePrefix, "adj_emp_pval_combined.Rdata"))
+adj_emp_pval_combined <- p.adjust(emp_pval_combined, method="BH")
+save(adj_emp_pval_combined, file=outFile)
+cat(paste0("... written: ", outFile, "\n"))
 
 
 txt <- paste0(startTime, "\n", Sys.time(), "\n")

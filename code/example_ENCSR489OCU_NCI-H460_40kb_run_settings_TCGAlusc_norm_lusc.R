@@ -85,3 +85,24 @@ min_sampleRatio <- 0.8
 # to have compatible versions of Rdata
 options(save.defaults = list(version = 2))
 
+
+# *************************************************************************************************************************
+# ************************************ SETTINGS FOR PERMUTATION DATA FOR CORRELATION
+# *************************************************************************************************************************
+
+all_permutCorr_data <- "/mnt/etemp/marie/PIPELINE/OUTPUT_FOLDER"
+nbrCorrPermutCheck <- 58 
+corrDiscardPattern <- "RANDOM|PERMUT"
+refineMatchPattern <- "7sameNbr_"
+
+#all_permutCorr_data <- "data/all_sample_corrValues.RData"
+#nbrCorrPermutCheck <- 58 
+
+
+
+
+
+
+
+
+

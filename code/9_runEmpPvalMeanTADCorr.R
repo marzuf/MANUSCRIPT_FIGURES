@@ -21,10 +21,10 @@ stopifnot(file.exists(settingF))
 
 pipScriptDir <- file.path(".")
 
-script0_name <- "1_prepGeneData"
-script1_name <- "2_runGeneDE"
+script1_name <- "1_prepGeneData"
+script2_name <- "2_runGeneDE"
 script4_name <- "4_runMeanTADCorr"
-script7sameNbr_name <- "7_runPermutationsMeanTADCorr"
+script7_name <- "7_runPermutationsMeanTADCorr"
 script_name <- "9_runEmpPvalMeanTADCorr"
 stopifnot(file.exists(file.path(pipScriptDir, paste0(script_name, ".R"))))
 cat(paste0("> START ", script_name,  "\n"))
@@ -49,52 +49,66 @@ pipLogFile <- file.path(pipOutFold, paste0(format(Sys.time(), "%Y%d%m%H%M%S"),"_
 system(paste0("rm -f ", pipLogFile))
 
 # ADDED 16.11.2018 to check using other files
-txt <- paste0("inputDataType\t=\t", inputDataType, "\n")
+txt <- paste0(toupper(script_name), "> inputDataType\t=\t", inputDataType, "\n")
 printAndLog(txt, pipLogFile)
-txt <- paste0("gene2tadDT_file\t=\t", gene2tadDT_file, "\n")
+txt <- paste0(toupper(script_name), "> gene2tadDT_file\t=\t", gene2tadDT_file, "\n")
 printAndLog(txt, pipLogFile)
-txt <- paste0("TADpos_file\t=\t", TADpos_file, "\n")
+txt <- paste0(toupper(script_name), "> TADpos_file\t=\t", TADpos_file, "\n")
 printAndLog(txt, pipLogFile)
-txt <- paste0("settingF\t=\t", settingF, "\n")
+txt <- paste0(toupper(script_name), "> settingF\t=\t", settingF, "\n")
 printAndLog(txt, pipLogFile)
 
 
 corr_type <- "meanCorr"
-txt <- paste0("taking sample correlation for corr_type\t=\t", settingF, "\n")
+txt <- paste0(toupper(script_name), "> taking sample correlation for corr_type\t=\t", corr_type, "\n")
 printAndLog(txt, pipLogFile)
 
-### RETRIEVE ALL THE FILES IN THE FOLDER !!!
-mainPipFold <- dirname(dirname(pipOutFold))
-txt <- paste0("!!! take all the files matching \"meanCorr_sample_around_TADs_sameNbr.Rdata\" in ", mainPipFold, "\n")
-printAndLog(txt, pipLogFile)
-
-all_sampleCorr_files <- list.files(mainPipFold, pattern="meanCorr_sample_around_TADs_sameNbr.Rdata", full.names = TRUE, recursive = TRUE)
-
-all_sampleCorr_files <- all_sampleCorr_files[grepl(script7sameNbr_name, all_sampleCorr_files)]  ### added 26.11.2019 otherwise match also the files for partial corr.
-all_sampleCorr_files <- all_sampleCorr_files[!grepl("RANDOM", all_sampleCorr_files) & !grepl("PERMUT", all_sampleCorr_files)]
-
-all_hicds <- list.files(mainPipFold)
-all_hicds <- all_hicds[!grepl("RANDOM", all_hicds) & !grepl("PERMUT", all_hicds)]
-
-# all_exprds <- sapply(all_hicds, function(x) list.files(file.path(mainPipFold, x))) # => dont use it for the public release
+stopifnot(exists("all_permutCorr_data"))
 
 
-txt <- paste0("sampleCorr_files used (n=", length(all_sampleCorr_files), "):\n")
-printAndLog(txt, pipLogFile)
-txt <- paste0(all_sampleCorr_files, collapse="\n")
-printAndLog(txt, pipLogFile)
-
-# stopifnot(length(all_sampleCorr_files) == length(unlist(all_exprds))) # => dont use it for the public release
-
-### PREPARE THE SAMPLE CORR VALUES FROM ALL DATASETS
-all_sample_corrValues <- foreach(corr_file = all_sampleCorr_files, .combine='c') %dopar% {
-  stopifnot(file.exists(corr_file))
-  corr_data <- eval(parse(text = load(corr_file)))
-  all_samp_corrs <- as.numeric(sapply(corr_data, function(x) x[[paste0(corr_type)]]))
-  stopifnot(!is.null(all_samp_corrs))
-  all_samp_corrs <- na.omit(all_samp_corrs)  
-  all_samp_corrs
+if(dir.exists(all_permutCorr_data)){
+  ### RETRIEVE ALL THE FILES IN THE FOLDER !!!
+  txt <- paste0(toupper(script_name), "> !!! take all the files recursively matching \"", corrMatchPattern, "\" in ", all_permutCorr_data, "\n")
+  printAndLog(txt, pipLogFile)
+  all_sampleCorr_files <- list.files(all_permutCorr_data, pattern=corrMatchPattern, full.names = TRUE, recursive = TRUE)
+  if(exists("refineMatchPattern")) {
+	all_sampleCorr_files <- all_sampleCorr_files[grepl(refineMatchPattern, all_sampleCorr_files)]
+  }
+  all_sampleCorr_files <- all_sampleCorr_files[!grepl(corrDiscardPattern, all_sampleCorr_files)]
+  txt <- paste0(toupper(script_name), "> sampleCorr_files used (n=", length(all_sampleCorr_files), "):\n")
+  printAndLog(txt, pipLogFile)
+  txt <- paste0(all_sampleCorr_files, collapse="\n")
+  printAndLog(txt, pipLogFile)
+  if(exists("nbrCorrPermutCheck")) {
+	stopifnot(is.numeric(nbrCorrPermutCheck))
+	stopifnot(length(all_sampleCorr_files) == nbrCorrPermutCheck)
+  }
+  if(length(all_sampleCorr_files) == 0) stop("could not find any file with correlations from permutation data")
+  all_permut_corrValues <- foreach(corr_file = all_sampleCorr_files, .combine='c') %dopar% {
+    stopifnot(file.exists(corr_file))
+    corr_data <- eval(parse(text = load(corr_file)))
+    all_samp_corrs <- as.numeric(sapply(corr_data, function(x) x[[paste0(corr_type)]]))
+    stopifnot(!is.null(all_samp_corrs))
+    all_samp_corrs <- na.omit(all_samp_corrs)  
+    all_samp_corrs
+  }
+  filePrefix <- "fromFolder_" 
+} else if(file.exists(all_permutCorr_data)) {
+  txt <- paste0(toupper(script_name), "> use provided all_permutCorr_data\t=\t",all_permutCorr_data, "\n"))
+  printAndLog(txt, pipLogFile)
+  all_permut_corrValues <- get(load(file.path(all_sampleCorr_files)))
+  if(exists("nbrCorrPermutCheck")) {
+	stopifnot(is.numeric(nbrCorrPermutCheck))
+	stopifnot(length(all_permut_corrValues) == nbrCorrPermutCheck)
+  }
+  all_permut_corrValues <- unlist(all_permut_corrValues)
+  stopifnot(is.numeric(all_permut_corrValues))
+  filePrefix <- "fromFile_" 
+} else  {
+  stop("error with permutation correlation data - should be a file or a folder")
 }
+txt <- paste0(toupper(script_name), "> # of permutation correlation values\t=\t", length(all_permut_corrValues), collapse="\n")
+printAndLog(txt, pipLogFile)
 
 
 # RETRIEVE THE OBSERVED CORR DATA
@@ -103,20 +117,20 @@ stopifnot(file.exists(obs_corr_file))
 all_obs_corr <- eval(parse(text = load(obs_corr_file)))
  
 emp_pval_meanCorr <- sapply(all_obs_corr, function(x) {
-  (sum(all_sample_corrValues >= x) + 1)/(length(all_sample_corrValues) + 1)
+  (sum(all_permut_corrValues >= x) + 1)/(length(all_permut_corrValues) + 1)
 })
 names(emp_pval_meanCorr) <- names(all_obs_corr)
 stopifnot(all(emp_pval_meanCorr > 0 & emp_pval_meanCorr <= 1 ))
 
 
 ### CHECK RETRIEVE THE RIGHT VALUES
-tadListFile <- file.path(pipOutFold, script0_name, "pipeline_regionList.Rdata")
+tadListFile <- file.path(pipOutFold, script1_name, "pipeline_regionList.Rdata")
 stopifnot(file.exists(tadListFile))
 pipeline_tadList <- eval(parse(text = load(tadListFile))) # not adjusted
 stopifnot(setequal(names(emp_pval_meanCorr), pipeline_tadList))
 
 
-outFile <- file.path(curr_outFold, "emp_pval_meanCorr.Rdata")
+outFile <- file.path(curr_outFold, paste0(filePrefix, "emp_pval_meanCorr.Rdata"))
 save(emp_pval_meanCorr, file= outFile)
 cat(paste0("... written: ", outFile, "\n"))
 

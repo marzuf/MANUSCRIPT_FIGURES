@@ -22,8 +22,8 @@ stopifnot(file.exists(settingF))
 
 pipScriptDir <- file.path(".")
 
-script0_name <- "1_prepGeneData"
-script1_name <- "2_runGeneDE"
+script1_name <- "1_prepGeneData"
+script2_name <- "2_runGeneDE"
 script_name <- "3_runMeanTADLogFC"
 stopifnot(file.exists(file.path(pipScriptDir,  paste0(script_name, ".R"))))
 cat(paste0("> START ", script_name,  "\n"))
@@ -45,13 +45,13 @@ system(paste0("rm -f ", pipLogFile))
 registerDoMC(nCpu) # from main_settings.R
 
 # ADDED 16.11.2018 to check using other files
-txt <- paste0("inputDataType\t=\t", inputDataType, "\n")
+txt <- paste0(toupper(script_name), "> inputDataType\t=\t", inputDataType, "\n")
 printAndLog(txt, pipLogFile)
-txt <- paste0("gene2tadDT_file\t=\t", gene2tadDT_file, "\n")
+txt <- paste0(toupper(script_name), "> gene2tadDT_file\t=\t", gene2tadDT_file, "\n")
 printAndLog(txt, pipLogFile)
-txt <- paste0("TADpos_file\t=\t", TADpos_file, "\n")
+txt <- paste0(toupper(script_name), "> TADpos_file\t=\t", TADpos_file, "\n")
 printAndLog(txt, pipLogFile)
-txt <- paste0("settingF\t=\t", settingF, "\n")
+txt <- paste0(toupper(script_name), "> settingF\t=\t", settingF, "\n")
 printAndLog(txt, pipLogFile)
 
 ################################***********************************************************************************
@@ -60,11 +60,11 @@ printAndLog(txt, pipLogFile)
 gene2tadDT <- read.delim(gene2tadDT_file, header=F, col.names = c("entrezID", "chromo", "start", "end", "region"), stringsAsFactors = F)
 gene2tadDT$entrezID <- as.character(gene2tadDT$entrezID)
 
-DE_topTable <- eval(parse(text = load(file.path(pipOutFold, script1_name, "DE_topTable.Rdata"))))
-DE_geneList <- eval(parse(text = load(file.path(pipOutFold, script1_name, "DE_geneList.Rdata"))))
+DE_topTable <- eval(parse(text = load(file.path(pipOutFold, script2_name, "DE_topTable.Rdata"))))
+DE_geneList <- eval(parse(text = load(file.path(pipOutFold, script2_name, "DE_geneList.Rdata"))))
 
-pipeline_geneList <- eval(parse(text = load(file.path(pipOutFold, script0_name, "pipeline_geneList.Rdata"))))
-pipeline_regionList <- eval(parse(text = load(file.path(pipOutFold, script0_name, "pipeline_regionList.Rdata"))))
+pipeline_geneList <- eval(parse(text = load(file.path(pipOutFold, script1_name, "pipeline_geneList.Rdata"))))
+pipeline_regionList <- eval(parse(text = load(file.path(pipOutFold, script1_name, "pipeline_regionList.Rdata"))))
 
 if(useTADonly) {
   if(any(grepl("_BOUND", pipeline_regionList))) {

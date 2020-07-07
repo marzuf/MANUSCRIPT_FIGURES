@@ -27,8 +27,8 @@ stopifnot(file.exists(settingF))
 
 pipScriptDir <- file.path(".")
 
-script0_name <- "1_prepGeneData"
-script1_name <- "2_runGeneDE"
+script1_name <- "1_prepGeneData"
+script2_name <- "2_runGeneDE"
 script_name <- "5fc_runPermutationsMedian"
 stopifnot(file.exists(file.path(pipScriptDir, paste0(script_name, ".R"))))
 cat(paste0("> START ", script_name,  "\n"))
@@ -53,17 +53,17 @@ if(withExprClass)
 
 
 # ADDED 16.11.2018 to check using other files
-txt <- paste0("withExprClass\t=\t", withExprClass, "\n")
+txt <- paste0(toupper(script_name), "> withExprClass\t=\t", withExprClass, "\n")
 printAndLog(txt, pipLogFile)
-txt <- paste0("nClass\t=\t", nClass, "\n")
+txt <- paste0(toupper(script_name), "> nClass\t=\t", nClass, "\n")
 printAndLog(txt, pipLogFile)
-txt <- paste0("inputDataType\t=\t", inputDataType, "\n")
+txt <- paste0(toupper(script_name), "> inputDataType\t=\t", inputDataType, "\n")
 printAndLog(txt, pipLogFile)
-txt <- paste0("gene2tadDT_file\t=\t", gene2tadDT_file, "\n")
+txt <- paste0(toupper(script_name), "> gene2tadDT_file\t=\t", gene2tadDT_file, "\n")
 printAndLog(txt, pipLogFile)
-txt <- paste0("TADpos_file\t=\t", TADpos_file, "\n")
+txt <- paste0(toupper(script_name), "> TADpos_file\t=\t", TADpos_file, "\n")
 printAndLog(txt, pipLogFile)
-txt <- paste0("settingF\t=\t", settingF, "\n")
+txt <- paste0(toupper(script_name), "> settingF\t=\t", settingF, "\n")
 printAndLog(txt, pipLogFile)
   
 #******************************************************************************* !! HARD CODED
@@ -77,11 +77,11 @@ aggregFction <- "median"
 
 # UPDATE SELECT THE GENES ACCORDING TO THE SETTINGS PREPARED IN 0_PREPGENEDATA
 if(withExprClass) {
-    # rnaseqDT <- eval(parse(text = load(paste0(pipOutFold, "/", script0_name, "/rna_rnaseqDT.Rdata"))))
-    rnaseqDT <- eval(parse(text = load(file.path(pipOutFold, script0_name, "rna_fpkmDT.Rdata"))))
+    # rnaseqDT <- eval(parse(text = load(paste0(pipOutFold, "/", script1_name, "/rna_rnaseqDT.Rdata"))))
+    rnaseqDT <- eval(parse(text = load(file.path(pipOutFold, script1_name, "rna_fpkmDT.Rdata"))))
 }
-initList <- eval(parse(text = load(file.path(pipOutFold, script0_name, "rna_geneList.Rdata"))))
-geneList <- eval(parse(text = load(file.path(pipOutFold, script0_name, "pipeline_geneList.Rdata"))))
+initList <- eval(parse(text = load(file.path(pipOutFold, script1_name, "rna_geneList.Rdata"))))
+geneList <- eval(parse(text = load(file.path(pipOutFold, script1_name, "pipeline_geneList.Rdata"))))
 
 txt <- paste0(toupper(script_name), "> Start with # genes: ", length(geneList), "/", length(initList), "\n")
 printAndLog(txt, pipLogFile)
@@ -97,7 +97,7 @@ gene2tadDT$entrezID <- as.character(gene2tadDT$entrezID)
 gene2tadDT <- gene2tadDT[gene2tadDT$entrezID %in% as.character(geneList),]
 
 ### take only the filtered data according to initial settings
-pipeline_regionList <- eval(parse(text = load(file.path(pipOutFold, script0_name, "pipeline_regionList.Rdata"))))
+pipeline_regionList <- eval(parse(text = load(file.path(pipOutFold, script1_name, "pipeline_regionList.Rdata"))))
 if(useTADonly) {
   if(any(grepl("_BOUND", pipeline_regionList))) {
     stop("! data were not prepared for \"useTADonly\" !")

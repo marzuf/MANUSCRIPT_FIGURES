@@ -25,7 +25,7 @@ stopifnot(file.exists(settingF))
 
 pipScriptDir <- file.path(".")
 
-script0_name <- "1_prepGeneData"
+script1_name <- "1_prepGeneData"
 script_name <- "2_runGeneDE"
 stopifnot(file.exists(file.path(pipScriptDir, paste0(script_name, ".R"))))
 cat(paste0("> START ", script_name,  "\n"))
@@ -42,7 +42,8 @@ suppressPackageStartupMessages(library(limma, warn.conflicts = FALSE, quietly = 
 stopifnot(exists("inputDataType"))
 stopifnot(inputDataType %in% c("raw", "RSEM", "FPKM", "DESeq2", "microarray"))
 
-cat(paste0("> input data type: ", as.character(inputDataType), "\n"))
+txt <- paste0(toupper(script_name), "> input data type: ", as.character(inputDataType), "\n")
+printAndLog(txt, pipLogFile)
 
 # create the directories
 curr_outFold <- file.path(pipOutFold, script_name)
@@ -52,40 +53,40 @@ pipLogFile <- paste0(pipOutFold, "/", format(Sys.time(), "%Y%d%m%H%M%S"),"_", sc
 system(paste0("rm -f ", pipLogFile))
 
 # ADDED 27.11.2018 to check using other files
-txt <- paste0("inputDataType\t=\t", inputDataType, "\n")
+txt <- paste0(toupper(script_name), "> inputDataType\t=\t", inputDataType, "\n")
 printAndLog(txt, pipLogFile)
-txt <- paste0("gene2tadDT_file\t=\t", gene2tadDT_file, "\n")
+txt <- paste0(toupper(script_name), "> gene2tadDT_file\t=\t", gene2tadDT_file, "\n")
 printAndLog(txt, pipLogFile)
-txt <- paste0("TADpos_file\t=\t", TADpos_file, "\n")
+txt <- paste0(toupper(script_name), "> TADpos_file\t=\t", TADpos_file, "\n")
 printAndLog(txt, pipLogFile)
-txt <- paste0("settingF\t=\t", settingF, "\n")
+txt <- paste0(toupper(script_name), "> settingF\t=\t", settingF, "\n")
 printAndLog(txt, pipLogFile)
 
-stopifnot(file.exists(file.path(pipOutFold, script0_name, "rna_rnaseqDT.Rdata")))
-rnaseqDT <- eval(parse(text = load(file.path(pipOutFold, script0_name, "rna_rnaseqDT.Rdata"))))
+stopifnot(file.exists(file.path(pipOutFold, script1_name, "rna_rnaseqDT.Rdata")))
+rnaseqDT <- eval(parse(text = load(file.path(pipOutFold, script1_name, "rna_rnaseqDT.Rdata"))))
 if(ncol(rnaseqDT) >= 5 & nrow(rnaseqDT) >= 5)
     rnaseqDT[1:5,1:5]
 initRowNbr <- nrow(rnaseqDT)
 stopifnot(is.numeric(rnaseqDT[1,1]))
 
 # ADDED 16.11.2018 to check using other files
-txt <- paste0("gene2tadDT_file\t=\t", gene2tadDT_file, "\n")
+txt <- paste0(toupper(script_name), "> gene2tadDT_file\t=\t", gene2tadDT_file, "\n")
 printAndLog(txt, pipLogFile)
-txt <- paste0("TADpos_file\t=\t", TADpos_file, "\n")
+txt <- paste0(toupper(script_name), "> TADpos_file\t=\t", TADpos_file, "\n")
 printAndLog(txt, pipLogFile)
-txt <- paste0("settingF\t=\t", settingF, "\n")
+txt <- paste0(toupper(script_name), "> settingF\t=\t", settingF, "\n")
 printAndLog(txt, pipLogFile)
-txt <- paste0("inputDataType\t=\t", inputDataType, "\n")
+txt <- paste0(toupper(script_name), "> inputDataType\t=\t", inputDataType, "\n")
 printAndLog(txt, pipLogFile)
 
 # TAKE ONLY THE GENES FOR WHICH I HAVE POSITIONS
-stopifnot(file.exists(file.path(pipOutFold, script0_name,  "rna_geneList.Rdata")))
-rna_geneList <- eval(parse(text = load(file.path(pipOutFold, script0_name,  "rna_geneList.Rdata"))))
+stopifnot(file.exists(file.path(pipOutFold, script1_name,  "rna_geneList.Rdata")))
+rna_geneList <- eval(parse(text = load(file.path(pipOutFold, script1_name,  "rna_geneList.Rdata"))))
 # => UPDATE: TAKE ONLY THE GENE LIST PREPARED IN 0_prepGeneData ACCORDING TO CURRENT SETTINGS
 # UPDATE: compute RNA DE for all the genes, not the filtered ones !
 # (in the previous version: DE analysis was done only for the filtered genes; i.e. e.g. those belonging to TADs)
-# stopifnot(file.exists(paste0(pipOutFold, "/", script0_name,  "/", "pipeline_geneList.Rdata")))
-# rna_geneList <- eval(parse(text = load(paste0(pipOutFold, "/", script0_name,  "/", "pipeline_geneList.Rdata"))))
+# stopifnot(file.exists(paste0(pipOutFold, "/", script1_name,  "/", "pipeline_geneList.Rdata")))
+# rna_geneList <- eval(parse(text = load(paste0(pipOutFold, "/", script1_name,  "/", "pipeline_geneList.Rdata"))))
 # txt <- paste0(toupper(script_name), "> Start with # genes: ", length(rna_geneList), "/", length(init_geneList), "\n")
 # printAndLog(txt, pipLogFile)
 
@@ -271,14 +272,14 @@ printAndLog(txt, pipLogFile)
 
 if(DE_topTable$logFC[1] > 0) {
   if(exprCond1 > exprCond2)
-    txt <- paste0("> logFC > 0 when ", cond1, " > " , cond2, " => direction is ", cond1, "/", cond2, "\n")
+    txt <- paste0(toupper(script_name), "> logFC > 0 when ", cond1, " > " , cond2, " => direction is ", cond1, "/", cond2, "\n")
   if(exprCond2 > exprCond1)
-    txt <- paste0("> logFC > 0 when ", cond2, " > " , cond1, " => direction is ", cond2, "/", cond1, "\n")
+    txt <- paste0(toupper(script_name), "> logFC > 0 when ", cond2, " > " , cond1, " => direction is ", cond2, "/", cond1, "\n")
 } else if(DE_topTable$logFC[1] < 0) {
   if(exprCond1 > exprCond2)
-    txt <- paste0("> logFC < 0 when ", cond1, " > " , cond2, " => direction is ", cond2, "/", cond1, "\n")
+    txt <- paste0(toupper(script_name), "> logFC < 0 when ", cond1, " > " , cond2, " => direction is ", cond2, "/", cond1, "\n")
   if(exprCond2 > exprCond1)
-    txt <- paste0("> logFC > 0 when ", cond2, " > " , cond1, " => direction is ", cond1, "/", cond2, "\n")
+    txt <- paste0(toupper(script_name), "> logFC > 0 when ", cond2, " > " , cond1, " => direction is ", cond1, "/", cond2, "\n")
 } 
 printAndLog(txt, pipLogFile)
 cat("... end DE\n... prepare output data\n")
@@ -334,7 +335,7 @@ cat(paste0("... written: ", file.path(curr_outFold, "DE_geneList.Rdata"), "\n"))
 
 # STOPIFNOT IN SCRIPT 8: all(pipeline_geneList %in% DE_topTable$genes) 
 
-check_pipeline_geneList <- eval(parse(text = load(file.path(pipOutFold,  script0_name,   "pipeline_geneList.Rdata"))))
+check_pipeline_geneList <- eval(parse(text = load(file.path(pipOutFold,  script1_name,   "pipeline_geneList.Rdata"))))
 check_DE_topTable <- eval(parse(text = load(file.path(curr_outFold,  "DE_topTable.Rdata"))))
 
 #update correct 17.08.2018

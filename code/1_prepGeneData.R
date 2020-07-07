@@ -89,17 +89,17 @@ stopifnot(is.numeric(min_sampleRatio))
 stopifnot(min_sampleRatio >= 0 & min_sampleRatio <= 1)
 
 # ADDED 16.11.2018 to check using other files
-txt <- paste0("inputDataType\t=\t", inputDataType, "\n")
+txt <- paste0(toupper(script_name), "> inputDataType\t=\t", inputDataType, "\n")
 printAndLog(txt, pipLogFile)
-txt <- paste0("gene2tadDT_file\t=\t", gene2tadDT_file, "\n")
+txt <- paste0(toupper(script_name), "> gene2tadDT_file\t=\t", gene2tadDT_file, "\n")
 printAndLog(txt, pipLogFile)
-txt <- paste0("TADpos_file\t=\t", TADpos_file, "\n")
+txt <- paste0(toupper(script_name), "> TADpos_file\t=\t", TADpos_file, "\n")
 printAndLog(txt, pipLogFile)
-txt <- paste0("settingF\t=\t", settingF, "\n")
+txt <- paste0(toupper(script_name), "> settingF\t=\t", settingF, "\n")
 printAndLog(txt, pipLogFile)
-txt <- paste0("min_sampleRatio\t=\t", min_sampleRatio, "\n")
+txt <- paste0(toupper(script_name), "> min_sampleRatio\t=\t", min_sampleRatio, "\n")
 printAndLog(txt, pipLogFile)
-txt <- paste0("min_counts\t=\t", min_counts, "\n")
+txt <- paste0(toupper(script_name), "> min_counts\t=\t", min_counts, "\n")
 printAndLog(txt, pipLogFile)
 ### NA ARE NOT ALLOWED WHEN COMPUTING CPM, CHECK THE RNASEQDT DO NOT CONTAIN NA
 txt <- paste0(toupper(script_name), "> replace NA with 0 before computing cpm: ", 
@@ -178,8 +178,8 @@ cat(paste0("... written: ", file.path(curr_outFold,  "rna_geneList.Rdata"), "\n"
 
 rna_rnaseqDT <- rnaseqDT
 stopifnot(nrow(rna_rnaseqDT) > 0)
-save(rna_rnaseqDT, file = paste0(curr_outFold, "/", "rna_rnaseqDT.Rdata"))
-cat(paste0("... written: ", paste0(curr_outFold, "/", "rna_rnaseqDT.Rdata"), "\n"))
+save(rna_rnaseqDT, file = file.path(curr_outFold, "rna_rnaseqDT.Rdata"))
+cat(paste0("... written: ", file.path(curr_outFold,  "rna_rnaseqDT.Rdata"), "\n"))
 
 #### PREPARE THE QQNORM DATA FOR THE GENES I USED FOR DE ANALYSIS
 cat("... qqnorm the data for other analyses \n")

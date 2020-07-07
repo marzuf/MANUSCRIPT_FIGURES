@@ -27,10 +27,10 @@ stopifnot(file.exists(settingF))
 
 pipScriptDir <- file.path(".")
 
-script0_name <- "1_prepGeneData"
-script1_name <- "2_runGeneDE"
-script5sameNbr_name <- "5corr_runPermutationsCorr"
-script_name <- "7sameNbr_runPermutationsMeanTADCorr"
+script1_name <- "1_prepGeneData"
+script2_name <- "2_runGeneDE"
+script5corr_name <- "5corr_runPermutationsCorr"
+script_name <- "7_runPermutationsMeanTADCorr"
 stopifnot(file.exists(file.path(pipScriptDir, script_name, ".R")))
 cat(paste0("> START ", script_name,  "\n"))
 
@@ -55,24 +55,24 @@ pipLogFile <- file.path(pipOutFold, paste0(format(Sys.time(), "%Y%d%m%H%M%S"),"_
 system(paste0("rm -f ", pipLogFile))
 
 # ADDED 27.11.2018 to check using other files
-txt <- paste0("inputDataType\t=\t", inputDataType, "\n")
+txt <- paste0(toupper(script_name), "> inputDataType\t=\t", inputDataType, "\n")
 printAndLog(txt, pipLogFile)
-txt <- paste0("gene2tadDT_file\t=\t", gene2tadDT_file, "\n")
+txt <- paste0(toupper(script_name), "> gene2tadDT_file\t=\t", gene2tadDT_file, "\n")
 printAndLog(txt, pipLogFile)
-txt <- paste0("TADpos_file\t=\t", TADpos_file, "\n")
+txt <- paste0(toupper(script_name), "> TADpos_file\t=\t", TADpos_file, "\n")
 printAndLog(txt, pipLogFile)
-txt <- paste0("settingF\t=\t", settingF, "\n")
+txt <- paste0(toupper(script_name), "> settingF\t=\t", settingF, "\n")
 printAndLog(txt, pipLogFile)
 
 corrMeth <- "pearson"
-txt <- paste0("corrMeth\t=\t", corrMeth, "\n")
+txt <- paste0(toupper(script_name), "> corrMeth\t=\t", corrMeth, "\n")
 printAndLog(txt, pipLogFile)
 
-geneList_file <- file.path(pipOutFold, script0_name, "pipeline_geneList.Rdata")
+geneList_file <- file.path(pipOutFold, script1_name, "pipeline_geneList.Rdata")
 stopifnot(file.exists(geneList_file))
 geneList <- eval(parse(text = load(geneList_file)))
 
-regionList_file <- file.path(pipOutFold, script0_name, "pipeline_regionList.Rdata")
+regionList_file <- file.path(pipOutFold, script1_name, "pipeline_regionList.Rdata")
 stopifnot(file.exists(regionList_file))
 regionList <- eval(parse(text = load(regionList_file)))
 
@@ -82,7 +82,7 @@ stopifnot(file.exists(sample2_file))
 cond1_ID <- eval(parse(text = load(sample1_file)))
 cond2_ID <- eval(parse(text = load(sample2_file)))
 
-qqnormDTfile <- file.path(pipOutFold,script0_name, "rna_qqnorm_rnaseqDT.Rdata")
+qqnormDTfile <- file.path(pipOutFold,script1_name, "rna_qqnorm_rnaseqDT.Rdata")
 stopifnot(file.exists(qqnormDTfile))
 qqnormDT <- eval(parse(text = load(qqnormDTfile)))
 
@@ -94,7 +94,7 @@ norm_rnaseqDT <- qqnormDT[names(geneList),]    # !!! ENSURE THAT THE QQNORM IN T
 stopifnot(rownames(norm_rnaseqDT) == names(geneList))
 stopifnot(!duplicated(names(geneList)))
 
-ds_sample_data_file <- file.path(pipOutFold, script5sameNbr_name, "sample_around_TADs_sameNbr.Rdata")
+ds_sample_data_file <- file.path(pipOutFold, script5corr_name, "sample_around_TADs_sameNbr.Rdata")
 stopifnot(file.exists(ds_sample_data_file))
 ds_sample_data <- eval(parse(text = load(ds_sample_data_file)))
 

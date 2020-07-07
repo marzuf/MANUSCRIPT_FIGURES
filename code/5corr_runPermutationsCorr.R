@@ -22,8 +22,8 @@ stopifnot(file.exists(settingF))
 
 pipScriptDir <- file.path(".")
 
-script0_name <- "1_prepGeneData"
-script1_name <- "2_runGeneDE"
+script1_name <- "1_prepGeneData"
+script2_name <- "2_runGeneDE"
 script_name <- "5corr_runPermutationsCorr"
 stopifnot(file.exists(file.path(pipScriptDir, paste0(script_name, ".R"))))
 cat(paste0("> START ", script_name,  "\n"))
@@ -40,13 +40,13 @@ pipLogFile <- file.path(pipOutFold, paste0(format(Sys.time(), "%Y%d%m%H%M%S"),"_
 system(paste0("rm -f ", pipLogFile))
 
 # ADDED 16.11.2018 to check using other files
-txt <- paste0("inputDataType\t=\t", inputDataType, "\n")
+txt <- paste0(toupper(script_name), "> inputDataType\t=\t", inputDataType, "\n")
 printAndLog(txt, pipLogFile)
-txt <- paste0("gene2tadDT_file\t=\t", gene2tadDT_file, "\n")
+txt <- paste0(toupper(script_name), "> gene2tadDT_file\t=\t", gene2tadDT_file, "\n")
 printAndLog(txt, pipLogFile)
-txt <- paste0("TADpos_file\t=\t", TADpos_file, "\n")
+txt <- paste0(toupper(script_name), "> TADpos_file\t=\t", TADpos_file, "\n")
 printAndLog(txt, pipLogFile)
-txt <- paste0("settingF\t=\t", settingF, "\n")
+txt <- paste0(toupper(script_name), "> settingF\t=\t", settingF, "\n")
 printAndLog(txt, pipLogFile)
 
 suppressPackageStartupMessages(library(foreach, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))
@@ -66,7 +66,7 @@ stopifnot(is.numeric(tadpos_DT$end))
 tadpos_DT <- tadpos_DT[grepl("_TAD", tadpos_DT$region),,drop=FALSE] 
 
 ### KEEP ONLY THE TADs USED IN THE PIPELINE
-tadListFile <- file.path(pipOutFold, script0_name, "pipeline_regionList.Rdata")
+tadListFile <- file.path(pipOutFold, script1_name, "pipeline_regionList.Rdata")
 stopifnot(file.exists(tadListFile))
 pipeline_tadList <- eval(parse(text = load(tadListFile))) # not adjusted
 stopifnot(pipeline_tadList %in% tadpos_DT$region)
@@ -74,7 +74,7 @@ tadpos_DT <- tadpos_DT[tadpos_DT$region %in% pipeline_tadList,]
 stopifnot(!duplicated(pipeline_tadList))
 
 ### RETRIEVE THE GENES USED IN THE PIPELINE - script0
-geneListFile <- file.path(pipOutFold, script0_name, "pipeline_geneList.Rdata")
+geneListFile <- file.path(pipOutFold, script1_name, "pipeline_geneList.Rdata")
 stopifnot(file.exists(geneListFile))
 pipeline_geneList <- eval(parse(text = load(geneListFile))) # not adjusted
 stopifnot(pipeline_geneList %in% g2t_DT$entrezID)
