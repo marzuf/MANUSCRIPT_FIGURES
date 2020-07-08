@@ -1,9 +1,0 @@
-13_RUNFCCCUMSUMAUC> gene2tadDT_file	=	EXAMPLE/DATA/ENCSR489OCU_NCI-H460_all_genes_positions.txt
-13_RUNFCCCUMSUMAUC> TADpos_file	=	EXAMPLE/DATA/ENCSR489OCU_NCI-H460_all_assigned_regions.txt
-13_RUNFCCCUMSUMAUC> settingF	=	example1000_ENCSR489OCU_NCI-H460_40kb_run_settings_TCGAlusc_norm_lusc.R
-13_RUNFCCCUMSUMAUC> inputDataType	=	RSEM
-13_RUNFCCCUMSUMAUC> gene2tadDT_file	=	EXAMPLE/DATA/ENCSR489OCU_NCI-H460_all_genes_positions.txt
-13_RUNFCCCUMSUMAUC> TADpos_file	=	EXAMPLE/DATA/ENCSR489OCU_NCI-H460_all_assigned_regions.txt
-13_RUNFCCCUMSUMAUC> settingF	=	example1000_ENCSR489OCU_NCI-H460_40kb_run_settings_TCGAlusc_norm_lusc.R
-2020-07-08 10:54:28
-2020-07-08 10:54:29

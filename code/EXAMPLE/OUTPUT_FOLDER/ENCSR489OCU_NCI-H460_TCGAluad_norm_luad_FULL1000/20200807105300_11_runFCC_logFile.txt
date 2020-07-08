@@ -1,9 +1,0 @@
-11_RUNFCC> gene2tadDT_file	=	EXAMPLE/DATA/ENCSR489OCU_NCI-H460_all_genes_positions.txt
-11_RUNFCC> TADpos_file	=	EXAMPLE/DATA/ENCSR489OCU_NCI-H460_all_assigned_regions.txt
-11_RUNFCC> settingF	=	example1000_ENCSR489OCU_NCI-H460_40kb_run_settings_TCGAlusc_norm_lusc.R
-11_RUNFCC> Take only filtered genes: 8418/14005
-11_RUNFCC> Take only filtered regions: 1774/1774
-11_RUNFCC> Number of regions for which FCC computed: 1774
-11_RUNFCC> Take only the TAD regions: 1774/1774
-2020-07-08 10:53:00
-2020-07-08 10:53:01

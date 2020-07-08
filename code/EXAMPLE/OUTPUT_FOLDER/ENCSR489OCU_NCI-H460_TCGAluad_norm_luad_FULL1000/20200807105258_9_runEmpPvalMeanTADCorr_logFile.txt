@@ -1,9 +1,0 @@
-9_RUNEMPPVALMEANTADCORR> inputDataType	=	RSEM
-9_RUNEMPPVALMEANTADCORR> gene2tadDT_file	=	EXAMPLE/DATA/ENCSR489OCU_NCI-H460_all_genes_positions.txt
-9_RUNEMPPVALMEANTADCORR> TADpos_file	=	EXAMPLE/DATA/ENCSR489OCU_NCI-H460_all_assigned_regions.txt
-9_RUNEMPPVALMEANTADCORR> settingF	=	example1000_ENCSR489OCU_NCI-H460_40kb_run_settings_TCGAlusc_norm_lusc.R
-9_RUNEMPPVALMEANTADCORR> taking sample correlation for corr_type	=	meanCorr
-9_RUNEMPPVALMEANTADCORR> use provided all_permutCorr_data	=	data/all_sample_corrValues.RData
-9_RUNEMPPVALMEANTADCORR> # of permutation correlation values	=	100884
-2020-07-08 10:52:58
-2020-07-08 10:52:59
