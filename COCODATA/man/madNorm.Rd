@@ -7,11 +7,11 @@
 madNorm(x)
 }
 \arguments{
-\item{x}{Dataframe that will undergo MAD-normalization}
+\item{x}{Dataframe that will undergo MAD-normalization.}
 }
 \value{
-The normalized dataframe
+The normalized dataframe.
 }
 \description{
-Performs MAD-normalization of a dataframe.
+Performs MAD-normalization of a dataframe (use for microarray data).
 }

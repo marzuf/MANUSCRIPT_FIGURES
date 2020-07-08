@@ -6,12 +6,12 @@
 #' 
 #' Taken from "flux" package (not able to install package after update of R). Compute the Area Under the Curve (AUC) between two vectors of points.
 #'
-#' @param x Vector of x positions
-#' @param y Vector of y positions
-#' @param thresh Threshold below which area is not calculated
+#' @param x Vector of x positions.
+#' @param y Vector of y positions.
+#' @param thresh Threshold below which area is not calculated.
 #' @param dens By default the data density is artificially increased by adding 100 data points between given adjacent data points.
 #' @param By default the vectors in x and y are ordered along increasing x because integration makes no sense with unordered data.
-#' @return The AUC
+#' @return The AUC.
 #' @export
 auc <- function (x, y, thresh = NULL, dens = 100, sort.x = TRUE) {
     x <- x[!is.na(x)]
@@ -47,8 +47,8 @@ auc <- function (x, y, thresh = NULL, dens = 100, sort.x = TRUE) {
 #'
 #' Function that combines p-values using Stouffer's method.
 #'
-#' @param ps The p-values to be combined
-#' @return The normalized dataframe
+#' @param ps The p-values to be combined.
+#' @return The normalized dataframe.
 #' @export
 
 stouffer <- function(ps, two.tails=FALSE) {
@@ -92,8 +92,8 @@ stouffer <- function(ps, two.tails=FALSE) {
 #'
 #' Function that calculates the FCC score for a vector of fold-change (FC) values.
 #'
-#' @param fc_vect Vector of fold-changes
-#' @return The FCC score
+#' @param fc_vect Vector of fold-changes.
+#' @return The FCC score.
 #' @export
 
 get_fcc <- function(fc_vect) {
@@ -109,8 +109,8 @@ get_fcc <- function(fc_vect) {
 #'
 #' Function that calculates ratio of down-regulated genes for a vector of fold-change (FC) values.
 #'
-#' @param fc_vect Vector of fold-changes
-#' @return The ratioDown score
+#' @param fc_vect Vector of fold-changes.
+#' @return The ratioDown score.
 #' @export
 get_ratioDown <- function(fc_vect) {
   sum(fc_vect < 0)/length(fc_vect) 
@@ -126,8 +126,8 @@ get_ratioDown <- function(fc_vect) {
 #'
 #' Function that calculates ratio of negative fold-change (FC) for a vector of FC values.
 #'
-#' @param fc_vect Vector of fold-changes
-#' @return The ratioFC score
+#' @param fc_vect Vector of fold-changes.
+#' @return The ratioFC score.
 #' @export
 get_ratioFC <- function(fc_vect) {
   sum(abs(fc_vect[fc_vect<0]))/sum(abs(fc_vect))
@@ -142,19 +142,19 @@ get_ratioFC <- function(fc_vect) {
 
 #' AUC ratio 
 #'
-#' Function that calculates the AUC ratio for FCC cumsum curves (observed/permutation)
+#' Function that calculates the AUC ratio for FCC cumsum curves (observed/permutation).
 #'
-#' @param fcc_vect Vector of observed FCCs
-#' @param fcc_permDT Dataframe with permutation FCCs (each column is a permutation)
-#' @param permQt Quantile of the permutation (default: 0.95) used for computing the AUC ratio
-#' @param doPlot If true, plot the cumsum wave curves
-#' @param plotCex Cex value for the axis labs and titles (default: 1.2)
-#' @param ploygonPermutCol Color for the area of permutation value (default: grey color)
-#' @param qt95PermutCol Color for the line for the permQt permutation values (default: darker grey)
-#' @param lwdObs Width of the line of the observed data (default: 1.2)
-#' @param colObs Color for the observed data (default: "darkred")
-#' @param ... Other arguments are passed to plot() function
-#' @return (invisible) A list containing the observed AUC (observed_auc), the AUC for the permutation (permut_auc) and the AUC ratio (auc_ratio)
+#' @param fcc_vect Vector of observed FCCs.
+#' @param fcc_permDT Dataframe with permutation FCCs (each column is a permutation).
+#' @param permQt Quantile of the permutation (default: 0.95) used for computing the AUC ratio.
+#' @param doPlot If true, plot the cumsum wave curves.
+#' @param plotCex Cex value for the axis labs and titles (default: 1.2).
+#' @param ploygonPermutCol Color for the area of permutation value (default: grey color).
+#' @param qt95PermutCol Color for the line for the permQt permutation values (default: darker grey).
+#' @param lwdObs Width of the line of the observed data (default: 1.2).
+#' @param colObs Color for the observed data (default: "darkred").
+#' @param ... Other arguments are passed to plot() function.
+#' @return (invisible) A list containing the observed AUC (observed_auc), the AUC for the permutation (permut_auc) and the AUC ratio (auc_ratio).
 #' @export
 
 get_auc_ratio <- function(fcc_vect, fcc_permDT, permQt=0.95, doPlot=FALSE,

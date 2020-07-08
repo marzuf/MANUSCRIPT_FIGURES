@@ -10,29 +10,29 @@ get_auc_ratio(fcc_vect, fcc_permDT, permQt = 0.95, doPlot = FALSE,
   colObs = "darkred", ...)
 }
 \arguments{
-\item{fcc_vect}{Vector of observed FCCs}
+\item{fcc_vect}{Vector of observed FCCs.}
 
-\item{fcc_permDT}{Dataframe with permutation FCCs (each column is a permutation)}
+\item{fcc_permDT}{Dataframe with permutation FCCs (each column is a permutation).}
 
 \item{permQt}{Quantile of the permutation (default: 0.95) used for computing the AUC ratio.}
 
-\item{doPlot}{If true, plot the cumsum wave curves}
+\item{doPlot}{If true, plot the cumsum wave curves.}
 
-\item{plotCex}{Cex value for the axis labs and titles (default: 1.2)}
+\item{plotCex}{Cex value for the axis labs and titles (default: 1.2).}
 
-\item{qt95PermutCol}{Color for the line for the permQt permutation values (default: darker grey)}
+\item{qt95PermutCol}{Color for the line for the permQt permutation values (default: darker grey).}
 
-\item{lwdObs}{Width of the line of the observed data (default: 1.2)}
+\item{lwdObs}{Width of the line of the observed data (default: 1.2).}
 
-\item{colObs}{Color for the observed data (default: "darkred")}
+\item{colObs}{Color for the observed data (default: "darkred").}
 
-\item{...}{Other arguments are passed to plot() function}
+\item{...}{Other arguments are passed to plot() function.}
 
-\item{ploygonPermutCol}{Color for the area of permutation value (default: grey color)}
+\item{ploygonPermutCol}{Color for the area of permutation value (default: grey color).}
 }
 \value{
-(invisible) A list containing the observed AUC (observed_auc), the AUC for the permutation (permut_auc) and the AUC ratio (auc_ratio)
+(invisible) A list containing the observed AUC (observed_auc), the AUC for the permutation (permut_auc) and the AUC ratio (auc_ratio).
 }
 \description{
-Function that calculates the AUC ratio for FCC cumsum curves (observed/permutation)
+Function that calculates the AUC ratio for FCC cumsum curves (observed/permutation).
 }

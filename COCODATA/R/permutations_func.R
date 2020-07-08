@@ -17,23 +17,23 @@
 #' 
 #' Performs the permutation (parallelized).
 #'
-#' @param g2TADdt Gene-to-TAD dataframe (expected columns: entrezID, region)
-#' @param RNAdt Gene expression dataframe (rownames should correspond to entrezID, samples in columns)
-#' @param geneIDlist List of gene IDs that should be used
-#' @param nClass The number of classes of expression in which genes are shuffled
-#' @param withExprClass If shuffling should take place within classes
-#' @param TADonly If only genes from TADs should be used
-#' @param nSimu The number of permutations
-#' @param nCpu The number of CPUs to use
-#' @param aggregFun With which function gene expression should be aggregated (across samples)
-#' @return The permtuation data
+#' @param g2TADdt Gene-to-TAD dataframe (expected columns: entrezID, region).
+#' @param RNAdt Gene expression dataframe (rownames should correspond to entrezID, samples in columns).
+#' @param geneIDlist List of gene IDs that should be used.
+#' @param nClass The number of classes of expression in which genes are shuffled.
+#' @param withExprClass If shuffling should take place within classes.
+#' @param TADonly If only genes from TADs should be used.
+#' @param nSimu The number of permutations.
+#' @param nCpu The number of CPUs to use.
+#' @param aggregFun With which function gene expression should be aggregated (across samples).
+#' @return The permtuation data.
 #' @export
 
 
 get_gene2tad_multiPermut <- function(g2TADdt, RNAdt, geneIDlist, nClass, withExprClass, TADonly, nSimu, nCpu, aggregFun) {
   	
-  if(!suppressPackageStartupMessages(require("foreach"))) stop("-- foreach package required\n")  
-  if(!suppressPackageStartupMessages(require("doMC"))) stop("-- doMC package required\n")  
+#  if(!suppressPackageStartupMessages(require("foreach"))) stop("-- foreach package required\n")  
+#  if(!suppressPackageStartupMessages(require("doMC"))) stop("-- doMC package required\n")  
 
   if(withExprClass) {
     stopifnot(!is.null(RNAdt) & !is.null(nClass))
@@ -136,14 +136,14 @@ get_gene2tad_multiPermut <- function(g2TADdt, RNAdt, geneIDlist, nClass, withExp
 #' 
 #' Performs the permutation (for 1 permutation).
 #'
-#' @param g2TADdt Gene-to-TAD dataframe (expected columns: entrezID, region)
-#' @param geneIDlist List of gene IDs that should be used
-#' @param nClass The number of classes of expression in which genes are shuffled
-#' @param TADonly If only genes from TADs should be used
-#' @param withExprClass If shuffling should take place within classes
-#' @param geneAggregExpressionDT Dataframe with aggregated gene expression (across samples)
-#' @param rd_idx For setting seed
-#' @return The permtuation data
+#' @param g2TADdt Gene-to-TAD dataframe (expected columns: entrezID, region).
+#' @param geneIDlist List of gene IDs that should be used.
+#' @param nClass The number of classes of expression in which genes are shuffled.
+#' @param TADonly If only genes from TADs should be used.
+#' @param withExprClass If shuffling should take place within classes.
+#' @param geneAggregExpressionDT Dataframe with aggregated gene expression (across samples).
+#' @param rd_idx For setting seed.
+#' @return The permtuation data.
 #' @export
 
 ### same as _vJune but can pass aggregFun for aggregating the expression values
@@ -220,9 +220,9 @@ get_ShuffledPositions_vFunct <- function(g2TADdt, geneIDlist, nClass, TADonly, w
 #' 
 #' Sample genes across TAD boundaries (as many as there are in a given TAD).
 #'
-#' @param g2t_DT Gene-to-TAD dataframe (expected columns: entrezID, region, end, start)
-#' @param tadpos_DT Dataframe with TAD positions (expected columns: region, end, start)
-#' @return A list with permutation data (either left or right/left only/right only)
+#' @param g2t_DT Gene-to-TAD dataframe (expected columns: entrezID, region, end, start).
+#' @param tadpos_DT Dataframe with TAD positions (expected columns: region, end, start).
+#' @return A list with permutation data (either left or right/left only/right only).
 #' @export
 
 

@@ -7,10 +7,10 @@
 get_ratioDown(fc_vect)
 }
 \arguments{
-\item{fc_vect}{Vector of fold-changes}
+\item{fc_vect}{Vector of fold-changes.}
 }
 \value{
-The ratioDown score
+The ratioDown score.
 }
 \description{
 Function that calculates ratio of down-regulated genes for a vector of fold-change (FC) values.

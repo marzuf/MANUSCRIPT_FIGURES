@@ -8,26 +8,26 @@ get_gene2tad_multiPermut(g2TADdt, RNAdt, geneIDlist, nClass, withExprClass,
   TADonly, nSimu, nCpu, aggregFun)
 }
 \arguments{
-\item{g2TADdt}{Gene-to-TAD dataframe (expected columns: entrezID, region)}
+\item{g2TADdt}{Gene-to-TAD dataframe (expected columns: entrezID, region).}
 
-\item{RNAdt}{Gene expression dataframe (rownames should correspond to entrezID, samples in columns)}
+\item{RNAdt}{Gene expression dataframe (rownames should correspond to entrezID, samples in columns).}
 
-\item{geneIDlist}{List of gene IDs that should be used}
+\item{geneIDlist}{List of gene IDs that should be used.}
 
-\item{nClass}{The number of classes of expression in which genes are shuffled}
+\item{nClass}{The number of classes of expression in which genes are shuffled.}
 
-\item{withExprClass}{If shuffling should take place within classes}
+\item{withExprClass}{If shuffling should take place within classes.}
 
-\item{TADonly}{If only genes from TADs should be used}
+\item{TADonly}{If only genes from TADs should be used.}
 
-\item{nSimu}{The number of permutations}
+\item{nSimu}{The number of permutations.}
 
-\item{nCpu}{The number of CPUs to use}
+\item{nCpu}{The number of CPUs to use.}
 
-\item{aggregFun}{With which function gene expression should be aggregated (across samples)}
+\item{aggregFun}{With which function gene expression should be aggregated (across samples).}
 }
 \value{
-The permtuation data
+The permtuation data.
 }
 \description{
 Performs the permutation (parallelized).

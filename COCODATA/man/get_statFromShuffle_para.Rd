@@ -8,18 +8,18 @@ get_statFromShuffle_para(DEdt, shuffData, stat, geneIDlist = NULL,
   ncpu = 2, TADonly = F)
 }
 \arguments{
-\item{DEdt}{Differential expression table}
+\item{DEdt}{Differential expression table.}
 
-\item{shuffData}{The permutation data}
+\item{shuffData}{The permutation data.}
 
-\item{stat}{The score to compute}
+\item{stat}{The score to compute.}
 
-\item{ncpu}{The number of CPUs to use}
+\item{ncpu}{The number of CPUs to use.}
 
-\item{TADonly}{If only genes from TADs should be used}
+\item{TADonly}{If only genes from TADs should be used.}
 }
 \value{
-The score for each permtuation
+The score for each permtuation.
 }
 \description{
 Function that calculates the ratioFC score for each region.

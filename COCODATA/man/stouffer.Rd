@@ -7,10 +7,10 @@
 stouffer(ps, two.tails = FALSE)
 }
 \arguments{
-\item{ps}{The p-values to be combined}
+\item{ps}{The p-values to be combined.}
 }
 \value{
-The normalized dataframe
+The normalized dataframe.
 }
 \description{
 Function that combines p-values using Stouffer's method.

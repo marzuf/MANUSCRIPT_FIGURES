@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 
-<title>Prepare the data</title>
+<title>Load some packages</title>
 
 <script type="text/javascript">
 window.onload = function() {
@@ -201,8 +201,9 @@ hr {
 </head>
 
 <body>
-<pre><code class="r">
-rm(list=ls())
+<h5>Load some packages</h5>
+
+<pre><code class="r">rm(list=ls())
 
 if(!require(COCODATA))
   devtools::install_github(&quot;marzuf/MANUSCRIPT_FIGURES&quot;, subdir=&quot;COCODATA&quot;)
@@ -210,22 +211,10 @@ if(!require(COCODATA))
   # install.packages(&quot;COCODATA_0.0.0.1.tar.gz&quot;, repos = NULL, type =&quot;source&quot;)
  # data(&quot;norm_ID&quot;)
 library(COCODATA)
-
-
-nCpu &lt;- 2
 library(doMC)
 library(foreach)
+nCpu &lt;- 2
 registerDoMC(nCpu)
-</code></pre>
-
-<pre><code class="r"># ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_DE_topTable.Rdata
-# ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_meanLogFC_permDT.Rdata
-# ENCSR489OCU_NCI-H460_all_assigned_regions.txt
-# ENCSR489OCU_NCI-H460_all_genes_positions.txt
-# luad_ID.Rdata
-# norm_ID.Rdata
-# TCGAluad_norm_luad_fpkmDT.Rdata
-# TCGAluad_norm_luad_rnaseqDT_v2.Rdata
 </code></pre>
 
 <h5>Prepare the data</h5>

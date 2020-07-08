@@ -14,40 +14,10 @@ if(!require(COCODATA))
   # install.packages("COCODATA_0.0.0.1.tar.gz", repos = NULL, type ="source")
  # data("norm_ID")
 library(COCODATA)
-
-
-nCpu <- 2
 library(doMC)
 library(foreach)
+nCpu <- 2
 registerDoMC(nCpu)
-
-## ----load_data-----------------------------------------------------------
-# ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_DE_topTable.Rdata
-# ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_meanLogFC_permDT.Rdata
-# ENCSR489OCU_NCI-H460_all_assigned_regions.txt
-# ENCSR489OCU_NCI-H460_all_genes_positions.txt
-# luad_ID.Rdata
-# norm_ID.Rdata
-# TCGAluad_norm_luad_fpkmDT.Rdata
-# TCGAluad_norm_luad_rnaseqDT_v2.Rdata
-
-
-
-## ----TO_FUNCTION_TO_DOCUMENT---------------------------------------------
-# auc.Rd
-# get_downByRegion_v2.Rd
-# get_fcc.Rd
-# get_FCdownByRegion_v2.Rd
-# get_multiShuffledPositions_vFunct.Rd
-# get_ratioDown.Rd
-# get_ratioFC.Rd
-# get_ShuffledPositions_vFunct.Rd
-# get_statFromShuffle_para.Rd
-# madNorm.Rd # not used, this was for microarray data
-# printAndLog.Rd
-# quantNorm.Rd
-# stouffer.Rd
-# get_auc_ratio
 
 ## ----prep_obs------------------------------------------------------------
 # table from gene-level DE analysis:
@@ -101,7 +71,6 @@ obs_FCC <- setNames(FCC_dt$FCC, FCC_dt$region)
 save(obs_FCC, file="package_obs_FCC.Rdata")
 
 ## ----FCC_permut_example--------------------------------------------------
-
 # compute the FCC for the permutation data
 data("cut1000_ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_permutationsDT") # this loads permutationsDT
 head_sq(permutationsDT)
@@ -126,7 +95,7 @@ all_permut_FCC_dt <- foreach(i = 1:ncol(permutationsDT), .combine='cbind') %dopa
 }
 head_sq(all_permut_FCC_dt)
 
-## ----FCC_AUC_ratio_example, fig.height=8, fig.width=12-------------------
+## ----FCC_AUC_ratio_example, fig.height=8, fig.width=10-------------------
 stopifnot(setequal(names(obs_FCC), rownames(all_permut_FCC_dt)))
 get_auc_ratio(fcc_vect=obs_FCC, 
               fcc_permDT=all_permut_FCC_dt, 

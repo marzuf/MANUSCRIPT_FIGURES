@@ -9,11 +9,11 @@ head_sq(dt, ntop = 5)
 \arguments{
 \item{dt}{A two-dimensional dataframe or matrix.}
 
-\item{ntop}{The maximal number of lines/columns to display}
+\item{ntop}{The maximal number of lines/columns to display.}
 }
 \value{
-The first rows/columns of the dataframe
+The first rows/columns of the dataframe.
 }
 \description{
-Returns the first lines and columns of a dataframe (as many columns as lines)
+Returns the first lines and columns of a dataframe (as many columns as lines).
 }

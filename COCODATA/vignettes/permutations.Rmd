@@ -1,5 +1,5 @@
 ---
-title: "permutations"
+title: "Permutations"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{permutations}

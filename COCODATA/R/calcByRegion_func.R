@@ -7,9 +7,9 @@
 #'
 #' Function that calculates the ratioDown score for each region.
 #'
-#' @param g2TADdt Gene-to-TAD dataframe
-#' @param DEdt Differential expression table
-#' @return The ratioFC score
+#' @param g2TADdt Gene-to-TAD dataframe.
+#' @param DEdt Differential expression table.
+#' @return The ratioFC score.
 #' @export
 
 # this version uses left_joining and aggregate, return the ratio for all regions
@@ -37,9 +37,9 @@ get_downByRegion_v2 <- function(g2TADdt, DEdt) {
 #'
 #' Function that calculates the ratioFC score for each region.
 #'
-#' @param g2TADdt Gene-to-TAD dataframe
-#' @param DEdt Differential expression table
-#' @return The ratioFC score
+#' @param g2TADdt Gene-to-TAD dataframe.
+#' @param DEdt Differential expression table.
+#' @return The ratioFC score.
 #' @export
 
 # instead of getting the ratio of genes that are down-regulated, returns the ratio of FC that is down 
@@ -83,12 +83,12 @@ get_FCdownByRegion_v2 <- function(g2TADdt, DEdt) {
 #'
 #' Function that calculates the ratioFC score for each region.
 #'
-#' @param DEdt Differential expression table
-#' @param shuffData The permutation data
-#' @param stat The score to compute
-#' @param ncpu The number of CPUs to use
-#' @param TADonly If only genes from TADs should be used 
-#' @return The score for each permtuation
+#' @param DEdt Differential expression table.
+#' @param shuffData The permutation data.
+#' @param stat The score to compute.
+#' @param ncpu The number of CPUs to use.
+#' @param TADonly If only genes from TADs should be used.
+#' @return The score for each permtuation.
 #' @export
 
 

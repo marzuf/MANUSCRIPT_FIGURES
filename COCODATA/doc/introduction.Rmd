@@ -1,5 +1,5 @@
 ---
-title: "introduction"
+title: "Introduction"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{introduction}
@@ -14,6 +14,8 @@ knitr::opts_chunk$set(
 )
 ```
 
+
+##### Load some packages
 ```{r setup}
 
 rm(list=ls())
@@ -24,45 +26,11 @@ if(!require(COCODATA))
   # install.packages("COCODATA_0.0.0.1.tar.gz", repos = NULL, type ="source")
  # data("norm_ID")
 library(COCODATA)
-
-
-nCpu <- 2
 library(doMC)
 library(foreach)
+nCpu <- 2
 registerDoMC(nCpu)
 ```
-
-``` {r load_data}
-# ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_DE_topTable.Rdata
-# ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_meanLogFC_permDT.Rdata
-# ENCSR489OCU_NCI-H460_all_assigned_regions.txt
-# ENCSR489OCU_NCI-H460_all_genes_positions.txt
-# luad_ID.Rdata
-# norm_ID.Rdata
-# TCGAluad_norm_luad_fpkmDT.Rdata
-# TCGAluad_norm_luad_rnaseqDT_v2.Rdata
-
-
-```
-
-
-
-``` {r TO_FUNCTION_TO_DOCUMENT}
-# auc.Rd
-# get_downByRegion_v2.Rd
-# get_fcc.Rd
-# get_FCdownByRegion_v2.Rd
-# get_multiShuffledPositions_vFunct.Rd
-# get_ratioDown.Rd
-# get_ratioFC.Rd
-# get_ShuffledPositions_vFunct.Rd
-# get_statFromShuffle_para.Rd
-# madNorm.Rd # not used, this was for microarray data
-# printAndLog.Rd
-# quantNorm.Rd
-# stouffer.Rd
-# get_auc_ratio
-``` 
 
 ##### Prepare the observed data
 ``` {r prep_obs}
@@ -125,7 +93,6 @@ save(obs_FCC, file="package_obs_FCC.Rdata")
 
 ##### Compute FCC for a list of TADs
 ``` {r FCC_permut_example}
-
 # compute the FCC for the permutation data
 data("cut1000_ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_permutationsDT") # this loads permutationsDT
 head_sq(permutationsDT)
@@ -153,7 +120,7 @@ head_sq(all_permut_FCC_dt)
 
 ##### Compute FCC AUC ratio and plot FCC cumsum curves
 
-``` {r FCC_AUC_ratio_example, fig.height=8, fig.width=12}
+``` {r FCC_AUC_ratio_example, fig.height=8, fig.width=10}
 stopifnot(setequal(names(obs_FCC), rownames(all_permut_FCC_dt)))
 get_auc_ratio(fcc_vect=obs_FCC, 
               fcc_permDT=all_permut_FCC_dt, 

@@ -1,20 +1,10 @@
----
-title: "Plotting"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{plotting}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
----
-
-```{r, include = FALSE}
+## ---- include = FALSE----------------------------------------------------
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
-```
 
-```{r setup}
+## ----setup---------------------------------------------------------------
 
 rm(list=ls())
 
@@ -25,13 +15,8 @@ if(!require(COCODATA))
  # data("norm_ID")
 library(COCODATA)
 
-```
 
-
-
-##### Conserved region
-
-``` {r plot_conserved}
+## ----plot_conserved------------------------------------------------------
 data("conserved_region_130_genes_plot_dt") # this loads genes_plot_dt
 head(genes_plot_dt)
 
@@ -41,11 +26,8 @@ head(tads_plot_dt)
 plot_conservedRegions(genes_dt=genes_plot_dt, 
                       tads_dt=tads_plot_dt,
                       dsCat_cols = setNames(c("firebrick3", "navy", "gray50"), c("wt_vs_mut", "norm_vs_tumor", "subtypes")))
-```
 
-##### Volcano-like intra-TAD corr. vs. TAD meanLogFC
-
-``` {r plot_volcano}
+## ----plot_volcano--------------------------------------------------------
 
 data("ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_all_meanCorr_TAD.RData") # this loads all_meanCorr_TAD
 data("ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_all_meanLogFC_TAD.RData") # this loads all_meanLogFC_TAD
@@ -59,11 +41,4 @@ plot_volcanoTADsCorrFC(meanCorr=all_meanCorr_TAD,
 
 
 
-```
-
-
-
-##### FCC cumsum curves
-
-see <em>introduction</em> vignette !
 

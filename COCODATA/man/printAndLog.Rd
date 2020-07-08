@@ -9,10 +9,10 @@ printAndLog(mytext, mylogf)
 \arguments{
 \item{mytext}{The text to be printed.}
 
-\item{mylogf}{Location where to print the text (e.g. log file or NULL)}
+\item{mylogf}{Location where to print the text (e.g. log file or NULL).}
 }
 \value{
-The ratioFC score
+The ratioFC score.
 }
 \description{
 Function that "cat" a message and print it to log file.

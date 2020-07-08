@@ -8,22 +8,22 @@ get_ShuffledPositions_vFunct(g2TADdt, geneIDlist, nClass, TADonly,
   withExprClass, geneAggregExpressionDT = NULL, rd_idx = 0)
 }
 \arguments{
-\item{g2TADdt}{Gene-to-TAD dataframe (expected columns: entrezID, region)}
+\item{g2TADdt}{Gene-to-TAD dataframe (expected columns: entrezID, region).}
 
-\item{geneIDlist}{List of gene IDs that should be used}
+\item{geneIDlist}{List of gene IDs that should be used.}
 
-\item{nClass}{The number of classes of expression in which genes are shuffled}
+\item{nClass}{The number of classes of expression in which genes are shuffled.}
 
-\item{TADonly}{If only genes from TADs should be used}
+\item{TADonly}{If only genes from TADs should be used.}
 
-\item{withExprClass}{If shuffling should take place within classes}
+\item{withExprClass}{If shuffling should take place within classes.}
 
-\item{geneAggregExpressionDT}{Dataframe with aggregated gene expression (across samples)}
+\item{geneAggregExpressionDT}{Dataframe with aggregated gene expression (across samples).}
 
-\item{rd_idx}{For setting seed}
+\item{rd_idx}{For setting seed.}
 }
 \value{
-The permtuation data
+The permtuation data.
 }
 \description{
 Performs the permutation (for 1 permutation).

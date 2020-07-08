@@ -7,12 +7,12 @@
 get_FCdownByRegion_v2(g2TADdt, DEdt)
 }
 \arguments{
-\item{g2TADdt}{Gene-to-TAD dataframe}
+\item{g2TADdt}{Gene-to-TAD dataframe.}
 
-\item{DEdt}{Differential expression table}
+\item{DEdt}{Differential expression table.}
 }
 \value{
-The ratioFC score
+The ratioFC score.
 }
 \description{
 Function that calculates the ratioFC score for each region.

@@ -7,10 +7,10 @@
 quantNorm(x)
 }
 \arguments{
-\item{x}{Vector that will undergo quantil-normalization}
+\item{x}{Vector that will undergo quantil-normalization.}
 }
 \value{
-The normalized vector
+The normalized vector.
 }
 \description{
 Performs quantile-normalization of a vector of numeric values.

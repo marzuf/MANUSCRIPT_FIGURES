@@ -7,10 +7,10 @@
 get_fcc(fc_vect)
 }
 \arguments{
-\item{fc_vect}{Vector of fold-changes}
+\item{fc_vect}{Vector of fold-changes.}
 }
 \value{
-The FCC score
+The FCC score.
 }
 \description{
 Function that calculates the FCC score for a vector of fold-change (FC) values.

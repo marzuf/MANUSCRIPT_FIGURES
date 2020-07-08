@@ -1,11 +1,8 @@
 
-
-
-
 #######################################################################################################################
 #######################################################################################################################
 #######################################################################################################################
-#' Plot TADs of a conserved region.
+#' Plot TADs of a conserved region
 #'
 #' Function to plot the TADs and genes of a conserved region.
 #'
@@ -36,8 +33,8 @@ plot_conservedRegions <- function(genes_dt, tads_dt,
                                   myTit=NULL
                                   ){
   
-  # if(!suppressPackageStartupMessages(require("ggplot2"))) stop("-- ggplot2 package required\n")  
-  # if(!suppressPackageStartupMessages(require("ggrepel"))) stop("-- ggrepel package required\n")  
+  if(!suppressPackageStartupMessages(require("ggplot2"))) stop("-- ggplot2 package required\n")  
+  if(!suppressPackageStartupMessages(require("ggrepel"))) stop("-- ggrepel package required\n")  
   
   if(!is.null(dsCat_cols)) {
     stopifnot(as.character(tads_dt$dsCat) %in% names(dsCat_cols))
@@ -201,10 +198,8 @@ plot_conservedRegions <- function(genes_dt, tads_dt,
 #' @param meanFC Vector of TAD meanLogFC (vector names should be TAD IDs).
 #' @param comb_pval Vector of TAD p-values (vector names should be TAD IDs).
 #' @param tads_to_annot (optional) TAD that should be annotated with a label.
-#' @param ... Other parameters for fine-tuning the plot.
 #' @param padjusted If the p-values should be adjusted (BH method).
-
-
+#' @param ... Other parameters for fine-tuning the plot.
 #' @return The plot (ggplot).
 #' @export
 
@@ -226,6 +221,10 @@ plot_volcanoTADsCorrFC <- function(meanCorr, meanFC, comb_pval,
                                    fontFamily="Hershey"
                                    ) {
   
+  if(!suppressPackageStartupMessages(require("ggplot2"))) stop("-- ggplot2 package required\n")  
+  if(!suppressPackageStartupMessages(require("ggrepel"))) stop("-- ggrepel package required\n")  
+
+
   if(!padjusted) {
     cat("... adjust p-values with BH method\n")
     adj_comb_pval <- p.adjust(comb_pval, method="BH")

@@ -7,10 +7,10 @@
 get_ratioFC(fc_vect)
 }
 \arguments{
-\item{fc_vect}{Vector of fold-changes}
+\item{fc_vect}{Vector of fold-changes.}
 }
 \value{
-The ratioFC score
+The ratioFC score.
 }
 \description{
 Function that calculates ratio of negative fold-change (FC) for a vector of FC values.

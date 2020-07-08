@@ -5,8 +5,8 @@
 #'
 #' Performs quantile-normalization of a vector of numeric values.
 #'
-#' @param x Vector that will undergo quantil-normalization
-#' @return The normalized vector
+#' @param x Vector that will undergo quantil-normalization.
+#' @return The normalized vector.
 #' @export
 
 
@@ -21,10 +21,10 @@ quantNorm <- function(x) {qqnorm(x, plot.it=F)$x}
 #######################################################################################################################
 #' Median absolute deviation (MAD) of a dataframe
 #'
-#' Performs MAD-normalization of a dataframe.
+#' Performs MAD-normalization of a dataframe (use for microarray data).
 #'
-#' @param x Dataframe that will undergo MAD-normalization
-#' @return The normalized dataframe
+#' @param x Dataframe that will undergo MAD-normalization.
+#' @return The normalized dataframe.
 #' @export
 madNorm <- function(x) {
   rna_rnaseqDT_tmp <- x
