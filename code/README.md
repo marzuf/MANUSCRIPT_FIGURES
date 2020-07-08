@@ -33,7 +33,7 @@ Settings from this file will overwrite settings from <em>main_settings.R</em> (h
 ### Input data
 ([Back to top](#table-of-contents))
 
-The expected format of the input data is described [here](https://github.com/marzuf/MANUSCRIPT_FIGURES/blob/master/code/data/input_data_desc.html).
+The expected format of the input data is described <a href="https://github.com/marzuf/MANUSCRIPT_FIGURES/blob/master/code/data/input_data_desc.html">here</a>.
 
 
 ### Launch the pipeline
