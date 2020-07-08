@@ -6,6 +6,8 @@ output:
     toc_float: true
 ---
 
+THIS IS MY NEW TRIAL
+
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,

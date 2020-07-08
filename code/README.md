@@ -33,11 +33,10 @@ Settings from this file will overwrite settings from <em>main_settings.R</em> (h
 ### Input data
 ([Back to top](#table-of-contents))
 
-The expected format of the input data is described <a href="https://htmlpreview.github.io/?https://github.com/marzuf/MANUSCRIPT_FIGURES/blob/master/code/data/input_data_desc.md">here</a>. 
+My format of the input data is described <a href="https://raw.githack.com/marzuf/MANUSCRIPT_FIGURES/master/code/data/input_data_desc.html">here</a>. 
 
-
-
-The expected format of the input data is described <a href="https://htmlpreview.github.io/?https://github.com/marzuf/MANUSCRIPT_FIGURES/blob/master/code/data/input_data_desc.html">here</a>. 
+<!-- The expected format of the input data is described <a href="https://htmlpreview.github.io/?https://github.com/marzuf/MANUSCRIPT_FIGURES/blob/master/code/data/input_data_desc.html">here</a>. -->
+<!-- TOC not rendering with html preview -->
 
 
 ### Launch the pipeline
