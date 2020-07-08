@@ -28,7 +28,6 @@ stopifnot(file.exists(settingF))
 pipScriptDir <- file.path(".")
 
 script1_name <- "1_prepGeneData"
-script2_name <- "2_runGeneDE"
 script5corr_name <- "5corr_runPermutationsCorr"
 script_name <- "7_runPermutationsMeanTADCorr"
 stopifnot(file.exists(file.path(pipScriptDir, paste0(script_name, ".R"))))

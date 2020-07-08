@@ -20,8 +20,6 @@ stopifnot(file.exists(settingF))
 
 pipScriptDir <- file.path(".")
 
-script1_name <- "1_prepGeneData"
-script2_name <- "2_runGeneDE"
 script3_name <- "3_runMeanTADLogFC"
 script6_name <- "6_runPermutationsMeanLogFC"
 script_name <- "8_runEmpPvalMeanTADLogFC"

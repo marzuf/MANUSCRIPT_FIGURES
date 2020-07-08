@@ -21,8 +21,6 @@ stopifnot(file.exists(settingF))
 
 pipScriptDir <- file.path(".")
 
-script1_name <- "1_prepGeneData"
-script2_name <- "2_runGeneDE"
 script4_name <- "4_runMeanTADCorr"
 script7_name <- "7_runPermutationsMeanTADCorr"
 script_name <- "9_runEmpPvalMeanTADCorr"
@@ -121,13 +119,6 @@ emp_pval_meanCorr <- sapply(all_obs_corr, function(x) {
 })
 names(emp_pval_meanCorr) <- names(all_obs_corr)
 stopifnot(all(emp_pval_meanCorr > 0 & emp_pval_meanCorr <= 1 ))
-
-
-### CHECK RETRIEVE THE RIGHT VALUES
-tadListFile <- file.path(pipOutFold, script1_name, "pipeline_regionList.Rdata")
-stopifnot(file.exists(tadListFile))
-pipeline_tadList <- eval(parse(text = load(tadListFile))) # not adjusted
-stopifnot(setequal(names(emp_pval_meanCorr), pipeline_tadList))
 
 
 outFile <- file.path(curr_outFold, paste0(filePrefix, "emp_pval_meanCorr.Rdata"))
