@@ -10,6 +10,6 @@ download [here](COCODATA_0.0.0.1.tar.gz) and run `install.packages("COCODATA_0.0
 
 or directly run `devtools::install_github("marzuf/MANUSCRIPT_FIGURES", subdir="COCODATA")` in an R console
 
-available vignettes: [introduction](COCODATA/doc/introduction.html), [permutations](COCODATA/doc/permutations.html), [plotting](COCODATA/doc/plotting.html)
+available vignettes: [introduction](https://raw.githack.com/marzuf/MANUSCRIPT_FIGURES/master/COCODATA/doc/introduction.html), [permutations](https://raw.githack.com/marzuf/MANUSCRIPT_FIGURES/master/COCODATA/doc/permutations.html), [plotting](https://raw.githack.com/marzuf/MANUSCRIPT_FIGURES/master/COCODATA/doc/plotting.html)
 
 
