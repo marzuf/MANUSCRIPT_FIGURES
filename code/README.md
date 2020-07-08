@@ -36,7 +36,13 @@ Settings from this file will overwrite settings from <em>main_settings.R</em> (h
 The expected format of the input data is described <a href="https://github.com/marzuf/MANUSCRIPT_FIGURES/blob/master/code/data/input_data_desc.html">here</a>.
 
 
+ https://htmlpreview.github.io/
+
 The expected format of the input data is described <a href="https://github.com/marzuf/MANUSCRIPT_FIGURES/blob/master/code/data/input_data_desc.md">here</a>.
+
+
+
+The expected format of the input data is described <a href="https://htmlpreview.github.io/?https://github.com/marzuf/MANUSCRIPT_FIGURES/blob/master/code/data/input_data_desc.html">here</a>. 
 
 
 ### Launch the pipeline
