@@ -2,13 +2,13 @@
 [Main settings](#main-settings)  
 [Additional settings](#additional-settings)  
 [Input data](#input-data)  
-[Launch the pipeline](#launch-the-pipeline)
-[Pipeline content](#pipeline-content)
-[Outputs](#outputs)
-[Dependencies](#depedencies)
-[Warning](#warning)
-[Example](#example)
-[Script dependencies](#script-dependencies)
+[Launch the pipeline](#launch-the-pipeline)  
+[Pipeline content](#pipeline-content)  
+[Outputs](#outputs)  
+[Dependencies](#depedencies)  
+[Warning](#warning)  
+[Example](#example)  
+[Script dependencies](#script-dependencies)  
 
 ##### Main settings
 
@@ -89,7 +89,7 @@ In step 9 (also impacting step 10), there are two possibilities for retrieving c
 <li>if <em>refineMatchPattern</em> is provided, used for a second pattern matching to refine file retrieval</li>
 <li>if <em>corrDiscardPattern</em> is provided in setting files, files that match that pattern are discarded</li>
 <li>if <em>nbrCorrPermutCheck</em> is provided, it is checked that "nbrCorrPermutCheck" files have been loaded</li>
-<li>it is expected to correspond to the format of script 7: each file should correspond to a list of lists storing a correlation value in `my_list[[idx]][["meanCorr"]]` with as many <em>idx</em> as TADs
+<li>it is expected to correspond to the format of script 7: each file should correspond to a list of lists storing a correlation value in <pre><code>my_list[[idx]][["meanCorr"]]</pre></code> with as many <em>idx</em> as TADs
 <li>ouput files from steps 9 and 10 will be prefixed with <em>fromFolder_</em>
 </ul>
 <li>if <em>all_permutCorr_data</em> is a file:</li>
