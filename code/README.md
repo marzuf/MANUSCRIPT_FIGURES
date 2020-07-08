@@ -23,7 +23,7 @@ The current <em>main_settings.R</em> file was used to run the example as explain
 
 ### Additional settings
 
-(<a href="#top">Back to top</a>)
+([Back to top](#table-of-contents))
 
 Set additional (e.g. dataset-specific) settings in another file (cf. template file: <em>TEMPLATE_setting_file.R</em>)
 
@@ -116,6 +116,7 @@ Example for running the full pipeline with our LUSC data (using provided data fo
 
 
 ### Script dependencies
+([Back to top](#table-of-contents))
 
 | Script        | Dependencies      |
 | ------------- |-------------------|
