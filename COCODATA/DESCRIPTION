@@ -5,7 +5,7 @@ Authors@R:
     person(given = "Marie",
            family = "Zufferey",
            role = c("aut", "cre"),
-           email = "marie.zufferey.1@uni.ch")
+           email = "marie.zufferey.1@unil.ch")
 Description: Some useful functions for the analysis of COnCOrdance and Differential Activation of TAds (COCODATA)
 License: GPL-3
 Encoding: UTF-8
@@ -13,7 +13,9 @@ LazyData: true
 Imports:
 	dplyr,
 	foreach,
-	doMC
+	doMC,
+	ggplot2,
+	ggrepel
 RoxygenNote: 6.1.1
 Suggests: 
     knitr,

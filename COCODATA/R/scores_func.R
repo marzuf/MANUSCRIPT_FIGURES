@@ -9,7 +9,7 @@
 #' @param x Vector of x positions
 #' @param y Vector of y positions
 #' @param thresh Threshold below which area is not calculated
-#' @param By default the data density is artificially increased by adding 100 data points between given adjacent data points.
+#' @param dens By default the data density is artificially increased by adding 100 data points between given adjacent data points.
 #' @param By default the vectors in x and y are ordered along increasing x because integration makes no sense with unordered data.
 #' @return The AUC
 #' @export
@@ -146,7 +146,7 @@ get_ratioFC <- function(fc_vect) {
 #'
 #' @param fcc_vect Vector of observed FCCs
 #' @param fcc_permDT Dataframe with permutation FCCs (each column is a permutation)
-#' @param permQt Quantile of the permutation (default: 0.95) used for computing the AUC ratio.
+#' @param permQt Quantile of the permutation (default: 0.95) used for computing the AUC ratio
 #' @param doPlot If true, plot the cumsum wave curves
 #' @param plotCex Cex value for the axis labs and titles (default: 1.2)
 #' @param ploygonPermutCol Color for the area of permutation value (default: grey color)

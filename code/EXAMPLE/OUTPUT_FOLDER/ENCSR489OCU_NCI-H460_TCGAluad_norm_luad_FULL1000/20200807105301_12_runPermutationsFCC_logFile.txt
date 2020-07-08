@@ -1,0 +1,10 @@
+12_RUNPERMUTATIONSFCC> inputDataType	=	RSEM
+12_RUNPERMUTATIONSFCC> gene2tadDT_file	=	EXAMPLE/DATA/ENCSR489OCU_NCI-H460_all_genes_positions.txt
+12_RUNPERMUTATIONSFCC> TADpos_file	=	EXAMPLE/DATA/ENCSR489OCU_NCI-H460_all_assigned_regions.txt
+12_RUNPERMUTATIONSFCC> settingF	=	example1000_ENCSR489OCU_NCI-H460_40kb_run_settings_TCGAlusc_norm_lusc.R
+12_RUNPERMUTATIONSFCC> Take only the genes for which logFC value is available (the ones used in DE analysis): 8418/8418
+12_RUNPERMUTATIONSFCC> Take only TAD regions: 1774/1774
+12_RUNPERMUTATIONSFCC> Number of permutations for which FCC computed: 1000
+12_RUNPERMUTATIONSFCC> Number of regions for which FCC computed: 1774
+2020-07-08 10:53:01
+2020-07-08 10:54:27
