@@ -31,7 +31,7 @@ library(COCODATA)
 
 ##### Conserved region
 
-``` {r plot_conserved}
+``` {r plot_conserved, fig.height=8, fig.width=14}
 data("conserved_region_130_genes_plot_dt") # this loads genes_plot_dt
 head(genes_plot_dt)
 
@@ -45,7 +45,7 @@ plot_conservedRegions(genes_dt=genes_plot_dt,
 
 ##### Volcano-like intra-TAD corr. vs. TAD meanLogFC
 
-``` {r plot_volcano}
+``` {r plot_volcano, fig.height=6, fig.width=8}
 
 data("ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_all_meanCorr_TAD.RData") # this loads all_meanCorr_TAD
 data("ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_all_meanLogFC_TAD.RData") # this loads all_meanLogFC_TAD
