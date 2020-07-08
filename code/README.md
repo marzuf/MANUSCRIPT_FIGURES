@@ -1,4 +1,4 @@
-##### Table of Contents  
+### Table of Contents  
 [Main settings](#main-settings)  
 [Additional settings](#additional-settings)  
 [Input data](#input-data)  
@@ -10,7 +10,9 @@
 [Example](#example)  
 [Script dependencies](#script-dependencies)  
 
-##### Main settings
+### Main settings
+
+(<a href="#top">Back to top</a>)
 
 Set main settings in <em>main_settings.R</em> (cf. template file: <em>TEMPLATE_main_settings.R</em>).
 
@@ -19,7 +21,9 @@ Do not change the name of this file.
 The current <em>main_settings.R</em> file was used to run the example as explained below.
 
 
-##### Additional settings
+### Additional settings
+
+(<a href="#top">Back to top</a>)
 
 Set additional (e.g. dataset-specific) settings in another file (cf. template file: <em>TEMPLATE_setting_file.R</em>)
 
@@ -28,12 +32,12 @@ The name of this file can be user-defined.
 Settings from this file will overwrite settings from <em>main_settings.R</em> (hence can be used for this purpose).
 
 
-##### Input data
+### Input data
 
-The expected format of the input data is described [here](data/input_data_desc.html)
+The expected format of the input data is described [here](data/input_data_desc.html).
 
 
-##### Launch the pipeline
+### Launch the pipeline
 
 ```{bash}
  ./run_pipeline.sh <setting_file> <stepNbr> <stepNbr> <...>
@@ -43,7 +47,7 @@ The expected format of the input data is described [here](data/input_data_desc.h
 
 `stepNbr` indicates the step(s) of the pipeline that should be run (should be what comes before the "_" in the script name, e.g. `1` or `5fc`)
 
-##### Pipeline content
+### Pipeline content
 
 The pipeline is designed to run the steps one after the other (some [depedencies](#script-dependencies) exist among the scripts, e.g. the 11th requires the 10th and 9th to have been run).
 
@@ -65,12 +69,12 @@ The names of the scripts explicitly describe to which step they correspond, name
 <li><em>13_runFCCcumSumAUC.R</em>: obs/permut. AUC ratio of FCC cumsum curves</li>
 </ul>
 
-##### Outputs
+### Outputs
 
 In the folder indicated in the settings, each script outputs Rdata files in a folder with the same name as the script (e.g. files written in <em>1_prepGeneData</em> for <em>1_prepGeneData.R</em>).
 
 
-##### Dependencies
+### Dependencies
 
 [pigz](https://zlib.net/pigz) is required for fast saving in Rdata files in the scripts 5fc, 6 and 12 (we used version 2.4).
 
@@ -78,7 +82,7 @@ In the folder indicated in the settings, each script outputs Rdata files in a fo
 R packages used in the pipeline: limma and edge  (for gene-level differential expression analysis in step 2), foreach, doMC, dplyr, tools, flux.
 
 
-##### **WARNING** 
+### **WARNING** 
 
 In step 9 (also impacting step 10), there are two possibilities for retrieving correlation permutation data to be set in the setting files:
 
@@ -101,19 +105,19 @@ In step 9 (also impacting step 10), there are two possibilities for retrieving c
 
 
 
-##### Example
+### Example
 
 Example for running the full pipeline with our LUSC data (using provided data for intra-TAD correlation, cf. setting files):
 
 ```{bash}
- ./example_run_pipeline.sh example_ENCSR489OCU_NCI-H460_40kb_run_settings_TCGAlusc_norm_lusc.R 1 2 3 4 5fc 6 8 9 10 11 12 13
+ ./example_run_pipeline.sh example_ENCSR489OCU_NCI-H460_40kb_run_settings_TCGAlusc_norm_lusc.R 1 2 3 4 5fc 5corr 6 7 8 9 10 11 12 13
 ```
 
 
 
-##### Script dependencies
+### Script dependencies
 
-| script        | dependencies      |
+| Script        | Dependencies      |
 | ------------- |-------------------|
 | 1             | -                 |
 | 2             | 1                 |
