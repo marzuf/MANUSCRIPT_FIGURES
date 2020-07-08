@@ -122,6 +122,7 @@ Example for running the full pipeline with our LUSC data (using provided data fo
  ./example_run_pipeline.sh example_ENCSR489OCU_NCI-H460_40kb_run_settings_TCGAlusc_norm_lusc.R 1 2 3 4 5fc 5corr 6 7 8 9 10 11 12 13
 ```
 
+(55 minutes to run the full the pipeline with 40 CPU and 1000 permutations)
 
 
 ### Script dependencies

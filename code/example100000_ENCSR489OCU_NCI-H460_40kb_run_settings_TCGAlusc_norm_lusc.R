@@ -1,88 +1,100 @@
-
-# to have compatible versions of Rdata
-options(save.defaults = list(version = 2))  # for compatibility reasons
-
-
 # in this file, settings that are specific for a run on a dataset
 
 # gives path to output folder
-pipOutFold <- <PATH_TO_OUTPUT_FOLDER>
+pipOutFold <- "EXAMPLE/OUTPUT_FOLDER/ENCSR489OCU_NCI-H460_TCGAluad_norm_luad_FULL100000"
 
-# full path (starting with /mnt/...)
-# following format expected for the input
-# colnames = samplesID
-# rownames = geneID
-# !!! geneID are expected not difficulted
+# to have compatible versions of Rdata
+options(save.defaults = list(version = 2))
+
 
 # *************************************************************************************************************************
 # ************************************ SETTINGS FOR 1_prepGeneData
 # *************************************************************************************************************************
 
 # UPDATE 07.12.2018: for RSEM data, the "analog" FPKM file is provided separately (built in prepData)
-rna_fpkmDT_file <- <PATH TO FPKM EXPRESSION DATA>
-
-rnaseqDT_file <- <PATH TO GENE EXPRESSION DATA>
+# cp /mnt/ed4/marie/other_datasets/TCGAluad_norm_luad/fpkmDT.Rdata EXAMPLE/DATA/TCGAluad_norm_luad_fpkmDT.Rdata
+rna_fpkmDT_file <- "EXAMPLE/DATA/TCGAluad_norm_luad_fpkmDT.RData"
+# cp /mnt/ed4/marie/other_datasets/TCGAluad_norm_luad/rnaseqDT_v2.Rdata EXAMPLE/DATA/TCGAluad_norm_luad_rnaseqDT_v2.Rdata 
+rnaseqDT_file <- "EXAMPLE/DATA/TCGAluad_norm_luad_rnaseqDT_v2.RData"
 my_sep <- "\t"
 # input is Rdata or txt file ?
 # TRUE if the input is Rdata
-inRdata <- TRUE  # ! tested only with TRUE
+inRdata <- TRUE
 
-# can be ensemblID, entrezID, geneSymbol ! tested only with entrezID
+# can be ensemblID, entrezID, geneSymbol
 geneID_format <- "entrezID"
 stopifnot(geneID_format %in% c("ensemblID", "entrezID", "geneSymbol"))
 
-# are geneID rownames ? -> "rn" or numeric giving the column ! tested only with "rn" (=row names)
+# are geneID rownames ? -> "rn" or numeric giving the column
 geneID_loc <- "rn"
 stopifnot(geneID_loc == "rn" | is.numeric(geneID_loc))
 
-removeDupGeneID <- TRUE #  ! tested only with TRUE
+removeDupGeneID <- TRUE
 
-min_counts <- <MIN_COUNT># we used 5
-min_sampleRatio <- <MIN_RATIO_SAMPLES_THAT_SHOULD_HAVE_min_counts> # we used 0.8
-s
+min_counts <- 5
+min_sampleRatio <- 0.8
+
 
 # *************************************************************************************************************************
 # ************************************ SETTINGS FOR 2_runGeneDE
 # *************************************************************************************************************************
 
 # labels for conditions
-cond1 <- <NAME_CONDITION_1>
-cond2 <- <NAME_CONDITION_2>
+cond1 <- "norm"
+cond2 <- "luad"
 
 # path to sampleID for each condition - should be Rdata ( ! sample1 for cond1, sample2 for cond2 ! )
-sample1_file <- <PATH_TO_RDATA_FILE_WITH_COND1_SAMPLES>
-sample2_file <- <PATH_TO_RDATA_FILE_WITH_COND2_SAMPLES>
+# cp /mnt/ed4/marie/other_datasets/TCGAluad_norm_luad/norm_ID.Rdata EXAMPLE/DATA/norm_ID.Rdata
+# cp /mnt/ed4/marie/other_datasets/TCGAluad_norm_luad/luad_ID.Rdata EXAMPLE/DATA/luad_ID.Rdata
+sample1_file <- "EXAMPLE/DATA/norm_ID.RData"
+sample2_file <- "EXAMPLE/DATA/luad_ID.RData"
 
-inputDataType <- "RSEM" # ! tested only with RSEM
+
+inputDataType <- "RSEM"
+
+
+# path to output folder:
 
 # OVERWRITE THE DEFAULT SETTINGS FOR INPUT FILES - use TADs from the current Hi-C dataset 
-TADpos_file <- <PATH_TO_TAD_POSITIONS_FILE>
+# cp /mnt/etemp/marie/v2_Yuanlong_Cancer_HiC_data_TAD_DA/ENCSR489OCU_NCI-H460_40kb/genes2tad/all_assigned_regions.txt EXAMPLE/DATA/ENCSR489OCU_NCI-H460_all_assigned_regions.txt
+TADpos_file <- file.path("EXAMPLE/DATA/ENCSR489OCU_NCI-H460_all_assigned_regions.txt")
 #chr1    chr1_TAD1       750001  1300000
 #chr1    chr1_TAD2       2750001 3650000
 #chr1    chr1_TAD3       3650001 4150000
 
-gene2tadDT_file <- <PATH_TO_TAD_GENE_TO_TAD_ASSIGNMENT_FILE>
+# cp /mnt/etemp/marie/v2_Yuanlong_Cancer_HiC_data_TAD_DA/ENCSR489OCU_NCI-H460_40kb/genes2tad/all_genes_positions.txt EXAMPLE/DATA/ENCSR489OCU_NCI-H460_all_genes_positions.txt
+gene2tadDT_file <- file.path("EXAMPLE/DATA/ENCSR489OCU_NCI-H460_all_genes_positions.txt")
 #LINC00115       chr1    761586  762902  chr1_TAD1
 #FAM41C  chr1    803451  812283  chr1_TAD1
 #SAMD11  chr1    860260  879955  chr1_TAD1
 #NOC2L   chr1    879584  894689  chr1_TAD1
 
+# overwrite main_settings.R: nCpu <- 25
+nCpu <- 40
 
 # *************************************************************************************************************************
 # ************************************ SETTINGS FOR PERMUTATIONS (5fc_runPermutationsMedian)
 # *************************************************************************************************************************
-nRandomPermut <- <NBR_PERMUT> # we used 100000
+
+# number of permutations
+nRandomPermut <- 100000
 
 
 # *************************************************************************************************************************
 # ************************************ SETTINGS FOR PERMUTATION DATA FOR CORRELATION (9_runEmpPvalMeanTADCorr and 10_runEmpPvalCombined)
 # *************************************************************************************************************************
 
-all_permutCorr_data <- <PATH_TO_CORRELATION_PERMUTATION_DATA> # a file or a folder
-# corrMatchPattern <- <PATTERN_TO_MATCH> # <optional> (default in main_settings: meanCorr_sample_around_TADs_sameNbr.Rdata) if all_permutCorr_data is a folder, matching pattern to retrieve files in all_permutCorr_data
-refineMatchPattern <- <2ND_PATTERN_TO_MATCH> # <optional> if all_permutCorr_data is a folder, can be used as a second matching pattern to refine file retrieval from all_permutCorr_data
-corrDiscardPattern <- <PATTERN_TO_DISCARD> # <optional>, if set, will be used only if all_permutCorr_data is a folder to possibly discard some files [!grepl(corrDiscardPattern, x]
-nbrCorrPermutCheck <- <NBR_CORRELATION_PERMUTATION_DATA> # <optional>, if set, will be used to check the number of retrieved permutation data
+#vFolder
+#all_permutCorr_data <- "/mnt/etemp/marie/v2_Yuanlong_Cancer_HiC_data_TAD_DA/PIPELINE/OUTPUT_FOLDER"
+#nbrCorrPermutCheck <- 58 
+#corrDiscardPattern <- "RANDOM|PERMUT"
+#refineMatchPattern <- "7sameNbr_"
+
+#vFile
+all_permutCorr_data <- "data/all_sample_corrValues.RData"
+nbrCorrPermutCheck <- 58 
+
+
 
 
 
