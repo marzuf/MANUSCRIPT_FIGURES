@@ -2,6 +2,7 @@
 title: "Input data"
 output: 
   html_document:
+    self_contained: true
     keep_md: true
     toc: true
     toc_float: true
