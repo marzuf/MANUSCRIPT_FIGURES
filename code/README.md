@@ -33,7 +33,7 @@ Settings from this file will overwrite settings from <em>main_settings.R</em> (h
 ### Input data
 ([Back to top](#table-of-contents))
 
-My format of the input data is described <a href="https://raw.githack.com/marzuf/MANUSCRIPT_FIGURES/master/code/data/input_data_desc.html">here</a>. 
+The expected format for the input data is described <a href="https://raw.githack.com/marzuf/MANUSCRIPT_FIGURES/master/code/data/input_data_desc.html">here</a>. 
 
 <!-- The expected format of the input data is described <a href="https://htmlpreview.github.io/?https://github.com/marzuf/MANUSCRIPT_FIGURES/blob/master/code/data/input_data_desc.html">here</a>. -->
 <!-- TOC not rendering with html preview -->
@@ -76,17 +76,20 @@ The names of the scripts explicitly describe to which step they correspond, name
 ### Outputs
 ([Back to top](#table-of-contents))
 
-In the folder indicated in the settings, each script mainly outputs Rdata files in a folder with the same name as the script (e.g. files written in <em>1_prepGeneData</em> for <em>1_prepGeneData.R</em>).
+In the folder indicated in the settings, each script mainly outputs RData files in a folder with the same name as the script (e.g. files written in <em>1_prepGeneData</em> for <em>1_prepGeneData.R</em>).
 
 
 ### Dependencies
 ([Back to top](#table-of-contents))
 
 
-[pigz](https://zlib.net/pigz) is required for fast saving in Rdata files in the scripts 5fc, 6 and 12 (we used version 2.4).
+[pigz](https://zlib.net/pigz) is required for fast saving in RData files in the scripts 5fc, 6 and 12 (we used version 2.4).
 
 
 R packages used in the pipeline: limma and edge  (for gene-level differential expression analysis in step 2), foreach, doMC, dplyr, tools, flux.
+
+
+The pipeline has been tested in July 2020 with R version 3.6.0.
 
 
 ### **WARNING** 
@@ -97,20 +100,19 @@ In step 9 (also impacting step 10), there are two possibilities for retrieving c
 <ul>
 <li>if <code>all_permutCorr_data</code> is the path to a folder:</li>
 <ul>
-<li>the correlation values from permutation data are loaded from files in <code>all_permutCorr_data</code> that (recursively) match the pattern <code>corrMatchPattern</code> (currently set to <code>meanCorr_sample_around_TADs_sameNbr.Rdata</code> in the main settings but can be overwritten in the additional settings)</li>
-<li>if <code>refineMatchPattern</code> is provided, used for a second pattern matching to refine file retrieval</li>
+<li>the correlation values from permutation data are loaded from files in <code>all_permutCorr_data</code> that (recursively) match the pattern <code>corrMatchPattern</code> (currently set to <code>"meanCorr_sample_around_TADs_sameNbr.RData"</code> (output of step 7) in the main settings but can be overwritten in the additional settings)</li>
+<li>if <code>refineMatchPattern</code> is provided, this pattern is used for a second pattern matching to refine file retrieval</li>
 <li>if <code>corrDiscardPattern</code> is provided in setting files, files that match that pattern are discarded</li>
-<li>if <code>nbrCorrPermutCheck</code> is provided, it is checked that "nbrCorrPermutCheck" files have been loaded</li>
-<li>it is expected to correspond to the format of script 7: each file should correspond to a list of lists storing a correlation value in <code>my_list[[idx]][["meanCorr"]]</code> with as many <code>idx</codes> as TADs
+<li>if <code>nbrCorrPermutCheck</code> is provided, it is checked that as many as <code>nbrCorrPermutCheck</code> files have been loaded</li>
+<li>it is expected that retrieved files correspond to the output of script 7: each file should be loadable (RData) and contain a list of lists storing a correlation value in <code>my_list[[idx]][["meanCorr"]]</code> with as many <code>idx</code> as TADs
 <li>ouput files from steps 9 and 10 will be prefixed with <em>fromFolder_</em>
 </ul>
 <li>if <code>all_permutCorr_data</code> is the path to a file:</li>
 <ul>
-<li><code>all_permutCorr_file</code> should provide the path to correlation values for the permutation data (the file <em>data/all_sample_corrValues.Rdata</em> provides the values from our permuation data); the data should be a Rdata file containing a list/vector of permutation correlation values</li>
+<li><code>all_permutCorr_file</code> should provide the path to correlation values for the permutation data (the file <em>data/all_sample_corrValues.RData</em> provides the values from our permuation data); the data should be a RData file containing a list/vector of permutation correlation values</li>
 <li>ouput files from steps 9 and 10 will be prefixed with <em>fromFile_</em>
 </ul>
 </ul>
-
 
 
 ### Example
@@ -119,7 +121,7 @@ In step 9 (also impacting step 10), there are two possibilities for retrieving c
 Example for running the full pipeline with our LUSC data (using provided data for intra-TAD correlation, cf. setting files):
 
 ```{bash}
- ./example_run_pipeline.sh example_ENCSR489OCU_NCI-H460_40kb_run_settings_TCGAlusc_norm_lusc.R 1 2 3 4 5fc 5corr 6 7 8 9 10 11 12 13
+ ./example_run_pipeline.sh example_ENCSR489OCU_NCI-H460_40kb_run_settings_TCGAluad_norm_luad.R 1 2 3 4 5fc 5corr 6 7 8 9 10 11 12 13
 ```
 
 (ca. 55 minutes to run the full the pipeline with 40 CPU and 1000 permutations, 8h for 100'000 permutations)

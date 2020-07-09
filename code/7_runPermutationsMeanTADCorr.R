@@ -7,14 +7,14 @@ startTime <- Sys.time()
 ### !!! HARD CODED corMet "pearson"
 
 ################  USE THE FOLLOWING FILES FROM PREVIOUS STEPS
-# - script0: pipeline_regionList.Rdata
-# - script0: pipeline_geneList.Rdata
-# - script0: rna_madnorm_rnaseqDT.Rdata or rna_qqnorm_rnaseqDT.Rdata
-# - script5sameNbr: sample_around_TADs_sameNbr.Rdata
+# - script0: pipeline_regionList.RData
+# - script0: pipeline_geneList.RData
+# - script0: rna_madnorm_rnaseqDT.RData or rna_qqnorm_rnaseqDT.RData
+# - script5sameNbr: sample_around_TADs_sameNbr.RData
 ################################################################################
 
 ################  OUTPUT
-# - meanCorr_permDT.Rdata
+# - meanCorr_permDT.RData
 ################################################################################
 
 ### !!! TAKE ALL DATA FROM THE DS IN THE FOLDER !!!
@@ -67,11 +67,11 @@ corrMeth <- "pearson"
 txt <- paste0(toupper(script_name), "> corrMeth\t=\t", corrMeth, "\n")
 printAndLog(txt, pipLogFile)
 
-geneList_file <- file.path(pipOutFold, script1_name, "pipeline_geneList.Rdata")
+geneList_file <- file.path(pipOutFold, script1_name, "pipeline_geneList.RData")
 stopifnot(file.exists(geneList_file))
 geneList <- eval(parse(text = load(geneList_file)))
 
-regionList_file <- file.path(pipOutFold, script1_name, "pipeline_regionList.Rdata")
+regionList_file <- file.path(pipOutFold, script1_name, "pipeline_regionList.RData")
 stopifnot(file.exists(regionList_file))
 regionList <- eval(parse(text = load(regionList_file)))
 
@@ -81,7 +81,7 @@ stopifnot(file.exists(sample2_file))
 cond1_ID <- eval(parse(text = load(sample1_file)))
 cond2_ID <- eval(parse(text = load(sample2_file)))
 
-qqnormDTfile <- file.path(pipOutFold,script1_name, "rna_qqnorm_rnaseqDT.Rdata")
+qqnormDTfile <- file.path(pipOutFold,script1_name, "rna_qqnorm_rnaseqDT.RData")
 stopifnot(file.exists(qqnormDTfile))
 qqnormDT <- eval(parse(text = load(qqnormDTfile)))
 
@@ -93,7 +93,7 @@ norm_rnaseqDT <- qqnormDT[names(geneList),]    # !!! ENSURE THAT THE QQNORM IN T
 stopifnot(rownames(norm_rnaseqDT) == names(geneList))
 stopifnot(!duplicated(names(geneList)))
 
-ds_sample_data_file <- file.path(pipOutFold, script5corr_name, "sample_around_TADs_sameNbr.Rdata")
+ds_sample_data_file <- file.path(pipOutFold, script5corr_name, "sample_around_TADs_sameNbr.RData")
 stopifnot(file.exists(ds_sample_data_file))
 ds_sample_data <- eval(parse(text = load(ds_sample_data_file)))
 
@@ -284,7 +284,7 @@ meanCorr_sample_around_TADs_sameNbr <- foreach(reg = all_regs) %dopar% {
 } # end iterating over all regions
 names(meanCorr_sample_around_TADs_sameNbr) <- all_regs 
 
-outFile <- file.path(curr_outFold, "meanCorr_sample_around_TADs_sameNbr.Rdata")
+outFile <- file.path(curr_outFold, "meanCorr_sample_around_TADs_sameNbr.RData")
 save(meanCorr_sample_around_TADs_sameNbr, file = outFile)
 cat(paste0("... written: ", outFile, "\n"))
 

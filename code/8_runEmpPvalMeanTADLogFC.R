@@ -5,12 +5,12 @@ options(scipen=100)
 startTime <- Sys.time()
 
 ################  USE THE FOLLOWING FILES FROM PREVIOUS STEPS
-# - script3: all_meanLogFC_TAD.Rdata
-# - script6: meanLogFC_permDT.Rdata
+# - script3: all_meanLogFC_TAD.RData
+# - script6: meanLogFC_permDT.RData
 ################################################################################
 
 ################  OUTPUT
-# - emp_pval_meanLogFC.Rdata + plots
+# - emp_pval_meanLogFC.RData + plots
 ################################################################################
 
 args <- commandArgs(trailingOnly = TRUE)
@@ -69,13 +69,13 @@ nTop <- 10
 ################################****************************************************************************************
 
 # LOAD DATA AND DISCARD THE REGIONS WITH NA 
-obs_TADLogFC <- eval(parse(text = load(file.path(pipOutFold, script3_name, "all_meanLogFC_TAD.Rdata"))))
+obs_TADLogFC <- eval(parse(text = load(file.path(pipOutFold, script3_name, "all_meanLogFC_TAD.RData"))))
 initLen <- length(obs_TADLogFC)
 obs_TADLogFC <- na.omit(obs_TADLogFC)
 txt <- paste0(toupper(script_name), "> Discard rows with NA in observed logFC. Retain: ", length(obs_TADLogFC), "/", initLen, "\n")
 printAndLog(txt, pipLogFile)
 
-permut_TADLogFC_DT <- eval(parse(text = load(file.path(pipOutFold, script6_name, "meanLogFC_permDT.Rdata"))))
+permut_TADLogFC_DT <- eval(parse(text = load(file.path(pipOutFold, script6_name, "meanLogFC_permDT.RData"))))
 initNrow <- nrow(permut_TADLogFC_DT)
 permut_TADLogFC_DT <- na.omit(permut_TADLogFC_DT)
 txt <- paste0(toupper(script_name), "> Discard rows with NA in permutation logFC. Retain: ", nrow(permut_TADLogFC_DT), "/", initNrow, "\n")
@@ -141,8 +141,8 @@ stopifnot(all(emp_pval_meanLogFC > 0 & emp_pval_meanLogFC <= 1 ))
 ####################################################### WRITE OUTPUT
 ################################****************************************************************************************
 
-save(emp_pval_meanLogFC, file= file.path(curr_outFold, "emp_pval_meanLogFC.Rdata"))
-cat(paste0("... written: ", file.path(curr_outFold, "emp_pval_meanLogFC.Rdata"), "\n"))
+save(emp_pval_meanLogFC, file= file.path(curr_outFold, "emp_pval_meanLogFC.RData"))
+cat(paste0("... written: ", file.path(curr_outFold, "emp_pval_meanLogFC.RData"), "\n"))
 
 
 outFile <- file.path(curr_outFold, paste0("volcano_plot_empPval_meanLogFC.", plotType))

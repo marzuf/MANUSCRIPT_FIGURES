@@ -3,16 +3,16 @@
 startTime <- Sys.time()
 
 ################  USE THE FOLLOWING FILES FROM PREVIOUS STEPS
-# - script0: pipeline_regionList.Rdata
-# - script0: rna_geneList.Rdata
-# - script0: pipeline_geneList.Rdata
-# - script0: rna_madnorm_rnaseqDT.Rdata
-# - script1: DE_topTable.Rdata
-# - script1: DE_geneList.Rdata
+# - script0: pipeline_regionList.RData
+# - script0: rna_geneList.RData
+# - script0: pipeline_geneList.RData
+# - script0: rna_madnorm_rnaseqDT.RData
+# - script1: DE_topTable.RData
+# - script1: DE_geneList.RData
 ################################################################################
 
 ################  OUTPUT
-# - /all_meanLogFC_TAD.Rdata
+# - /all_meanLogFC_TAD.RData
 ################################################################################
 
 args <- commandArgs(trailingOnly = TRUE)
@@ -59,11 +59,11 @@ printAndLog(txt, pipLogFile)
 gene2tadDT <- read.delim(gene2tadDT_file, header=F, col.names = c("entrezID", "chromo", "start", "end", "region"), stringsAsFactors = F)
 gene2tadDT$entrezID <- as.character(gene2tadDT$entrezID)
 
-DE_topTable <- eval(parse(text = load(file.path(pipOutFold, script2_name, "DE_topTable.Rdata"))))
-DE_geneList <- eval(parse(text = load(file.path(pipOutFold, script2_name, "DE_geneList.Rdata"))))
+DE_topTable <- eval(parse(text = load(file.path(pipOutFold, script2_name, "DE_topTable.RData"))))
+DE_geneList <- eval(parse(text = load(file.path(pipOutFold, script2_name, "DE_geneList.RData"))))
 
-pipeline_geneList <- eval(parse(text = load(file.path(pipOutFold, script1_name, "pipeline_geneList.Rdata"))))
-pipeline_regionList <- eval(parse(text = load(file.path(pipOutFold, script1_name, "pipeline_regionList.Rdata"))))
+pipeline_geneList <- eval(parse(text = load(file.path(pipOutFold, script1_name, "pipeline_geneList.RData"))))
+pipeline_regionList <- eval(parse(text = load(file.path(pipOutFold, script1_name, "pipeline_regionList.RData"))))
 
 if(useTADonly) {
   if(any(grepl("_BOUND", pipeline_regionList))) {
@@ -120,8 +120,8 @@ if(useTADonly) {
     printAndLog(txt, pipLogFile)
 }
 
-save(all_meanLogFC_TAD, file= file.path(curr_outFold, "all_meanLogFC_TAD.Rdata"))
-cat(paste0("... written: ", file.path(curr_outFold, "all_meanLogFC_TAD.Rdata"), "\n"))
+save(all_meanLogFC_TAD, file= file.path(curr_outFold, "all_meanLogFC_TAD.RData"))
+cat(paste0("... written: ", file.path(curr_outFold, "all_meanLogFC_TAD.RData"), "\n"))
 
 txt <- paste0(startTime, "\n", Sys.time(), "\n")
 printAndLog(txt, pipLogFile)

@@ -7,14 +7,14 @@ startTime <- Sys.time()
 ### !!! UPDATE 24.07.19: STOUFFER ONE-SIDED
 
 ################  USE THE FOLLOWING FILES FROM PREVIOUS STEPS
-# - script3: all_meanLogFC_TAD.Rdata
-# - script8: all_obs_ratioDown.Rdata
-# - script9: emp_pval_meanLogFC.Rdata
-# - script10sameNbr: emp_pval_meanCorr.Rdata
+# - script3: all_meanLogFC_TAD.RData
+# - script8: all_obs_ratioDown.RData
+# - script9: emp_pval_meanLogFC.RData
+# - script10sameNbr: emp_pval_meanCorr.RData
 ################################################################################
 
 ################  OUTPUT
-# - emp_pval_combined.Rdata 
+# - emp_pval_combined.RData 
 ################################################################################
 
 args <- commandArgs(trailingOnly = TRUE)
@@ -75,13 +75,13 @@ if(dir.exists(all_permutCorr_data)){
 ####################################################### PREPARE INPUT
 ################################****************************************************************************************
 # load emp. p-val logFC 
-fc_file <- file.path(pipOutFold,  script8_name, "emp_pval_meanLogFC.Rdata")
+fc_file <- file.path(pipOutFold,  script8_name, "emp_pval_meanLogFC.RData")
 emp_pval_logFC <- eval(parse(text = load(fc_file)))
 txt <- paste0(toupper(script_name), "> retrieve emp. p-val. for FC from\t=\t", fc_file, "\n")
 printAndLog(txt, pipLogFile)
 
 # load emp. p-val intraTAD corr
-corr_file <- file.path(pipOutFold, script9_name, paste0(filePrefix, "emp_pval_meanCorr.Rdata"))
+corr_file <- file.path(pipOutFold, script9_name, paste0(filePrefix, "emp_pval_meanCorr.RData"))
 emp_pval_intraCorr <- eval(parse(text = load(corr_file)))
 txt <- paste0(toupper(script_name), "> retrieve emp. p-val. for corr. from\t=\t", corr_file, "\n")
 printAndLog(txt, pipLogFile)
@@ -136,12 +136,12 @@ names(emp_pval_combined) <- intersectRegions
 
 stopifnot(length(emp_pval_combined) == length(intersectRegions))
 
-outFile <- file.path(curr_outFold, paste0(gsub("_", "", filePrefix), "PermCorr_emp_pval_combined.Rdata"))
+outFile <- file.path(curr_outFold, paste0(gsub("_", "", filePrefix), "PermCorr_emp_pval_combined.RData"))
 save(emp_pval_combined, file=outFile)
 cat(paste0("... written: ", outFile, "\n"))
 
 # added for the release: 7.7.2020
-outFile <- file.path(curr_outFold, paste0(gsub("_", "", filePrefix), "PermCorr_adj_emp_pval_combined.Rdata"))
+outFile <- file.path(curr_outFold, paste0(gsub("_", "", filePrefix), "PermCorr_adj_emp_pval_combined.RData"))
 adj_emp_pval_combined <- p.adjust(emp_pval_combined, method="BH")
 save(adj_emp_pval_combined, file=outFile)
 cat(paste0("... written: ", outFile, "\n"))

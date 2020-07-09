@@ -3,7 +3,7 @@
 # gives path to output folder
 pipOutFold <- "EXAMPLE/OUTPUT_FOLDER/ENCSR489OCU_NCI-H460_TCGAluad_norm_luad_FULL1000"
 
-# to have compatible versions of Rdata
+# to have compatible versions of RData
 options(save.defaults = list(version = 2))
 
 
@@ -12,13 +12,13 @@ options(save.defaults = list(version = 2))
 # *************************************************************************************************************************
 
 # UPDATE 07.12.2018: for RSEM data, the "analog" FPKM file is provided separately (built in prepData)
-# cp /mnt/ed4/marie/other_datasets/TCGAluad_norm_luad/fpkmDT.Rdata EXAMPLE/DATA/TCGAluad_norm_luad_fpkmDT.Rdata
+# cp /mnt/ed4/marie/other_datasets/TCGAluad_norm_luad/fpkmDT.RData EXAMPLE/DATA/TCGAluad_norm_luad_fpkmDT.RData
 rna_fpkmDT_file <- "EXAMPLE/DATA/TCGAluad_norm_luad_fpkmDT.RData"
-# cp /mnt/ed4/marie/other_datasets/TCGAluad_norm_luad/rnaseqDT_v2.Rdata EXAMPLE/DATA/TCGAluad_norm_luad_rnaseqDT_v2.Rdata 
+# cp /mnt/ed4/marie/other_datasets/TCGAluad_norm_luad/rnaseqDT_v2.RData EXAMPLE/DATA/TCGAluad_norm_luad_rnaseqDT_v2.RData 
 rnaseqDT_file <- "EXAMPLE/DATA/TCGAluad_norm_luad_rnaseqDT_v2.RData"
 my_sep <- "\t"
-# input is Rdata or txt file ?
-# TRUE if the input is Rdata
+# input is RData or txt file ?
+# TRUE if the input is RData
 inRdata <- TRUE
 
 # can be ensemblID, entrezID, geneSymbol
@@ -43,9 +43,9 @@ min_sampleRatio <- 0.8
 cond1 <- "norm"
 cond2 <- "luad"
 
-# path to sampleID for each condition - should be Rdata ( ! sample1 for cond1, sample2 for cond2 ! )
-# cp /mnt/ed4/marie/other_datasets/TCGAluad_norm_luad/norm_ID.Rdata EXAMPLE/DATA/norm_ID.Rdata
-# cp /mnt/ed4/marie/other_datasets/TCGAluad_norm_luad/luad_ID.Rdata EXAMPLE/DATA/luad_ID.Rdata
+# path to sampleID for each condition - should be RData ( ! sample1 for cond1, sample2 for cond2 ! )
+# cp /mnt/ed4/marie/other_datasets/TCGAluad_norm_luad/norm_ID.RData EXAMPLE/DATA/norm_ID.RData
+# cp /mnt/ed4/marie/other_datasets/TCGAluad_norm_luad/luad_ID.RData EXAMPLE/DATA/luad_ID.RData
 sample1_file <- "EXAMPLE/DATA/norm_ID.RData"
 sample2_file <- "EXAMPLE/DATA/luad_ID.RData"
 

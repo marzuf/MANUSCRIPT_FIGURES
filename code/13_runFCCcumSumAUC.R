@@ -5,12 +5,12 @@ options(scipen=100)
 startTime <- Sys.time()
 
 ################  USE THE FOLLOWING FILES FROM PREVIOUS STEPS
-# - script11: all_FCC_TAD.Rdata
-# - script12: FCC_permDT.Rdata
+# - script11: all_FCC_TAD.RData
+# - script12: FCC_permDT.RData
 ################################################################################
 
 ################  OUTPUT
-# fcc_auc_ratios.Rdata (+ wave plot)
+# fcc_auc_ratios.RData (+ wave plot)
 ################################################################################
 suppressPackageStartupMessages(library(doMC, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))  
 suppressPackageStartupMessages(library(foreach, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE))  
@@ -84,8 +84,8 @@ my_xlab <- paste0("TADs ranked by FCC")
 my_ylab <- paste0("FCC cumulative sum")
 
 
-obs_fcc <- eval(parse(text = load(file.path(pipOutFold, script11_name, "all_FCC_TAD.Rdata"))))
-permut_FCC <- eval(parse(text = load(file.path(pipOutFold, script12_name,  "FCC_permDT.Rdata"))))
+obs_fcc <- eval(parse(text = load(file.path(pipOutFold, script11_name, "all_FCC_TAD.RData"))))
+permut_FCC <- eval(parse(text = load(file.path(pipOutFold, script12_name,  "FCC_permDT.RData"))))
 
 if(ncol(permut_FCC) != nRandomPermut)
   stop(paste0("! NEED TO CHECK: different settings were used for running the permutations !\nncol(permut_FCC) != nRandomPermut\nnncol(permut_FCC)\t=\t", nncol(permut_FCC),"\nnRandomPermut\t=\t", nRandomPermut, "\n"))
@@ -136,7 +136,7 @@ fcc_auc_ratios <- list(
   auc_permutQt=auc_permutQt
 )
 
-saveFile <- file.path(curr_outFold, paste0("fcc_auc_ratios.Rdata"))      
+saveFile <- file.path(curr_outFold, paste0("fcc_auc_ratios.RData"))      
 save(fcc_auc_ratios, file= saveFile)
 cat(paste0("... written: ", saveFile, "\n"))
       

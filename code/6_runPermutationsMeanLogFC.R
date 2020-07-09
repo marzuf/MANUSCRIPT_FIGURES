@@ -5,15 +5,15 @@ startTime <- Sys.time()
 options(scipen=100)
 
 ################  USE THE FOLLOWING FILES FROM PREVIOUS STEPS
-# - script0: pipeline_regionList.Rdata
-# - script0: pipeline_geneList.Rdata
-# - script1: DE_topTable.Rdata
-# - script1: DE_geneList.Rdata
-# - script5: permutationsDT.Rdata
+# - script0: pipeline_regionList.RData
+# - script0: pipeline_geneList.RData
+# - script1: DE_topTable.RData
+# - script1: DE_geneList.RData
+# - script5: permutationsDT.RData
 ################################################################################
 
 ################  OUTPUT
-# - meanLogFC_permDT.Rdata
+# - meanLogFC_permDT.RData
 ################################################################################
 
 args <- commandArgs(trailingOnly = TRUE)
@@ -62,8 +62,8 @@ printAndLog(txt, pipLogFile)
 gene2tadDT <- read.delim(gene2tadDT_file, header=F, col.names = c("entrezID", "chromo", "start", "end", "region"), stringsAsFactors = F)
 gene2tadDT$entrezID <- as.character(gene2tadDT$entrezID)
 
-DE_topTable <- eval(parse(text = load(file.path(pipOutFold, script2_name, "DE_topTable.Rdata"))))
-DE_geneList <- eval(parse(text = load(file.path(pipOutFold, script2_name, "DE_geneList.Rdata"))))
+DE_topTable <- eval(parse(text = load(file.path(pipOutFold, script2_name, "DE_topTable.RData"))))
+DE_geneList <- eval(parse(text = load(file.path(pipOutFold, script2_name, "DE_geneList.RData"))))
 
 stopifnot(all(DE_topTable$genes %in% names(DE_geneList)))
 stopifnot(!any(duplicated(names(DE_geneList))))
@@ -79,11 +79,11 @@ rownames(logFC_DT) <- NULL
 gene2tadDT <- gene2tadDT[gene2tadDT$entrezID %in% entrezList,]
 
 cat("... load permutation data ...\n")
-permutationsDT <- eval(parse(text = load(file.path(pipOutFold, script5fc_name, "permutationsDT.Rdata"))))
+permutationsDT <- eval(parse(text = load(file.path(pipOutFold, script5fc_name, "permutationsDT.RData"))))
 if(ncol(permutationsDT) != nRandomPermut)
   stop(paste0("! NEED TO CHECK: different settings were used for running the permutations !\n ncol(permutationsDT)\t=\t", ncol(permutationsDT), "\nnRandomPermut\t=\t", nRandomPermut, "\n"))
 
-pipeline_geneList <- eval(parse(text = load(file.path(pipOutFold, script1_name, "pipeline_geneList.Rdata"))))
+pipeline_geneList <- eval(parse(text = load(file.path(pipOutFold, script1_name, "pipeline_geneList.RData"))))
 if(!setequal(pipeline_geneList, rownames(permutationsDT))) {
   txtWarningGene <- paste0(toupper(script_name), "> Not the same set of genes in permutDT and pipeline_geneList\n")
   printAndLog(txtWarningGene, pipLogFile)    
@@ -92,7 +92,7 @@ if(!setequal(pipeline_geneList, rownames(permutationsDT))) {
   txtWarningGene <- ""
 }
 
-pipeline_regionList <- eval(parse(text = load(file.path(pipOutFold, script1_name, "pipeline_regionList.Rdata"))))
+pipeline_regionList <- eval(parse(text = load(file.path(pipOutFold, script1_name, "pipeline_regionList.RData"))))
 if(useTADonly) {
   if(any(grepl("_BOUND", pipeline_regionList))) {
     stop("! data were not prepared for \"useTADonly\" !")
@@ -168,10 +168,10 @@ printAndLog(txt, pipLogFile)
 txt <- paste0(toupper(script_name), "> Number of regions for which mean logFC computed: ", nrow(meanLogFC_permDT), "\n")
 printAndLog(txt, pipLogFile)
 
-#save(meanLogFC_permDT, file= paste0(curr_outFold, "/meanLogFC_permDT.Rdata"))
+#save(meanLogFC_permDT, file= paste0(curr_outFold, "/meanLogFC_permDT.RData"))
 # update 16.08.2019 => faster save version
-my_save.pigz(meanLogFC_permDT, pigz_exec_path = pigz_exec_path, file= file.path(curr_outFold, "meanLogFC_permDT.Rdata"))
-cat(paste0("... written: ", file.path(curr_outFold, "meanLogFC_permDT.Rdata"), "\n"))
+my_save.pigz(meanLogFC_permDT, pigz_exec_path = pigz_exec_path, file= file.path(curr_outFold, "meanLogFC_permDT.RData"))
+cat(paste0("... written: ", file.path(curr_outFold, "meanLogFC_permDT.RData"), "\n"))
 
 cat(paste0(txtWarningGene))
 cat(paste0(txtWarningRegion))

@@ -7,12 +7,12 @@ cat("load main_settings.R\n")
 historyDT_file <- paste0("/mnt/ed4/marie/entrez2synonym/entrez/data/gene_history_reordered.txt")
 
 # file with mapping from entrez to chromosomic positions
-#entrezDT_file <- paste0(setDir, "/mnt/ed4/marie/entrez2position/filter_entrez_map.Rdata") # previous also held symbols
+#entrezDT_file <- paste0(setDir, "/mnt/ed4/marie/entrez2position/filter_entrez_map.RData") # previous also held symbols
 # holds only netrezID and positions
 entrezDT_file <- paste0("/mnt/ed4/marie/entrez2synonym/entrez/ENTREZ_POS/gff_entrez_position_GRCh37p13_nodup.txt")
 
 # file with symbol synonyms to entrezID
-#synoDT_file <- paste0(setDir, "/mnt/ed4/marie/entrez2synonym/all_entrez_syno_1.Rdata")
+#synoDT_file <- paste0(setDir, "/mnt/ed4/marie/entrez2synonym/all_entrez_syno_1.RData")
 # mapping entrezID and all possible symbols
 symbolDT_file <- paste0("/mnt/ed4/marie/entrez2synonym/entrez/ENTREZ_SYMBOL/final_entrez2syno.txt")
 
@@ -65,4 +65,4 @@ pigz_exec_path <- file.path("/mnt/ed4/marie/pigz-2.4/pigz")
 ########################################################
 ### matching pattern to retrieve permutation correlation files step 9
 ########################################################
-corrMatchPattern <- "meanCorr_sample_around_TADs_sameNbr.Rdata" 
+corrMatchPattern <- "meanCorr_sample_around_TADs_sameNbr.RData" 

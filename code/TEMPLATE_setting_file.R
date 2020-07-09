@@ -1,5 +1,5 @@
 
-# to have compatible versions of Rdata
+# to have compatible versions of RData
 options(save.defaults = list(version = 2))  # for compatibility reasons
 
 
@@ -23,8 +23,8 @@ rna_fpkmDT_file <- <PATH TO FPKM EXPRESSION DATA>
 
 rnaseqDT_file <- <PATH TO GENE EXPRESSION DATA>
 my_sep <- "\t"
-# input is Rdata or txt file ?
-# TRUE if the input is Rdata
+# input is RData or txt file ?
+# TRUE if the input is RData
 inRdata <- TRUE  # ! tested only with TRUE
 
 # can be ensemblID, entrezID, geneSymbol ! tested only with entrezID
@@ -49,7 +49,7 @@ s
 cond1 <- <NAME_CONDITION_1>
 cond2 <- <NAME_CONDITION_2>
 
-# path to sampleID for each condition - should be Rdata ( ! sample1 for cond1, sample2 for cond2 ! )
+# path to sampleID for each condition - should be RData ( ! sample1 for cond1, sample2 for cond2 ! )
 sample1_file <- <PATH_TO_RDATA_FILE_WITH_COND1_SAMPLES>
 sample2_file <- <PATH_TO_RDATA_FILE_WITH_COND2_SAMPLES>
 
@@ -79,7 +79,7 @@ nRandomPermut <- <NBR_PERMUT> # we used 100000
 # *************************************************************************************************************************
 
 all_permutCorr_data <- <PATH_TO_CORRELATION_PERMUTATION_DATA> # a file or a folder
-# corrMatchPattern <- <PATTERN_TO_MATCH> # <optional> (default in main_settings: meanCorr_sample_around_TADs_sameNbr.Rdata) if all_permutCorr_data is a folder, matching pattern to retrieve files in all_permutCorr_data
+# corrMatchPattern <- <PATTERN_TO_MATCH> # <optional> (default in main_settings: meanCorr_sample_around_TADs_sameNbr.RData) if all_permutCorr_data is a folder, matching pattern to retrieve files in all_permutCorr_data
 refineMatchPattern <- <2ND_PATTERN_TO_MATCH> # <optional> if all_permutCorr_data is a folder, can be used as a second matching pattern to refine file retrieval from all_permutCorr_data
 corrDiscardPattern <- <PATTERN_TO_DISCARD> # <optional>, if set, will be used only if all_permutCorr_data is a folder to possibly discard some files [!grepl(corrDiscardPattern, x]
 nbrCorrPermutCheck <- <NBR_CORRELATION_PERMUTATION_DATA> # <optional>, if set, will be used to check the number of retrieved permutation data

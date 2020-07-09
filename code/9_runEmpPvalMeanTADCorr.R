@@ -5,12 +5,12 @@ options(scipen=100)
 startTime <- Sys.time()
 
 ################  USE THE FOLLOWING FILES FROM PREVIOUS STEPS
-# - script4: all_meanCorr_TAD.Rdata
-# - script7sameNbr: meanCorr_sample_around_TADs_sameNbr.Rdata
+# - script4: all_meanCorr_TAD.RData
+# - script7sameNbr: meanCorr_sample_around_TADs_sameNbr.RData
 ################################################################################
 
 ################  OUTPUT
-# - emp_pval_meanCorr.Rdata
+# - emp_pval_meanCorr.RData
 ################################################################################
 
 
@@ -110,7 +110,7 @@ printAndLog(txt, pipLogFile)
 
 
 # RETRIEVE THE OBSERVED CORR DATA
-obs_corr_file <- file.path(pipOutFold, script4_name, "all_meanCorr_TAD.Rdata")
+obs_corr_file <- file.path(pipOutFold, script4_name, "all_meanCorr_TAD.RData")
 stopifnot(file.exists(obs_corr_file))
 all_obs_corr <- eval(parse(text = load(obs_corr_file)))
  
@@ -121,7 +121,7 @@ names(emp_pval_meanCorr) <- names(all_obs_corr)
 stopifnot(all(emp_pval_meanCorr > 0 & emp_pval_meanCorr <= 1 ))
 
 
-outFile <- file.path(curr_outFold, paste0(filePrefix, "emp_pval_meanCorr.Rdata"))
+outFile <- file.path(curr_outFold, paste0(filePrefix, "emp_pval_meanCorr.RData"))
 save(emp_pval_meanCorr, file= outFile)
 cat(paste0("... written: ", outFile, "\n"))
 

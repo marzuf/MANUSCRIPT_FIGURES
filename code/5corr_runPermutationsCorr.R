@@ -7,12 +7,12 @@ startTime <- Sys.time()
 #### UPDATE: do not take raw counts but fpkm data !!!
 
 ################  USE THE FOLLOWING FILES FROM PREVIOUS STEPS
-# - script0: pipeline_regionList.Rdata
-# - script0: pipeline_geneList.Rdata
+# - script0: pipeline_regionList.RData
+# - script0: pipeline_geneList.RData
 ################################################################################
 
 ################  OUTPUT
-# - sample_around_TADs_sameNbr.Rdata
+# - sample_around_TADs_sameNbr.RData
 ################################################################################
 
 args <- commandArgs(trailingOnly = TRUE)
@@ -65,7 +65,7 @@ stopifnot(is.numeric(tadpos_DT$end))
 tadpos_DT <- tadpos_DT[grepl("_TAD", tadpos_DT$region),,drop=FALSE] 
 
 ### KEEP ONLY THE TADs USED IN THE PIPELINE
-tadListFile <- file.path(pipOutFold, script1_name, "pipeline_regionList.Rdata")
+tadListFile <- file.path(pipOutFold, script1_name, "pipeline_regionList.RData")
 stopifnot(file.exists(tadListFile))
 pipeline_tadList <- eval(parse(text = load(tadListFile))) # not adjusted
 stopifnot(pipeline_tadList %in% tadpos_DT$region)
@@ -73,7 +73,7 @@ tadpos_DT <- tadpos_DT[tadpos_DT$region %in% pipeline_tadList,]
 stopifnot(!duplicated(pipeline_tadList))
 
 ### RETRIEVE THE GENES USED IN THE PIPELINE - script0
-geneListFile <- file.path(pipOutFold, script1_name, "pipeline_geneList.Rdata")
+geneListFile <- file.path(pipOutFold, script1_name, "pipeline_geneList.RData")
 stopifnot(file.exists(geneListFile))
 pipeline_geneList <- eval(parse(text = load(geneListFile))) # not adjusted
 stopifnot(pipeline_geneList %in% g2t_DT$entrezID)
@@ -205,7 +205,7 @@ sample_around_TADs <- foreach(reg = pipeline_tadList) %dopar% {
 names(sample_around_TADs) <- pipeline_tadList
 sample_around_TADs_sameNbr <- sample_around_TADs
 
-outFile <- file.path(curr_outFold, "sample_around_TADs_sameNbr.Rdata")
+outFile <- file.path(curr_outFold, "sample_around_TADs_sameNbr.RData")
 save(sample_around_TADs_sameNbr, file=outFile)
 cat(paste0("... written: ", outFile, "\n"))
 

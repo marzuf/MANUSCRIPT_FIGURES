@@ -170,13 +170,13 @@ rnaseqDT <- rnaseqDT[, c(samp1, samp2)]
 stopifnot( ncol(rnaseqDT) == (length(samp1) + length(samp2)) )
 
 # rna_geneList will hold the list of genes for which I have 1) genomic positions 2) expression data
-save(rna_geneList, file = file.path(curr_outFold, "rna_geneList.Rdata"))
-cat(paste0("... written: ", file.path(curr_outFold,  "rna_geneList.Rdata"), "\n"))
+save(rna_geneList, file = file.path(curr_outFold, "rna_geneList.RData"))
+cat(paste0("... written: ", file.path(curr_outFold,  "rna_geneList.RData"), "\n"))
 
 rna_rnaseqDT <- rnaseqDT
 stopifnot(nrow(rna_rnaseqDT) > 0)
-save(rna_rnaseqDT, file = file.path(curr_outFold, "rna_rnaseqDT.Rdata"))
-cat(paste0("... written: ", file.path(curr_outFold,  "rna_rnaseqDT.Rdata"), "\n"))
+save(rna_rnaseqDT, file = file.path(curr_outFold, "rna_rnaseqDT.RData"))
+cat(paste0("... written: ", file.path(curr_outFold,  "rna_rnaseqDT.RData"), "\n"))
 
 #### PREPARE THE QQNORM DATA FOR THE GENES I USED FOR DE ANALYSIS
 cat("... qqnorm the data for other analyses \n")
@@ -184,8 +184,8 @@ rna_qqnorm_rnaseqDT <- t(apply(rna_rnaseqDT, 1, quantNorm))
 stopifnot(all(dim(rna_qqnorm_rnaseqDT) == dim(rna_rnaseqDT)))
 rownames(rna_qqnorm_rnaseqDT) <- rownames(rna_rnaseqDT)
 colnames(rna_qqnorm_rnaseqDT) <- colnames(rna_rnaseqDT)
-save(rna_qqnorm_rnaseqDT, file = file.path(curr_outFold,  "rna_qqnorm_rnaseqDT.Rdata"))
-cat(paste0("... written: ", file.path(curr_outFold, "rna_qqnorm_rnaseqDT.Rdata"), "\n"))
+save(rna_qqnorm_rnaseqDT, file = file.path(curr_outFold,  "rna_qqnorm_rnaseqDT.RData"))
+cat(paste0("... written: ", file.path(curr_outFold, "rna_qqnorm_rnaseqDT.RData"), "\n"))
 
 # => rna_geneList: all the genes for which I have position information
 # => countFilter_geneList: all the genes for which I have position information and that are >= CPM threshold
@@ -305,14 +305,14 @@ printAndLog(txt, pipLogFile)
 tadGeneNbr_DT <- tadGeneNbr_DT[tadGeneNbr_DT$nbrGenes >= minNbrGeneTAD & tadGeneNbr_DT$nbrGenes <= upperLimit,]
 
 # ADDED 15.08.2019 to easily retrieve the tad size limits
-outFile <- file.path(curr_outFold, "gene_nbr_filter.Rdata")
+outFile <- file.path(curr_outFold, "gene_nbr_filter.RData")
 gene_nbr_filter <- c(minNbrGeneTAD, maxQuantGeneTAD)
 save(gene_nbr_filter, file = outFile)
 cat(paste0("... written: ", outFile, "\n"))
 
 rangeTADgenes <- c(minNbrGeneTAD, upperLimit)
-save(rangeTADgenes, file = file.path(curr_outFold,  "rangeTADgenes.Rdata"))
-cat(paste0("... written: ", file.path(curr_outFold, "rangeTADgenes.Rdata"), "\n"))
+save(rangeTADgenes, file = file.path(curr_outFold,  "rangeTADgenes.RData"))
+cat(paste0("... written: ", file.path(curr_outFold, "rangeTADgenes.RData"), "\n"))
 
 p2 <- ggdensity(tadGeneNbr_DT, x = "nbrLog10",
           title ="Distribution log10(# genes) after filtering",
@@ -348,21 +348,21 @@ if(useFilterSizeData){
 
 txt <- paste0(toupper(script_name), "> pipeline_geneList compared to available genes: ", length(pipeline_geneList), "/", length(rna_geneList), "\n")
 printAndLog(txt, pipLogFile)
-save(pipeline_geneList, file = file.path(curr_outFold, "pipeline_geneList.Rdata"))
-cat(paste0("... written: ", file.path(curr_outFold,  "pipeline_geneList.Rdata"), "\n"))
+save(pipeline_geneList, file = file.path(curr_outFold, "pipeline_geneList.RData"))
+cat(paste0("... written: ", file.path(curr_outFold,  "pipeline_geneList.RData"), "\n"))
 
 pipeline_regionList <- unique(as.character(gene2tadDT$region))
 txt <- paste0(toupper(script_name), "> pipeline_regionList compared to available regions: ", length(pipeline_regionList), "/", initRegionsLen, "\n")
 printAndLog(txt, pipLogFile)
-save(pipeline_regionList, file = file.path(curr_outFold,  "pipeline_regionList.Rdata"))
-cat(paste0("... written: ", file.path(curr_outFold, "pipeline_regionList.Rdata"), "\n"))
+save(pipeline_regionList, file = file.path(curr_outFold,  "pipeline_regionList.RData"))
+cat(paste0("... written: ", file.path(curr_outFold, "pipeline_regionList.RData"), "\n"))
 
 
 ########################################################################################
 # added 21.02 => create a FPKM data table ! [if not already fpkm provided]
 ########################################################################################
-rna_rnaseqDT <- eval(parse(text = load(file.path(curr_outFold,  "rna_rnaseqDT.Rdata"))))
-rna_geneList <- eval(parse(text = load(file.path(curr_outFold,  "rna_geneList.Rdata"))))
+rna_rnaseqDT <- eval(parse(text = load(file.path(curr_outFold,  "rna_rnaseqDT.RData"))))
+rna_geneList <- eval(parse(text = load(file.path(curr_outFold,  "rna_geneList.RData"))))
 stopifnot(length(rna_geneList) == nrow(rna_rnaseqDT))
 stopifnot(all(names(rna_geneList) == rownames(rna_rnaseqDT)))
 stopifnot(all(rna_geneList %in% entrezDT$entrezID))
@@ -385,8 +385,8 @@ if(inputDataType == "RSEM") {
 
 stopifnot(dim(rna_fpkmDT) == dim(rna_rnaseqDT))
 
-save(rna_fpkmDT, file = file.path(curr_outFold,  "rna_fpkmDT.Rdata"))
-cat(paste0("... written: ", file.path(curr_outFold,  "rna_fpkmDT.Rdata"), "\n"))
+save(rna_fpkmDT, file = file.path(curr_outFold,  "rna_fpkmDT.RData"))
+cat(paste0("... written: ", file.path(curr_outFold,  "rna_fpkmDT.RData"), "\n"))
 
 
 ################################################################################################################################################################################

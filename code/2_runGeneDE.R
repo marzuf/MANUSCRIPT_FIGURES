@@ -7,15 +7,15 @@ cat(paste0("> START ", "1cleanInput",  "\n"))
 startTime <- Sys.time()
 
 ################  USE THE FOLLOWING FILES FROM PREVIOUS STEPS
-# - script0: rna_rnaseqDT.Rdata
-# - script0: rna_geneList.Rdata
-# - script0: pipeline_geneList.Rdata
+# - script0: rna_rnaseqDT.RData
+# - script0: rna_geneList.RData
+# - script0: pipeline_geneList.RData
 ################################################################################
 
 ################  OUTPUT
-# - DE_madnorm_rnaseqDT.Rdata or DE_qqnorm_rnaseqDT.Rdata
-# - DE_topTable.Rdata
-# - DE_geneList.Rdata
+# - DE_madnorm_rnaseqDT.RData or DE_qqnorm_rnaseqDT.RData
+# - DE_topTable.RData
+# - DE_geneList.RData
 ################################################################################
 
 args <- commandArgs(trailingOnly = TRUE)
@@ -63,8 +63,8 @@ printAndLog(txt, pipLogFile)
 txt <- paste0(toupper(script_name), "> settingF\t=\t", settingF, "\n")
 printAndLog(txt, pipLogFile)
 
-stopifnot(file.exists(file.path(pipOutFold, script1_name, "rna_rnaseqDT.Rdata")))
-rnaseqDT <- eval(parse(text = load(file.path(pipOutFold, script1_name, "rna_rnaseqDT.Rdata"))))
+stopifnot(file.exists(file.path(pipOutFold, script1_name, "rna_rnaseqDT.RData")))
+rnaseqDT <- eval(parse(text = load(file.path(pipOutFold, script1_name, "rna_rnaseqDT.RData"))))
 if(ncol(rnaseqDT) >= 5 & nrow(rnaseqDT) >= 5)
     rnaseqDT[1:5,1:5]
 initRowNbr <- nrow(rnaseqDT)
@@ -81,8 +81,8 @@ txt <- paste0(toupper(script_name), "> inputDataType\t=\t", inputDataType, "\n")
 printAndLog(txt, pipLogFile)
 
 # TAKE ONLY THE GENES FOR WHICH I HAVE POSITIONS
-stopifnot(file.exists(file.path(pipOutFold, script1_name,  "rna_geneList.Rdata")))
-rna_geneList <- eval(parse(text = load(file.path(pipOutFold, script1_name,  "rna_geneList.Rdata"))))
+stopifnot(file.exists(file.path(pipOutFold, script1_name,  "rna_geneList.RData")))
+rna_geneList <- eval(parse(text = load(file.path(pipOutFold, script1_name,  "rna_geneList.RData"))))
 # => UPDATE: TAKE ONLY THE GENE LIST PREPARED IN 0_prepGeneData ACCORDING TO CURRENT SETTINGS
 txt <- paste0(toupper(script_name), "> Start with # genes: ", length(rna_geneList), "\n")
 printAndLog(txt, pipLogFile)
@@ -182,7 +182,7 @@ if(inputDataType == "raw" | inputDataType == "RSEM") {
                         seqData <- calcNormFactors(seqData, method = "none")
                         txt <- paste0(toupper(script_name), "> could not compute calcNormFactors with default method, used method = \"none\" \n")
                         printAndLog(txt, pipLogFile)
-                        save(exprDT, file="exprDT.Rdata") #example: GSE52166_prePf_postPf
+                        save(exprDT, file="exprDT.RData") #example: GSE52166_prePf_postPf
                       } else{
                         seqData <- DGEList(exprDT, group=my_group, genes = rownames(exprDT))
                         seqData <- calcNormFactors(seqData)
@@ -265,25 +265,25 @@ stopifnot(length(DE_geneList) > 0)
 ##### WRITE DATA IN FILE
 cat("... write data in files\n")
 # the expression data used for the DE analysis (i.e. CAGE seq after filtering minimum cpm count)
-save(DE_rnaseqDT, file = file.path(curr_outFold, "DE_rnaseqDT.Rdata"))
-cat(paste0("... written: ", file.path(curr_outFold, "DE_rnaseqDT.Rdata"), "\n"))
+save(DE_rnaseqDT, file = file.path(curr_outFold, "DE_rnaseqDT.RData"))
+cat(paste0("... written: ", file.path(curr_outFold, "DE_rnaseqDT.RData"), "\n"))
 # the same but qqnorm
-save(DE_qqnorm_rnaseqDT, file = file.path(curr_outFold,  "DE_qqnorm_rnaseqDT.Rdata"))
-cat(paste0("... written: ", file.path(curr_outFold,  "DE_qqnorm_rnaseqDT.Rdata"), "\n")) 
+save(DE_qqnorm_rnaseqDT, file = file.path(curr_outFold,  "DE_qqnorm_rnaseqDT.RData"))
+cat(paste0("... written: ", file.path(curr_outFold,  "DE_qqnorm_rnaseqDT.RData"), "\n")) 
 # the DE topTable
-save(DE_topTable, file = file.path(curr_outFold, "DE_topTable.Rdata"))
-cat(paste0("... written: ", file.path(curr_outFold, "DE_topTable.Rdata"), "\n"))
+save(DE_topTable, file = file.path(curr_outFold, "DE_topTable.RData"))
+cat(paste0("... written: ", file.path(curr_outFold, "DE_topTable.RData"), "\n"))
 # gene list
-save(DE_geneList, file = file.path(curr_outFold,  "DE_geneList.Rdata"))
-cat(paste0("... written: ", file.path(curr_outFold, "DE_geneList.Rdata"), "\n"))
+save(DE_geneList, file = file.path(curr_outFold,  "DE_geneList.RData"))
+cat(paste0("... written: ", file.path(curr_outFold, "DE_geneList.RData"), "\n"))
 
 
 ##################################################################################### ADDED 20.06.2018
 
 # STOPIFNOT IN SCRIPT 8: all(pipeline_geneList %in% DE_topTable$genes) 
 
-check_pipeline_geneList <- eval(parse(text = load(file.path(pipOutFold,  script1_name,   "pipeline_geneList.Rdata"))))
-check_DE_topTable <- eval(parse(text = load(file.path(curr_outFold,  "DE_topTable.Rdata"))))
+check_pipeline_geneList <- eval(parse(text = load(file.path(pipOutFold,  script1_name,   "pipeline_geneList.RData"))))
+check_DE_topTable <- eval(parse(text = load(file.path(curr_outFold,  "DE_topTable.RData"))))
 
 #update correct 17.08.2018
 stopifnot(names(check_pipeline_geneList) %in% check_DE_topTable$genes)

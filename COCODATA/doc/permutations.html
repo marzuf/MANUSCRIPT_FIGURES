@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 
-<title>Load some packages</title>
+<title>Example of how performing some permutations</title>
 
 <script type="text/javascript">
 window.onload = function() {
@@ -201,23 +201,27 @@ hr {
 </head>
 
 <body>
-<h5>Load some packages</h5>
+<h1>Example of how performing some permutations</h1>
 
 <pre><code class="r">rm(list=ls())
 
 if(!require(COCODATA))
   devtools::install_github(&quot;marzuf/MANUSCRIPT_FIGURES&quot;, subdir=&quot;COCODATA&quot;)
+#&gt; Loading required package: COCODATA
   # alternatively: 
   # install.packages(&quot;COCODATA_0.0.0.1.tar.gz&quot;, repos = NULL, type =&quot;source&quot;)
  # data(&quot;norm_ID&quot;)
 library(COCODATA)
 library(doMC)
+#&gt; Loading required package: foreach
+#&gt; Loading required package: iterators
+#&gt; Loading required package: parallel
 library(foreach)
 nCpu &lt;- 2
 registerDoMC(nCpu)
 </code></pre>
 
-<h5>Prepare the data</h5>
+<h3>Prepare the data</h3>
 
 <pre><code class="r"># table from gene-level DE analysis:
 data(&quot;ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_fpkmDT&quot;) # this loads fpkmDT
@@ -258,7 +262,7 @@ head(pip_tad_pos_dt)
 #&gt; 43      chr10 chr10_TAD42 12080001 12280000
 </code></pre>
 
-<h5>Gene-to-TAD permutation</h5>
+<h3>Gene-to-TAD permutation</h3>
 
 <pre><code class="r">nExprClass &lt;- 5
 nPermut &lt;- 10
@@ -296,7 +300,7 @@ stopifnot(setequal(rownames(permut_dt), pipeline_geneList))
 save(permut_dt, file=&quot;package_permut_dt.Rdata&quot;)
 </code></pre>
 
-<h5>Sampling across TAD boundaries</h5>
+<h3>Sampling across TAD boundaries</h3>
 
 <pre><code class="r">
 sampAcrossBD_data &lt;- getSampleAcrossBD(g2t_DT=pip_g2t_dt, 
