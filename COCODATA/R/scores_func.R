@@ -234,6 +234,41 @@ get_auc_ratio <- function(fcc_vect, fcc_permDT, permQt=0.95, doPlot=FALSE,
 
 
 
+#######################################################################################################################
+#######################################################################################################################
+#######################################################################################################################
+#' Mean intra-TAD correlation
+#'
+#' Function the average pairwise correlations within TADs.
+#'
+#' @param gene2tad_dt Dataframe with gene-to-TAD assignment (required columns: "entrezID" for gene IDs, "region" for TAD IDs).
+#' @param expr_dt Dataframe with gene expression values for which to compute correlation (row names should be gene IDs; all gene IDs from gene2tad_dt should be available).
+#' @param corrMeth Correlation method (one of "pearson", "kendall"or "spearman"; default:"pearson").
+#' @param withDiag If correlation with itself should be included (default: FALSE).
+#' @param plotCex Number available CPU.
+#' @return A 2-column dataframe (region/meanCorr colums).
+#' @export
+
+get_meanCorr <- function(gene2tad_dt, exprd_dt, corrMeth="pearson" , withDiag=FALSE, nCpu=2){
+  corrMeth <- match.arg(corrMeth, choices=c("pearson", "kendall", "spearman"))
+  if(!suppressPackageStartupMessages(require("foreach"))) stop("-- foreach package required\n")  
+  if(!suppressPackageStartupMessages(require("doMC"))) stop("-- doMC package required\n")  
+  registerDoMC(nCpu)
+  stopifnot(gene2tad_dt$entrezID %in% rownames(exprd_dt))
+  tad_meanCorr_dt <- foreach(tad=unique(as.character(gene2tad_dt$region)), .combine="rbind") %dopar% {
+    tad_dt <- gene2tad_dt[as.character(gene2tad_dt$region) == tad, ]
+    sub_qq <- exprd_dt[paste0(tad_dt$entrezID),]
+    corrDT <- cor(t(sub_qq), method = corrMeth)
+    stopifnot(dim(corrDT) == nrow(tad_dt))
+    stopifnot(!is.na(corrDT))
+    data.frame(
+      region=tad,
+      meanCorr=mean(corrDT[lower.tri(corrDT, diag = withDiag)], na.rm=TRUE),
+      stringsAsFactors = FALSE
+    )
+  }
+  return(tad_meanCorr_dt)
+}
 
 
 

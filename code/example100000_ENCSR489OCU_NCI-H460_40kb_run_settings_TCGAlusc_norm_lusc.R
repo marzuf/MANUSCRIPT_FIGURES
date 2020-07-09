@@ -85,14 +85,14 @@ nRandomPermut <- 100000
 # *************************************************************************************************************************
 
 #vFolder
-#all_permutCorr_data <- "/mnt/etemp/marie/v2_Yuanlong_Cancer_HiC_data_TAD_DA/PIPELINE/OUTPUT_FOLDER"
-#nbrCorrPermutCheck <- 58 
-#corrDiscardPattern <- "RANDOM|PERMUT"
-#refineMatchPattern <- "7sameNbr_"
+all_permutCorr_data <- "/mnt/etemp/marie/v2_Yuanlong_Cancer_HiC_data_TAD_DA/PIPELINE/OUTPUT_FOLDER"
+nbrCorrPermutCheck <- 58 
+corrDiscardPattern <- "RANDOM|PERMUT"
+refineMatchPattern <- "7sameNbr_"
 
 #vFile
-all_permutCorr_data <- "data/all_sample_corrValues.RData"
-nbrCorrPermutCheck <- 58 
+#all_permutCorr_data <- "data/all_sample_corrValues.RData"
+#nbrCorrPermutCheck <- 58 
 
 
 

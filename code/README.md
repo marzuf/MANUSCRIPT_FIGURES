@@ -95,18 +95,18 @@ R packages used in the pipeline: limma and edge  (for gene-level differential ex
 In step 9 (also impacting step 10), there are two possibilities for retrieving correlation permutation data to be set in the setting files:
 
 <ul>
-<li>if <em>all_permutCorr_data</em> is a folder:</li>
+<li>if <code>all_permutCorr_data</code> is the path to a folder:</li>
 <ul>
-<li>the correlation values from permutation data are loaded from files in `all_permutCorr_data` that (recursively) match the pattern "corrMatchPattern" (set to <em>meanCorr_sample_around_TADs_sameNbr.Rdata</em> in the main settings but can be overwritten in the additional settings)</li>
-<li>if <em>refineMatchPattern</em> is provided, used for a second pattern matching to refine file retrieval</li>
-<li>if <em>corrDiscardPattern</em> is provided in setting files, files that match that pattern are discarded</li>
-<li>if <em>nbrCorrPermutCheck</em> is provided, it is checked that "nbrCorrPermutCheck" files have been loaded</li>
-<li>it is expected to correspond to the format of script 7: each file should correspond to a list of lists storing a correlation value in <code>my_list[[idx]][["meanCorr"]]</code> with as many <em>idx</em> as TADs
+<li>the correlation values from permutation data are loaded from files in <code>all_permutCorr_data</code> that (recursively) match the pattern <code>corrMatchPattern</code> (currently set to <code>meanCorr_sample_around_TADs_sameNbr.Rdata</code> in the main settings but can be overwritten in the additional settings)</li>
+<li>if <code>refineMatchPattern</code> is provided, used for a second pattern matching to refine file retrieval</li>
+<li>if <code>corrDiscardPattern</code> is provided in setting files, files that match that pattern are discarded</li>
+<li>if <code>nbrCorrPermutCheck</code> is provided, it is checked that "nbrCorrPermutCheck" files have been loaded</li>
+<li>it is expected to correspond to the format of script 7: each file should correspond to a list of lists storing a correlation value in <code>my_list[[idx]][["meanCorr"]]</code> with as many <code>idx</codes> as TADs
 <li>ouput files from steps 9 and 10 will be prefixed with <em>fromFolder_</em>
 </ul>
-<li>if <em>all_permutCorr_data</em> is a file:</li>
+<li>if <code>all_permutCorr_data</code> is the path to a file:</li>
 <ul>
-<li><em>all_permutCorr_file</em> should provide the path to correlation values for the permutation data (we provide the values from our permuation data in <em>data/all_sample_corrValues.Rdata</em>); the data should be a Rdata file containing a list/vector of permutation correlation values</li>
+<li><code>all_permutCorr_file</code> should provide the path to correlation values for the permutation data (the file <em>data/all_sample_corrValues.Rdata</em> provides the values from our permuation data); the data should be a Rdata file containing a list/vector of permutation correlation values</li>
 <li>ouput files from steps 9 and 10 will be prefixed with <em>fromFile_</em>
 </ul>
 </ul>
@@ -122,7 +122,7 @@ Example for running the full pipeline with our LUSC data (using provided data fo
  ./example_run_pipeline.sh example_ENCSR489OCU_NCI-H460_40kb_run_settings_TCGAlusc_norm_lusc.R 1 2 3 4 5fc 5corr 6 7 8 9 10 11 12 13
 ```
 
-(55 minutes to run the full the pipeline with 40 CPU and 1000 permutations)
+(ca. 55 minutes to run the full the pipeline with 40 CPU and 1000 permutations, 8h for 100'000 permutations)
 
 
 ### Script dependencies

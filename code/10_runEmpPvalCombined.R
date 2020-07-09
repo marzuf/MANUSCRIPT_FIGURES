@@ -123,7 +123,7 @@ printAndLog(txt, pipLogFile)
 stopifnot(!any(is.na(emp_pval_logFC)))
 stopifnot(!any(is.na(emp_pval_intraCorr)))
 
-stopifnot(all(names(emp_pval_logFC) == names(emp_pval_intraCorr)))
+stopifnot(names(emp_pval_logFC) == names(emp_pval_intraCorr))
 
 ################################****************************************************************************************
 ####################################################### CALCULATE EMP. PVAL INTRA-TAD CORR & WRITE OUTPUT

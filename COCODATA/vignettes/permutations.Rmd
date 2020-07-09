@@ -14,7 +14,8 @@ knitr::opts_chunk$set(
 )
 ```
 
-##### Load some packages
+# Example of how performing some permutations
+
 ```{r setup}
 rm(list=ls())
 
@@ -30,7 +31,7 @@ nCpu <- 2
 registerDoMC(nCpu)
 ```
 
-##### Prepare the data
+### Prepare the data
 ``` {r prep_data}
 # table from gene-level DE analysis:
 data("ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_fpkmDT") # this loads fpkmDT
@@ -57,7 +58,7 @@ pip_tad_pos_dt <- tad_pos_dt[tad_pos_dt$region %in% pip_g2t_dt$region,]
 head(pip_tad_pos_dt)
 ```
 
-##### Gene-to-TAD permutation
+### Gene-to-TAD permutation
 ``` {r do_g2t_permut}
 nExprClass <- 5
 nPermut <- 10
@@ -82,7 +83,7 @@ save(permut_dt, file="package_permut_dt.Rdata")
 ```
 
 
-##### Sampling across TAD boundaries
+### Sampling across TAD boundaries
 ``` {r do_acrossBD_permut}
 
 sampAcrossBD_data <- getSampleAcrossBD(g2t_DT=pip_g2t_dt, 
