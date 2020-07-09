@@ -51,28 +51,28 @@ stopifnot(!is.na(merged_dt))
 meanFC_dt <- aggregate(logFC ~ region, FUN=mean, data=merged_dt)
 colnames(meanFC_dt)[colnames(meanFC_dt) == "logFC"] <- "meanFC"
 obs_meanFC <- setNames(meanFC_dt$meanFC, meanFC_dt$region)
-save(obs_meanFC, file="package_obs_meanFC.Rdata")
+save(obs_meanFC, file="package_obs_meanFC.RData")
 
 ## ----ratioDown_obs_example-----------------------------------------------
 # compute the ratioDown for each TAD
 FCC_dt <- aggregate(logFC ~ region, FUN=get_ratioDown, data=merged_dt)
 colnames(FCC_dt)[colnames(FCC_dt) == "logFC"] <- "ratioDown"
 obs_ratioDown <- setNames(FCC_dt$ratioDown, FCC_dt$region)
-save(obs_ratioDown, file="package_obs_ratioDown.Rdata")
+save(obs_ratioDown, file="package_obs_ratioDown.RData")
 
 ## ----ratioFC_obs_example-------------------------------------------------
 # compute the ratioFC for each TAD
 FCC_dt <- aggregate(logFC ~ region, FUN=get_ratioFC, data=merged_dt)
 colnames(FCC_dt)[colnames(FCC_dt) == "logFC"] <- "ratioFC"
 obs_ratioNegFC <- setNames(FCC_dt$ratioFC, FCC_dt$region)
-save(obs_ratioNegFC, file="package_obs_ratioNegFC.Rdata")
+save(obs_ratioNegFC, file="package_obs_ratioNegFC.RData")
 
 ## ----FCC_obs_example-----------------------------------------------------
 # compute the FCC for each TAD
 FCC_dt <- aggregate(logFC ~ region, FUN=get_fcc, data=merged_dt)
 colnames(FCC_dt)[colnames(FCC_dt) == "logFC"] <- "FCC"
 obs_FCC <- setNames(FCC_dt$FCC, FCC_dt$region)
-save(obs_FCC, file="package_obs_FCC.Rdata")
+save(obs_FCC, file="package_obs_FCC.RData")
 
 ## ----FCC_permut_example--------------------------------------------------
 # compute the FCC for the permutation data
@@ -125,7 +125,7 @@ stopifnot(pip_g2t_dt$entrezID %in% rownames(rna_qqnorm_rnaseqDT))
 meanCorr_dt <- get_meanCorr(gene2tad_dt=pip_g2t_dt, exprd_dt=rna_qqnorm_rnaseqDT)
 head(meanCorr_dt)
 obs_meanCorr <- setNames(meanCorr_dt$meanCorr, meanCorr_dt$region)
-save(obs_meanCorr, file="package_meanCorr.Rdata")
+save(obs_meanCorr, file="package_meanCorr.RData")
 
 ## ----combined_pval, fig.height=6, fig.width=8----------------------------
 twoTailsStouffer <- FALSE
@@ -145,6 +145,6 @@ head(emp_pval_combined)
 # and adjust for multiple testing
 adj_emp_pval_combined <- p.adjust(emp_pval_combined, method="BH")
 head(adj_emp_pval_combined)
-save(emp_pval_combined, file="package_emp_pval_combined.Rdata")
-save(adj_emp_pval_combined, file="package_adj_emp_pval_combined.Rdata")
+save(emp_pval_combined, file="package_emp_pval_combined.RData")
+save(adj_emp_pval_combined, file="package_adj_emp_pval_combined.RData")
 

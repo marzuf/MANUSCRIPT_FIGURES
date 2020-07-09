@@ -54,11 +54,11 @@ txt <- paste0(toupper(script_name), "> settingF\t=\t", settingF, "\n")
 printAndLog(txt, pipLogFile)
 
 #*************************************************************** !!! HARD-CODED SETTINGS 
-withDiag <- FALSE
+# imported from setting file
 txt <- paste0(toupper(script_name), "> Take the diagonal when computing the mean of lower triangle: ", as.character(withDiag), "\n")
 printAndLog(txt, pipLogFile)
 
-corrMethod <- "pearson" 
+# imported from setting file
 txt <- paste0(toupper(script_name), "> Correlation method: ",  toTitleCase(corrMethod), "\n")
 printAndLog(txt, pipLogFile)
 

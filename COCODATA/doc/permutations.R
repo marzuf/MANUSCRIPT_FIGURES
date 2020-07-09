@@ -21,7 +21,7 @@ registerDoMC(nCpu)
 ## ----prep_data-----------------------------------------------------------
 # table from gene-level DE analysis:
 data("ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_fpkmDT") # this loads fpkmDT
-data("ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_pipeline_geneList") # this loads pipeline_geneList.Rdata
+data("ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_pipeline_geneList") # this loads pipeline_geneList
 
 # table with gene-to-TAD assignment
 gene2tad_dt <- read.delim(system.file("extdata", "ENCSR489OCU_NCI-H460_all_genes_positions.txt", package = "COCODATA"),
@@ -63,7 +63,7 @@ permut_dt$entrezID <- NULL
 
 stopifnot(ncol(permut_dt) == nPermut)
 stopifnot(setequal(rownames(permut_dt), pipeline_geneList))
-save(permut_dt, file="package_permut_dt.Rdata")
+save(permut_dt, file="package_permut_dt.RData")
 
 ## ----do_acrossBD_permut--------------------------------------------------
 
@@ -72,5 +72,5 @@ sampAcrossBD_data <- getSampleAcrossBD(g2t_DT=pip_g2t_dt,
 
 str(sampAcrossBD_data[[1]])
 stopifnot(length(sampAcrossBD_data) == length(unique(pip_g2t_dt$region)))
-save(sampAcrossBD_data, file="package_sampAcrossBD_data.Rdata")
+save(sampAcrossBD_data, file="package_sampAcrossBD_data.RData")
 

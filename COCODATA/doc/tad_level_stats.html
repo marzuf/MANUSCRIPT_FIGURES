@@ -255,7 +255,7 @@ stopifnot(!is.na(merged_dt))
 meanFC_dt &lt;- aggregate(logFC ~ region, FUN=mean, data=merged_dt)
 colnames(meanFC_dt)[colnames(meanFC_dt) == &quot;logFC&quot;] &lt;- &quot;meanFC&quot;
 obs_meanFC &lt;- setNames(meanFC_dt$meanFC, meanFC_dt$region)
-save(obs_meanFC, file=&quot;package_obs_meanFC.Rdata&quot;)
+save(obs_meanFC, file=&quot;package_obs_meanFC.RData&quot;)
 </code></pre>
 
 <h3>Compute ratioDown for a list of TADs</h3>
@@ -266,7 +266,7 @@ save(obs_meanFC, file=&quot;package_obs_meanFC.Rdata&quot;)
 FCC_dt &lt;- aggregate(logFC ~ region, FUN=get_ratioDown, data=merged_dt)
 colnames(FCC_dt)[colnames(FCC_dt) == &quot;logFC&quot;] &lt;- &quot;ratioDown&quot;
 obs_ratioDown &lt;- setNames(FCC_dt$ratioDown, FCC_dt$region)
-save(obs_ratioDown, file=&quot;package_obs_ratioDown.Rdata&quot;)
+save(obs_ratioDown, file=&quot;package_obs_ratioDown.RData&quot;)
 </code></pre>
 
 <h3>Compute ratioFC for a list of TADs</h3>
@@ -277,7 +277,7 @@ save(obs_ratioDown, file=&quot;package_obs_ratioDown.Rdata&quot;)
 FCC_dt &lt;- aggregate(logFC ~ region, FUN=get_ratioFC, data=merged_dt)
 colnames(FCC_dt)[colnames(FCC_dt) == &quot;logFC&quot;] &lt;- &quot;ratioFC&quot;
 obs_ratioNegFC &lt;- setNames(FCC_dt$ratioFC, FCC_dt$region)
-save(obs_ratioNegFC, file=&quot;package_obs_ratioNegFC.Rdata&quot;)
+save(obs_ratioNegFC, file=&quot;package_obs_ratioNegFC.RData&quot;)
 </code></pre>
 
 <h3>Compute FCC for a list of TADs</h3>
@@ -288,7 +288,7 @@ save(obs_ratioNegFC, file=&quot;package_obs_ratioNegFC.Rdata&quot;)
 FCC_dt &lt;- aggregate(logFC ~ region, FUN=get_fcc, data=merged_dt)
 colnames(FCC_dt)[colnames(FCC_dt) == &quot;logFC&quot;] &lt;- &quot;FCC&quot;
 obs_FCC &lt;- setNames(FCC_dt$FCC, FCC_dt$region)
-save(obs_FCC, file=&quot;package_obs_FCC.Rdata&quot;)
+save(obs_FCC, file=&quot;package_obs_FCC.RData&quot;)
 </code></pre>
 
 <h3>Compute FCC for permutation data</h3>
@@ -400,7 +400,7 @@ head(meanCorr_dt)
 #&gt; 5 chr10_TAD27 0.03276069
 #&gt; 6 chr10_TAD42 0.43075550
 obs_meanCorr &lt;- setNames(meanCorr_dt$meanCorr, meanCorr_dt$region)
-save(obs_meanCorr, file=&quot;package_meanCorr.Rdata&quot;)
+save(obs_meanCorr, file=&quot;package_meanCorr.RData&quot;)
 </code></pre>
 
 <h3>Combine empirical p-values</h3>
@@ -430,8 +430,8 @@ adj_emp_pval_combined &lt;- p.adjust(emp_pval_combined, method=&quot;BH&quot;)
 head(adj_emp_pval_combined)
 #&gt;   chr1_TAD1 chr1_TAD100 chr1_TAD101 chr1_TAD102 chr1_TAD109 chr1_TAD110 
 #&gt;   0.0232985   0.2308509   0.4614591   0.7409270   0.6051053   0.2859884
-save(emp_pval_combined, file=&quot;package_emp_pval_combined.Rdata&quot;)
-save(adj_emp_pval_combined, file=&quot;package_adj_emp_pval_combined.Rdata&quot;)
+save(emp_pval_combined, file=&quot;package_emp_pval_combined.RData&quot;)
+save(adj_emp_pval_combined, file=&quot;package_adj_emp_pval_combined.RData&quot;)
 </code></pre>
 
 </body>

@@ -36,18 +36,30 @@ useTADonly <- TRUE
 
 
 ########################################################
-### TAD filter number of genes - for filter data (above) and used in 2_runWilcoxonTAD etc.
+### TAD filter number of genes - for filter data (above) 
 ########################################################
 
 # keep TAD with >= minNbrGeneTAD
 minNbrGeneTAD <- 3
 
-# keep TAD with <= maxQuant Genes !!! UPDATE HERE: FOR RUNNING PIPELINE V2 -> FOR TOPDOM, USE 0.99
+# keep TAD with <= maxQuant Genes 
 maxQuantGeneTAD <- 0.99
 
 
 ########################################################
-### permutation settings - 5_runPermutationsMedian.R        => STEP 5
+### for computing correlations - 4_runMeanTADCorr.R and 7_runPermutationsMeanTADCorr.R
+########################################################
+ 
+# which correlation method to use for computing correlations
+corrMethod <- "pearson"
+
+# should include correlation with itself (step 4 only)
+withDiag <- FALSE
+
+
+
+########################################################
+### permutation settings - 5fc_runPermutationsMedian.R        => STEP 5fc
 ########################################################
 
 withExprClass <- TRUE

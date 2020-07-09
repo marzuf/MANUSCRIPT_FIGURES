@@ -153,7 +153,7 @@ plot_geneList <- geneList[geneList %in% toplot_dt$entrezID]
 #fpkm_dt <- get(load(count_file))
 #stopifnot(names(geneList) %in% rownames(fpkm_dt))
 
-count_file <- file.path(pipFolder, hicds, exprds, "0_prepGeneData", "rna_fpkmDT.Rdata")  # corrected here 11.03.2020
+count_file <- file.path(pipFolder, hicds, exprds, "0_prepGeneData", "rna_fpkmDT.Rdata")  # corrected here 11.03.2020 discussion to marco which data to plot
 stopifnot(file.exists(count_file))
 fpkm_dt <- get(load(count_file))
 # changed here 11.03.2020 -> should be normalized sample-wise

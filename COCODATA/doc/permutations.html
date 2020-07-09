@@ -225,7 +225,7 @@ registerDoMC(nCpu)
 
 <pre><code class="r"># table from gene-level DE analysis:
 data(&quot;ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_fpkmDT&quot;) # this loads fpkmDT
-data(&quot;ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_pipeline_geneList&quot;) # this loads pipeline_geneList.Rdata
+data(&quot;ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_pipeline_geneList&quot;) # this loads pipeline_geneList
 
 # table with gene-to-TAD assignment
 gene2tad_dt &lt;- read.delim(system.file(&quot;extdata&quot;, &quot;ENCSR489OCU_NCI-H460_all_genes_positions.txt&quot;, package = &quot;COCODATA&quot;),
@@ -297,7 +297,7 @@ permut_dt$entrezID &lt;- NULL
 
 stopifnot(ncol(permut_dt) == nPermut)
 stopifnot(setequal(rownames(permut_dt), pipeline_geneList))
-save(permut_dt, file=&quot;package_permut_dt.Rdata&quot;)
+save(permut_dt, file=&quot;package_permut_dt.RData&quot;)
 </code></pre>
 
 <h3>Sampling across TAD boundaries</h3>
@@ -322,7 +322,7 @@ str(sampAcrossBD_data[[1]])
 #&gt;  $ minDist_right: num 534582
 #&gt;  $ maxDist_right: num 1116480
 stopifnot(length(sampAcrossBD_data) == length(unique(pip_g2t_dt$region)))
-save(sampAcrossBD_data, file=&quot;package_sampAcrossBD_data.Rdata&quot;)
+save(sampAcrossBD_data, file=&quot;package_sampAcrossBD_data.RData&quot;)
 </code></pre>
 
 </body>

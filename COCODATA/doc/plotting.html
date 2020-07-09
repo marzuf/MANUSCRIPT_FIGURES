@@ -253,21 +253,9 @@ plot_conservedRegions(genes_dt=genes_plot_dt,
 
 <p>NB: see the <em>tad_level_stats</em> vignette for computing TAD meanLogFC and mean intra-correlation.</p>
 
-<pre><code class="r">data(&quot;ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_all_meanCorr_TAD.RData&quot;) # this loads all_meanCorr_TAD
-#&gt; Warning in data(&quot;ENCSR489OCU_NCI-
-#&gt; H460_40kb_TCGAluad_norm_luad_all_meanCorr_TAD.RData&quot;): data set
-#&gt; &#39;ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_all_meanCorr_TAD.RData&#39; not
-#&gt; found
-data(&quot;ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_all_meanLogFC_TAD.RData&quot;) # this loads all_meanLogFC_TAD
-#&gt; Warning in data(&quot;ENCSR489OCU_NCI-
-#&gt; H460_40kb_TCGAluad_norm_luad_all_meanLogFC_TAD.RData&quot;): data set
-#&gt; &#39;ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_all_meanLogFC_TAD.RData&#39; not
-#&gt; found
-data(&quot;ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_emp_pval_combined.RData&quot;) # this loads emp_pval_combined
-#&gt; Warning in data(&quot;ENCSR489OCU_NCI-
-#&gt; H460_40kb_TCGAluad_norm_luad_emp_pval_combined.RData&quot;): data set
-#&gt; &#39;ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_emp_pval_combined.RData&#39; not
-#&gt; found
+<pre><code class="r">data(&quot;ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_all_meanCorr_TAD&quot;) # this loads all_meanCorr_TAD
+data(&quot;ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_all_meanLogFC_TAD&quot;) # this loads all_meanLogFC_TAD
+data(&quot;ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_emp_pval_combined&quot;) # this loads emp_pval_combined
 
 plot_volcanoTADsCorrFC(meanCorr=all_meanCorr_TAD, 
                        meanFC=all_meanLogFC_TAD, 

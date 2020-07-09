@@ -4,8 +4,6 @@ options(scipen=100)
 
 startTime <- Sys.time()
 
-### !!! HARD CODED corMet "pearson"
-
 ################  USE THE FOLLOWING FILES FROM PREVIOUS STEPS
 # - script0: pipeline_regionList.RData
 # - script0: pipeline_geneList.RData
@@ -63,8 +61,8 @@ printAndLog(txt, pipLogFile)
 txt <- paste0(toupper(script_name), "> settingF\t=\t", settingF, "\n")
 printAndLog(txt, pipLogFile)
 
-corrMeth <- "pearson"
-txt <- paste0(toupper(script_name), "> corrMeth\t=\t", corrMeth, "\n")
+# imported from setting file
+txt <- paste0(toupper(script_name), "> corrMethod\t=\t", corrMethod, "\n")
 printAndLog(txt, pipLogFile)
 
 geneList_file <- file.path(pipOutFold, script1_name, "pipeline_geneList.RData")
@@ -141,19 +139,19 @@ meanCorr_sample_around_TADs_sameNbr <- foreach(reg = all_regs) %dopar% {
                    exprMatrix = sub_normDT, 
                    inside_genes = inTAD_genes,      # inside_genes and outside_genes should be in rownames of exprMatrix
                    outside_genes = outTAD_genes, 
-                   cormet = corrMeth
+                   cormet = corrMethod
                    )
     meanCorr_cond1 <- get_meanCorr_value(
       exprMatrix = sub_normDT_cond1, 
       inside_genes = inTAD_genes, 
       outside_genes = outTAD_genes, 
-      cormet = corrMeth
+      cormet = corrMethod
     )
     meanCorr_cond2 <- get_meanCorr_value(
       exprMatrix = sub_normDT_cond2, 
       inside_genes = inTAD_genes, 
       outside_genes = outTAD_genes, 
-      cormet = corrMeth
+      cormet = corrMethod
     )
     ########## => TAKING THE TADs AND SAMPLING ON THE RIGHT ONLY
     if(tad_data$nGenes_right > 0) {
@@ -186,19 +184,19 @@ meanCorr_sample_around_TADs_sameNbr <- foreach(reg = all_regs) %dopar% {
         exprMatrix = sub_normDT_right, 
         inside_genes = inTAD_genes,      # inside_genes and outside_genes should be in rownames of exprMatrix
         outside_genes = outTAD_genes_right, 
-        cormet = corrMeth
+        cormet = corrMethod
       )
       meanCorrRight_cond1 <- get_meanCorr_value(
         exprMatrix = sub_normDT_cond1_right, 
         inside_genes = inTAD_genes,      # inside_genes and outside_genes should be in rownames of exprMatrix
         outside_genes = outTAD_genes_right, 
-        cormet = corrMeth
+        cormet = corrMethod
       )
       meanCorrRight_cond2 <- get_meanCorr_value(
         exprMatrix = sub_normDT_cond2_right, 
         inside_genes = inTAD_genes,      # inside_genes and outside_genes should be in rownames of exprMatrix
         outside_genes = outTAD_genes_right, 
-        cormet = corrMeth
+        cormet = corrMethod
       )
     } else {
       meanCorrRight_all <- NA
@@ -235,19 +233,19 @@ meanCorr_sample_around_TADs_sameNbr <- foreach(reg = all_regs) %dopar% {
         exprMatrix = sub_normDT_left, 
         inside_genes = inTAD_genes,      # inside_genes and outside_genes should be in rownames of exprMatrix
         outside_genes = outTAD_genes_left, 
-        cormet = corrMeth
+        cormet = corrMethod
       )
       meanCorrLeft_cond1 <- get_meanCorr_value(
         exprMatrix = sub_normDT_cond1_left, 
         inside_genes = inTAD_genes,      # inside_genes and outside_genes should be in rownames of exprMatrix
         outside_genes = outTAD_genes_left, 
-        cormet = corrMeth
+        cormet = corrMethod
       )
       meanCorrLeft_cond2 <- get_meanCorr_value(
         exprMatrix = sub_normDT_cond2_left, 
         inside_genes = inTAD_genes,      # inside_genes and outside_genes should be in rownames of exprMatrix
         outside_genes = outTAD_genes_left, 
-        cormet = corrMeth
+        cormet = corrMethod
       )
     } else {
       meanCorrLeft_all <- NA
