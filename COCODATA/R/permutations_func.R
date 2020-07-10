@@ -32,8 +32,8 @@
 
 get_gene2tad_multiPermut <- function(g2TADdt, RNAdt, geneIDlist, nClass, withExprClass, TADonly, nSimu, nCpu, aggregFun) {
   	
-#  if(!suppressPackageStartupMessages(require("foreach"))) stop("-- foreach package required\n")  
-#  if(!suppressPackageStartupMessages(require("doMC"))) stop("-- doMC package required\n")  
+  if(!suppressPackageStartupMessages(require("foreach"))) stop("-- foreach package required\n")  
+  if(!suppressPackageStartupMessages(require("doMC"))) stop("-- doMC package required\n")  
 
   if(withExprClass) {
     stopifnot(!is.null(RNAdt) & !is.null(nClass))

@@ -1,0 +1,240 @@
+---
+title: "Plotting"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{plotting}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Example of some plotting possibilities
+
+```{r setup}
+rm(list=ls())
+
+if(!require(COCODATA))
+  devtools::install_github("marzuf/MANUSCRIPT_FIGURES", subdir="COCODATA")
+  # alternatively: 
+  # install.packages("COCODATA_0.0.0.1.tar.gz", repos = NULL, type ="source")
+ # data("norm_ID")
+library(COCODATA)
+```
+
+
+
+### Retrieve recurrently differentially activated regions
+
+
+``` {r plot_conserved, fig.height=8, fig.width=14}
+data("allSignif_dt") # this loads allSignif_dt
+head(allSignif_dt)
+#                                    dataset       region
+# 1514 Barutcu_MCF-10A_40kb/TCGAbrca_lum_bas  chr6_TAD633
+# 121  Barutcu_MCF-10A_40kb/TCGAbrca_lum_bas  chr1_TAD551
+# 302  Barutcu_MCF-10A_40kb/TCGAbrca_lum_bas chr11_TAD238
+
+data("allSignif_g2t_dt") # this loads allSignif_g2t_dt
+head(allSignif_g2t_dt)
+> head(allSignif_g2t_dt)
+#                                    dataset entrezID chromo    start      end       region  symbol
+# 147  Barutcu_MCF-10A_40kb/TCGAbrca_lum_bas    51182  chr10 14880159 14913740  chr10_TAD67  HSPA14
+# 149  Barutcu_MCF-10A_40kb/TCGAbrca_lum_bas    79723  chr10 14920782 14946314  chr10_TAD67 SUV39H2
+# 150  Barutcu_MCF-10A_40kb/TCGAbrca_lum_bas    64421  chr10 14948870 14996106  chr10_TAD67 DCLRE1C
+# 2671 Barutcu_MCF-10A_40kb/TCGAbrca_lum_bas    10647  chr11 62009102 62012280 chr11_TAD238 SCGB1D2
+# 2672 Barutcu_MCF-10A_40kb/TCGAbrca_lum_bas     4250  chr11 62037630 62040628 chr11_TAD238 SCGB2A2
+
+
+data("allSignif_tad_pos_dt") # this loads allSignif_dt
+head(allSignif_tad_pos_dt)
+#                                    dataset chromo       region     start       end
+# 68   Barutcu_MCF-10A_40kb/TCGAbrca_lum_bas  chr10  chr10_TAD67  14880001  15040000
+# 821  Barutcu_MCF-10A_40kb/TCGAbrca_lum_bas  chr11 chr11_TAD238  61920001  62160000
+# 971  Barutcu_MCF-10A_40kb/TCGAbrca_lum_bas  chr11 chr11_TAD384  95720001  96160000
+# 996  Barutcu_MCF-10A_40kb/TCGAbrca_lum_bas  chr11 chr11_TAD409 102160001 102560000
+# 1006 Barutcu_MCF-10A_40kb/TCGAbrca_lum_bas  chr11 chr11_TAD419 104680001 105080000
+
+
+allSignif_dt <- get(load("TMP_FUNC_CONS_ONESHOT/allSignif_dt.RData"))
+allSignif_g2t_dt <- get(load("TMP_FUNC_CONS_ONESHOT/allSignif_g2t_dt.RData"))
+allSignif_tad_pos_dt <- get(load("TMP_FUNC_CONS_ONESHOT/allSignif_tad_pos_dt.RData"))
+
+conserv_minIntersectGenes <- 3
+conserv_geneMatching <- 0.8
+conserv_minOverlapBp <- 0.8
+
+signif_conserv_data <- get_conservedRegion(
+  signif_dt=allSignif_dt, all_tad_pos_dt=allSignif_tad_pos_dt, all_g2t_dt=allSignif_g2t_dt, 
+  minOverlapBpRatio=conserv_minOverlapBp,
+  minIntersectGenes=conserv_minIntersectGenes,
+  gene_matching_fuse_threshold = conserv_geneMatching,
+  verbose=FALSE
+)
+
+```
+
+### Overall conservation
+
+``` {r plot_barplot, fig.height=6, fig.width=10}
+library(ggplot2)
+
+minConserv <- 2
+
+conserved_dt <- data.frame(
+      region = names(signif_conserv_data[["conserved_signif_tads"]]),
+      nConserv = as.numeric(lengths(signif_conserv_data[["conserved_signif_tads"]])),
+      stringsAsFactors=FALSE)
+stopifnot(conserved_dt$nConserv >= 2)
+
+conserved_dt <- conserved_dt[order(conserved_dt$nConserv),]
+conserved_dt$region <- factor(conserved_dt$region, levels=as.character(conserved_dt$region))
+conserved_dt$region_rank <- as.numeric(conserved_dt$region)
+conserved_dt <- conserved_dt[conserved_dt$nConserv >= minConserv,]
+
+nCons <- nrow(conserved_dt)
+
+my_ylab <- "# datasets conserved"
+my_xlab <- paste0("Ranked conserved regions (", nCons, " with >= ", minConserv, " DS cons.)")
+myTit <- "Signif. conserved regions"
+subTit <- paste0("conserv. match ratio bp >= ", conserv_minOverlapBp, " and intersect genes >= ", conserv_minIntersectGenes)
+
+ggplot(conserved_dt, aes(x=region_rank, y=nConserv)) +
+  ggtitle(myTit, subtitle = subTit)+
+  geom_bar(stat="identity", color="darkblue", fill="gray80") +
+  scale_y_continuous(name=my_ylab, breaks= scales::pretty_breaks(n = 5))+
+  scale_x_continuous(name=my_xlab, breaks= noZero_breaks(n=5), expand=c(0,0))+
+  labs(x=my_xlab, y=my_ylab, color="", fill="")+
+   theme(
+	text = element_text(family=fontFamily),
+  panel.grid.major.y =  element_line(colour = "grey", size = 0.5, linetype=1),
+  panel.grid.minor.y =  element_line(colour = "grey", size = 0.5, linetype=1),
+  panel.background = element_rect(fill = "transparent"),
+    panel.grid.major.x =  element_blank(),
+    panel.grid.minor.x  =  element_blank(),
+  axis.title.x = element_text(size=14, hjust=0.5, vjust=0.5),
+  axis.title.y = element_text(size=14, hjust=0.5, vjust=0.5),
+  axis.text.y = element_text(size=12, hjust=0.5, vjust=0.5),
+  axis.text.x = element_text(size=12, hjust=0.5, vjust=0.5),
+	    axis.line.x = element_line(),
+
+  plot.title = element_text(hjust=0.5, size = 16, face="bold"),
+  plot.subtitle = element_text(hjust=0.5, size = 14, face="italic"),
+  legend.title = element_text(face="bold"),
+	    legend.text = element_text(size=12),
+)
+```
+
+
+
+### Heatmap
+
+``` {r plot_heatmap, fig.height=14, fig.width=14}
+# transform to a binary matrix
+
+all_datasets <- as.character(unique(allSignif_dt$dataset))
+
+dsByReg_dt <- do.call(rbind, lapply(signif_conserv_data[["conserved_signif_tads"]], function(x) as.numeric(all_datasets %in% unique(dirname(x)))))
+colnames(dsByReg_dt) <- all_datasets
+stopifnot(max(rowSums(dsByReg_dt)) == max(conserved_dt$nConserv))
+
+plot_dt <- dsByReg_dt[names(sort(rowSums(dsByReg_dt), decreasing = TRUE)),names(sort(colSums(dsByReg_dt), decreasing = TRUE))]
+
+my_heatmap.2(plot_dt[1:10,1:10], 
+             col=c("white", "black"),
+             xlab ="Ranked datasets (top 10)",
+             ylab ="Ranked regions (top 10)",
+          dendrogram = "none",
+          trace = "none",
+          key=FALSE,
+          Rowv=F,#Rowv=TRUE,
+          Colv=FALSE,
+          labCol = FALSE,
+          labRow=FALSE,
+          # lmat = rbind(c(5,0,4), c(3,1,2)),
+          # lwid=c(1.5,0.2,4),
+          # lwid=c(0.2,0.2,5),
+          # lhei=c(0.01,5),
+          # margins=c(2,18),
+          # adjRow=c(0,0.5),
+          #lwid= c(0.1, 0.1, 5),
+          # colRow = dataset_dt$subtype_col,
+          # RowSideColors = dataset_dt$subtype_col,
+          rowAxis=4
+          )
+```
+
+
+
+
+### Conserved region
+
+
+### TODO BUILD HERE A TABLE SIMILAR TO GENES PLOT AND REGIONS PLOT
+
+
+
+``` {r plot_conserved, fig.height=8, fig.width=14}
+
+
+> head(signif_conserv_data[["conserved_signif_intersect_genes"]])
+$conserved_region_1
+[1] "FAM161B" "COQ6"    "ENTPD5"  "CCDC176" "ALDH6A1" "LIN52"  
+
+$conserved_region_2
+[1] "AARS"   "DDX19B" "DDX19A"
+
+$conserved_region_3
+[1] "COQ7"     "ITPRIPL2" "SYT17"   
+
+$conserved_region_4
+[1] "PLEKHF1"  "C19orf12" "CCNE1"   
+
+$conserved_region_5
+[1] "ZNF552" "ZNF587" "ZNF814" "ZNF417"
+
+
+> head(signif_conserv_data[["conserved_signif_tads"]])
+$conserved_region_1
+[1] "Barutcu_MCF-10A_40kb/TCGAbrca_lum_bas/chr14_TAD227" "Barutcu_MCF-7_40kb/TCGAbrca_lum_bas/chr14_TAD260"  
+[3] "GSE109229_BT474_40kb/TCGAbrca_lum_bas/chr14_TAD206" "GSE109229_SKBR3_40kb/TCGAbrca_lum_bas/chr14_TAD182"
+[5] "HMEC_40kb/TCGAbrca_lum_bas/chr14_TAD165"           
+
+$conserved_region_2
+[1] "Barutcu_MCF-10A_40kb/TCGAbrca_lum_bas/chr16_TAD242"  "ENCSR549MGQ_T47D_40kb/TCGAbrca_lum_bas/chr16_TAD195"
+[3] "GSE109229_BT474_40kb/TCGAbrca_lum_bas/chr16_TAD211"  "HMEC_40kb/TCGAbrca_lum_bas/chr16_TAD180"            
+
+> head(genes_plot_dt)
+  symbol     start       end chromo count
+5 GIMAP8 150147748 150176483   chr7     9
+4 GIMAP7 150211945 150218161   chr7    27
+2 GIMAP4 150264458 150271043   chr7    27
+3 GIMAP6 150322463 150329736   chr7    27
+1 GIMAP2 150382690 150390729   chr7    25
+6 GIMAP1 150413645 150421368   chr7    13
+> head(tads_plot_dt)
+                dataset         dsCat cond1 cond2 upCond      region     start       end chromo
+4     ENCSR401TBQ_Caki2 norm_vs_tumor  norm  kich   norm chr7_TAD567 150120001 150640000   chr7
+9  ENCSR489OCU_NCI-H460 norm_vs_tumor  norm  lusc   norm chr7_TAD556 150160001 150680000   chr7
+16      GSE105381_HepG2 norm_vs_tumor  norm  lihc   norm chr7_TAD515 150120001 150440000   chr7
+1      ENCSR079VIJ_G401 norm_vs_tumor  norm  kich   norm chr7_TAD560 150120001 150400000   chr7
+18       GSE99051_786_O norm_vs_tumor  norm  kich   norm chr7_TAD571 150120001 150400000   chr7
+6      ENCSR444WCZ_A549 norm_vs_tumor  norm  luad   norm chr7_TAD553 150160001 150400000   chr7
+
+
+
+data("conserved_region_130_genes_plot_dt") # this loads genes_plot_dt
+head(genes_plot_dt)
+
+data("conserved_region_130_tads_plot_dt") # this loads tads_plot_dt
+head(tads_plot_dt)
+
+plot_conservedRegions(genes_dt=genes_plot_dt, 
+                      tads_dt=tads_plot_dt,
+                      dsCat_cols = setNames(c("firebrick3", "navy", "gray50"), c("wt_vs_mut", "norm_vs_tumor", "subtypes")))
+```
