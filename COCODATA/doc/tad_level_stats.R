@@ -148,3 +148,13 @@ head(adj_emp_pval_combined)
 save(emp_pval_combined, file="package_emp_pval_combined.RData")
 save(adj_emp_pval_combined, file="package_adj_emp_pval_combined.RData")
 
+## ----plot_volcano, fig.height=6, fig.width=8-----------------------------
+stopifnot(setequal(names(obs_meanCorr), names(obs_meanFC)))
+stopifnot(setequal(names(obs_meanCorr), names(adj_emp_pval_combined)))
+
+plot_volcanoTADsCorrFC(meanCorr=obs_meanCorr, 
+                       meanFC=obs_meanFC, 
+                       comb_pval=adj_emp_pval_combined,
+                       padjusted=TRUE,
+                       tads_to_annot = "chr11_TAD390")
+

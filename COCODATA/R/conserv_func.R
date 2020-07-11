@@ -71,16 +71,35 @@
 
 ### A VOIR; MAIS JE CROIS QUE TOUTE LA PARTIE AVEC ngenes_dt NE SERT A RIEN
 
+#######################################################################################################################
+#######################################################################################################################
+#######################################################################################################################
+#' Retrieve consensus regions for a list of TADs.
+#'
+#' Retrieve region corresponding to overlapping TADs.
+#'
+#' @param signif_dt Dataframe with the list of TAds that have to be matched (columns: dataset/region).
+#' @param all_tad_pos_dt Coordinates of the TADs hold in signif_dt (colums:  dataset/chromo/region/start/end).
+#' @param all_g2t_dt Gene-to-TAD assignment for the TADs hold in signif_dt (columns: dataset/entrezID/chromo/start/end/region/symbol).
+#' @param minOverlapBpRatio Retain only matches with >= minOverlapBpRatio bp overlap (filter 1).
+#' @param minIntersectGenes Retain only conserved regions with >= minIntersectGenes genes at the intersect (filter 2).
+#' @param gene_matching_fuse_threshold Merge conserved regions that have >= gene_matching_fuse_threshold % gene overlap (after filter 2).
+#' @param nCpu Number of CPU available.
+#' @param logFile If provided, write logs in this file.
+#' @param verbose Verbose or not function execution.
+#' @return A list of four elements: the all-vs-all matching table ("matching_table"), the conserved regions with the corresponding TADs ("conserved_signif_tads"), the conserved regions with the corresponding intersect genes ("conserved_signif_intersect_genes"), the list of parameters used for the filters  ("parameters").
+#' @export
+#' 
 
 get_conservedRegion <- function(
   signif_dt, all_tad_pos_dt, all_g2t_dt,
+  ### > Filter1: retain only matches with >= *minOverlapBpRatio* (80%) bp overlap
+  minOverlapBpRatio = 0.8,
   ### > Filter2: retain only "conserved regions" with >= *minIntersectGenes*(3) genes at the intersect
   minIntersectGenes = 3,
   ### !!! >>> v2 update here 
   ### Merge conserved regions that have >= *gene_matching_fuse_threshold* % (80%) gene overlap
   gene_matching_fuse_threshold = 0.8,
-  ### > Filter1: retain only matches with >= *minOverlapBpRatio* (80%) bp overlap
-  minOverlapBpRatio = 0.8,
   nCpu = 2,
   logFile=NULL,
   verbose=TRUE

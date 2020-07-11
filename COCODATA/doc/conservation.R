@@ -1,22 +1,10 @@
----
-title: "Recurrently DA TADs"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{conservation}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
----
-
-```{r, include = FALSE}
+## ---- include = FALSE----------------------------------------------------
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
-```
 
-# Example of some plotting possibilities
-
-```{r setup}
+## ----setup---------------------------------------------------------------
 rm(list=ls())
 
 if(!require(COCODATA))
@@ -25,12 +13,8 @@ if(!require(COCODATA))
   # install.packages("COCODATA_0.0.0.1.tar.gz", repos = NULL, type ="source")
  # data("norm_ID")
 library(COCODATA)
-```
 
-
-### Retrieve recurrently differentially activated regions
-
-``` {r get_conserved, fig.height=8, fig.width=14}
+## ----get_conserved, fig.height=8, fig.width=14---------------------------
 data("allSignif_dt") # this loads allSignif_dt
 head(allSignif_dt)
 
@@ -53,11 +37,8 @@ signif_conserv_data <- get_conservedRegion(
   verbose=FALSE
 )
 
-```
 
-### Overall conservation
-
-``` {r plot_barplot, fig.height=6, fig.width=10}
+## ----plot_barplot, fig.height=6, fig.width=10----------------------------
 library(ggplot2)
 fontFamily <- "Hershey"
 minConserv <- 2
@@ -103,12 +84,8 @@ ggplot(conserved_dt, aes(x=region_rank, y=nConserv)) +
   legend.title = element_text(face="bold"),
 	    legend.text = element_text(size=12),
 )
-```
 
-
-### Heatmap
-
-``` {r plot_heatmap, fig.height=14, fig.width=14}
+## ----plot_heatmap, fig.height=14, fig.width=14---------------------------
 library(reshape2)
 
 myTit <- "Conserved regions across datasets"
@@ -138,12 +115,8 @@ ggplot(plot_dt_m, aes(x=Var2, y=Var1, fill=value)) +
     plot.title=element_text(size=14, face="bold", hjust=0.5),
     axis.text = element_blank()
   )
-```
 
-
-### Conserved region
-
-``` {r plot_conserved, fig.height=8, fig.width=14}
+## ----plot_conserved, fig.height=8, fig.width=14--------------------------
 region_to_plot <- conserved_dt$region[conserved_dt$nConserv == max(conserved_dt$nConserv)][1]
 stopifnot(region_to_plot %in% names(signif_conserv_data[["conserved_signif_intersect_genes"]]))
 symbols_to_plot <- signif_conserv_data[["conserved_signif_intersect_genes"]][[paste0(region_to_plot)]]
@@ -167,4 +140,4 @@ tads_plot_dt$cond2 <- gsub("TCGA.+_.+_(.+)", "\\1", basename(tads_plot_dt$datase
 tads_plot_dt$dataset <- gsub("_40kb", "", dirname(as.character(tads_plot_dt$dataset)))
 plot_conservedRegions(genes_dt=genes_plot_dt, 
                       tads_dt=tads_plot_dt)
-```
+

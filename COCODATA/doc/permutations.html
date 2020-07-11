@@ -207,15 +207,11 @@ hr {
 
 if(!require(COCODATA))
   devtools::install_github(&quot;marzuf/MANUSCRIPT_FIGURES&quot;, subdir=&quot;COCODATA&quot;)
-#&gt; Loading required package: COCODATA
   # alternatively: 
   # install.packages(&quot;COCODATA_0.0.0.1.tar.gz&quot;, repos = NULL, type =&quot;source&quot;)
  # data(&quot;norm_ID&quot;)
 library(COCODATA)
 library(doMC)
-#&gt; Loading required package: foreach
-#&gt; Loading required package: iterators
-#&gt; Loading required package: parallel
 library(foreach)
 nCpu &lt;- 2
 registerDoMC(nCpu)
