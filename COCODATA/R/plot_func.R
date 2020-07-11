@@ -6,8 +6,8 @@
 #'
 #' Function to plot the TADs and genes of a conserved region.
 #'
-#' @param genes_dt The text to be printed.
-#' @param tads_dt Dataframe with information regarding conserved TADs to plot. Should contain at least the following columns: dataset/dsCat/upCond/cond1/cond2/chromo/start/end. Datasets will be grouped according to dsCat.
+#' @param genes_dt The text to be printed. Should contain at least the following columns: symbol/chromo/start/end/<count>
+#' @param tads_dt Dataframe with information regarding conserved TADs to plot. Should contain at least the following columns: dataset/dsCat/cond1/cond2/chromo/start/end/<upCond>. Datasets will be grouped according to dsCat.
 #' @param dsCat_cols Should be a named vector of colors. The names should match the levels of tads_dt$dsCat.
 #' @param ... Other parameters for fine-tuning the plot (might be to look a bit in the code to adapt to your data).
 #' @return The plot (ggplot).
@@ -40,17 +40,20 @@ plot_conservedRegions <- function(genes_dt, tads_dt,
     stopifnot(as.character(tads_dt$dsCat) %in% names(dsCat_cols))
   }
   
-  stopifnot(c("symbol", "count", "chromo", "start", "end") %in% colnames(genes_dt))
-  stopifnot(c("dataset","dsCat", "upCond", "cond1", "cond2", "chromo", "start", "end") %in% colnames(tads_dt))
+  # stopifnot(c("symbol", "count", "chromo", "start", "end") %in% colnames(genes_dt))
+  stopifnot(c("symbol", "chromo", "start", "end") %in% colnames(genes_dt))
+  # stopifnot(c("dataset","dsCat", "upCond", "cond1", "cond2", "chromo", "start", "end") %in% colnames(tads_dt))
+  stopifnot(c("dataset","dsCat", "cond1", "cond2", "chromo", "start", "end") %in% colnames(tads_dt))
   
   genes_dt$start <- as.numeric(as.character(genes_dt$start))
   stopifnot(!is.na(genes_dt$start))
   genes_dt$end <- as.numeric(as.character(genes_dt$end))
   stopifnot(!is.na(genes_dt$end))
   genes_dt$chromo <- as.character(genes_dt$chromo)
-  genes_dt$count <- as.numeric(as.character(genes_dt$count))
-  stopifnot(!is.na(genes_dt$count))
-  
+  if("count" %in% colnames(genes_dt)) {
+    genes_dt$count <- as.numeric(as.character(genes_dt$count))
+    stopifnot(!is.na(genes_dt$count))
+  }
   tads_dt$chromo <- as.character(tads_dt$chromo)
   tads_dt$start <- as.numeric(as.character(tads_dt$start))
   stopifnot(!is.na(tads_dt$start))
@@ -63,7 +66,7 @@ plot_conservedRegions <- function(genes_dt, tads_dt,
   stopifnot(!duplicated(file.path(tads_dt$dataset, tads_dt$cond1, tads_dt$cond2)))
   stopifnot(length(unique(genes_dt$chromo)) == 1)
   stopifnot(length(unique(tads_dt$chromo)) == 1)
-  stopifnot(max(genes_dt$count) <= nDScons)
+  if("count" %in% colnames(genes_dt)) stopifnot(max(genes_dt$count) <= nDScons)
   
   
   if(is.null(colConsThresh)) {
@@ -101,8 +104,12 @@ plot_conservedRegions <- function(genes_dt, tads_dt,
   genes_dt <- genes_dt[order(genes_dt$start, genes_dt$end),]
   genes_dt$gene_rank <- max(tads_dt$ds_rank) + tad_gene_space + 1:nrow(genes_dt)
   genes_dt$gene_pos <- 0.5*(genes_dt$start+genes_dt$end)
-  genes_dt$col <- ifelse(genes_dt$count == nDScons, consAll_col, ifelse(genes_dt$count >= colConsThresh, consAbove_col, consBelow_col))
-  genes_dt$col <- factor(genes_dt$col, levels = as.character(geneColSetting))
+  if("count" %in% colnames(genes_dt)) {
+    genes_dt$col <- ifelse(genes_dt$count == nDScons, consAll_col, ifelse(genes_dt$count >= colConsThresh, consAbove_col, consBelow_col))
+    genes_dt$col <- factor(genes_dt$col, levels = as.character(geneColSetting))
+  } else {
+    genes_dt$col <- consAll_col
+  }
   stopifnot(!is.na(genes_dt$col))
   
   
@@ -111,10 +118,14 @@ plot_conservedRegions <- function(genes_dt, tads_dt,
     label_part1 <- tads_dt$dataset[i]
     label_part2 <- tads_dt$cond1[i]
     label_part3 <- tads_dt$cond2[i]
-    if(tads_dt$upCond[i] == tads_dt$cond1[i]){
-      mylab <- gsub(" ","~", paste0(label_part1, "~", label_part2, "~bold(", label_part3, ")"))
-    }else {
-      mylab <- gsub(" ","~", paste0(label_part1, "~bold(", label_part2, ")~", label_part3))
+    if("upCond" %in% colnames(tads_dt)) {
+      if(tads_dt$upCond[i] == tads_dt$cond1[i]){
+        mylab <- gsub(" ","~", paste0(label_part1, "~", label_part2, "~bold(", label_part3, ")"))
+      }else {
+        mylab <- gsub(" ","~", paste0(label_part1, "~bold(", label_part2, ")~", label_part3))
+      }  
+    } else {
+      mylab <- gsub(" ","~", paste0(label_part1, "~", label_part2, "~", label_part3))
     }
     mylab <- gsub("_", "[{\"-\"}]*", mylab)  # underscore are not recognize -> replace with dash lowerscript
     mylab <- gsub("^(\\d+)([a-zA-Z])", "\\1*\\2", mylab)
@@ -136,10 +147,21 @@ plot_conservedRegions <- function(genes_dt, tads_dt,
     geom_segment( aes(x = genes_dt$start, y = genes_dt$gene_rank,
                       xend=genes_dt$end, yend = genes_dt$gene_rank,
                       colour = genes_dt$col),
-                  linetype = geneLt, size = geneLw, show.legend=TRUE,inherit.aes = F) +
+                  linetype = geneLt, size = geneLw, show.legend=TRUE,inherit.aes = F) 
+    
+    
+    if("count" %in% colnames(genes_dt))    {     region_p <- region_p + 
+    
     scale_color_manual(values= setNames(as.character(geneColSetting),as.character(geneColSetting)), 
                        labels = setNames(names(geneColSetting), as.character(geneColSetting))) +
-    labs(color="# conserved")+
+      labs(color="# conserved")
+      
+    } else {
+      region_p <- region_p + guides(color=FALSE)
+    }
+    
+    region_p <- region_p + 
+    
     # vertical lines for the gene delimiters
     geom_segment( aes(x = c(genes_dt$start, genes_dt$end), 
                       xend= c(genes_dt$start, genes_dt$end),
@@ -179,7 +201,6 @@ plot_conservedRegions <- function(genes_dt, tads_dt,
     ) +
     expand_limits(x = c(NA, max(xscale)+10000))+
     geom_segment(aes(x=min(xscale), xend=max(xscale),y=0, yend=0), lineend="round", colour="darkgrey", size=2)+  
-    
     annotate("text", x=c(min(xscale), 0.5*(min(xscale)+max(xscale)), max(xscale)), y = -0.8, vjust=1, 
              size=5,
              label=c(min(xscale), chromo, max(xscale)) , colour="darkgrey", fontface="italic") 
@@ -198,7 +219,7 @@ plot_conservedRegions <- function(genes_dt, tads_dt,
 #' @param meanFC Vector of TAD meanLogFC (vector names should be TAD IDs).
 #' @param comb_pval Vector of TAD p-values (vector names should be TAD IDs).
 #' @param tads_to_annot (optional) TAD that should be annotated with a label.
-#' @param padjusted If the p-values should be adjusted (BH method).
+#' @param padjusted If the p-values are already adjusted (BH method).
 #' @param ... Other parameters for fine-tuning the plot.
 #' @return The plot (ggplot).
 #' @export

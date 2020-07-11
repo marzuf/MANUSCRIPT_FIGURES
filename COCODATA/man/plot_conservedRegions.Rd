@@ -13,9 +13,9 @@ plot_conservedRegions(genes_dt, tads_dt, TADlinecol = "darkblue",
   subTit = NULL, myTit = NULL)
 }
 \arguments{
-\item{genes_dt}{The text to be printed.}
+\item{genes_dt}{The text to be printed. Should contain at least the following columns: symbol/chromo/start/end/<count>}
 
-\item{tads_dt}{Dataframe with information regarding conserved TADs to plot. Should contain at least the following columns: dataset/dsCat/upCond/cond1/cond2/chromo/start/end. Datasets will be grouped according to dsCat.}
+\item{tads_dt}{Dataframe with information regarding conserved TADs to plot. Should contain at least the following columns: dataset/dsCat/cond1/cond2/chromo/start/end/<upCond>. Datasets will be grouped according to dsCat.}
 
 \item{dsCat_cols}{Should be a named vector of colors. The names should match the levels of tads_dt$dsCat.}
 

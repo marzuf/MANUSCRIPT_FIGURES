@@ -1,24 +1,10 @@
----
-title: "TAD-level statistics"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{tad_level_stats}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
----
-
-
-```{r, include = FALSE}
+## ---- include = FALSE----------------------------------------------------
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
-```
 
-# Calculation of some TAD-level statistics
-
-### Load some packages
-```{r setup}
+## ----setup---------------------------------------------------------------
 rm(list=ls())
 if(!require(COCODATA))
   devtools::install_github("marzuf/MANUSCRIPT_FIGURES", subdir="COCODATA")
@@ -30,10 +16,8 @@ library(doMC)
 library(foreach)
 nCpu <- 2
 registerDoMC(nCpu)
-```
 
-### Prepare the observed data
-``` {r prep_obs}
+## ----prep_obs------------------------------------------------------------
 # table from gene-level DE analysis:
 data("ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_DE_topTable") # this loads DE_topTable
 DE_topTable$genes <- as.character(DE_topTable$genes)
@@ -61,59 +45,36 @@ pip_g2t_dt <- gene2tad_dt[gene2tad_dt$entrezID %in% pipeline_geneList,]
 # merge to match gene-to-TAD and logFC
 merged_dt <- merge(pip_g2t_dt[,c("entrezID", "region")], DE_topTable[,c("logFC", "entrezID")], by="entrezID", all.x=TRUE, all.y=FALSE)
 stopifnot(!is.na(merged_dt))
-``` 
 
-### Compute meanLogFC for a list of TADs 
-``` {r meanFC_obs_example}
+## ----meanFC_obs_example--------------------------------------------------
 # compute the ratioDown for each TAD
 meanFC_dt <- aggregate(logFC ~ region, FUN=mean, data=merged_dt)
 colnames(meanFC_dt)[colnames(meanFC_dt) == "logFC"] <- "meanFC"
 obs_meanFC <- setNames(meanFC_dt$meanFC, meanFC_dt$region)
 save(obs_meanFC, file="package_obs_meanFC.RData")
-``` 
 
-
-### Compute ratioDown for a list of TADs 
-
-using the <em>get_ratioDown</em> function:
-
-``` {r ratioDown_obs_example}
+## ----ratioDown_obs_example-----------------------------------------------
 # compute the ratioDown for each TAD
 FCC_dt <- aggregate(logFC ~ region, FUN=get_ratioDown, data=merged_dt)
 colnames(FCC_dt)[colnames(FCC_dt) == "logFC"] <- "ratioDown"
 obs_ratioDown <- setNames(FCC_dt$ratioDown, FCC_dt$region)
 save(obs_ratioDown, file="package_obs_ratioDown.RData")
-``` 
 
-### Compute ratioFC for a list of TADs
-
-using the <em>get_ratioFC</em> function:
-
-``` {r ratioFC_obs_example}
+## ----ratioFC_obs_example-------------------------------------------------
 # compute the ratioFC for each TAD
 FCC_dt <- aggregate(logFC ~ region, FUN=get_ratioFC, data=merged_dt)
 colnames(FCC_dt)[colnames(FCC_dt) == "logFC"] <- "ratioFC"
 obs_ratioNegFC <- setNames(FCC_dt$ratioFC, FCC_dt$region)
 save(obs_ratioNegFC, file="package_obs_ratioNegFC.RData")
-``` 
 
-### Compute FCC for a list of TADs
-
-using the <em>get_fcc</em> function:
-
-``` {r FCC_obs_example}
+## ----FCC_obs_example-----------------------------------------------------
 # compute the FCC for each TAD
 FCC_dt <- aggregate(logFC ~ region, FUN=get_fcc, data=merged_dt)
 colnames(FCC_dt)[colnames(FCC_dt) == "logFC"] <- "FCC"
 obs_FCC <- setNames(FCC_dt$FCC, FCC_dt$region)
 save(obs_FCC, file="package_obs_FCC.RData")
-``` 
 
-### Compute FCC for permutation data
-
-using the <em>get_fcc</em> function:
-
-``` {r FCC_permut_example}
+## ----FCC_permut_example--------------------------------------------------
 # compute the FCC for the permutation data
 data("cut1000_ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_permutationsDT") # this loads permutationsDT
 head_sq(permutationsDT)
@@ -137,26 +98,16 @@ all_permut_FCC_dt <- foreach(i = 1:ncol(permutationsDT), .combine='cbind') %dopa
   permut_FCC_dt[tad_levels, "FCC", drop=FALSE]
 }
 head_sq(all_permut_FCC_dt)
-``` 
 
-### Compute FCC AUC ratio and plot FCC cumsum curves
-
-using the <em>get_auc_ratio</em> function:
-
-``` {r FCC_AUC_ratio_example, fig.height=8, fig.width=10}
+## ----FCC_AUC_ratio_example, fig.height=8, fig.width=10-------------------
 stopifnot(setequal(names(obs_FCC), rownames(all_permut_FCC_dt)))
 get_auc_ratio(fcc_vect=obs_FCC, 
               fcc_permDT=all_permut_FCC_dt, 
               doPlot=T, 
               main="FCC AUC cumsum curves")
 mtext(text = paste0("ENCSR489OCU_NCI-H460_40kb - TCGAluad_norm_luad"), side=3)
-``` 
 
-### Compute intra-TAD mean correlation
-
-using the <em>get_meanCorr</em> function:
-
-``` {r meanIntraCorr}
+## ----meanIntraCorr-------------------------------------------------------
 data("ENCSR489OCU_NCI-H460_TCGAluad_norm_luad_rna_qqnorm_rnaseqDT") # this loads rna_qqnorm_rnaseqDT
 head_sq(rna_qqnorm_rnaseqDT)
 stopifnot(names(pipeline_geneList) %in% rownames(rna_qqnorm_rnaseqDT))
@@ -175,13 +126,8 @@ meanCorr_dt <- get_meanCorr(gene2tad_dt=pip_g2t_dt, exprd_dt=rna_qqnorm_rnaseqDT
 head(meanCorr_dt)
 obs_meanCorr <- setNames(meanCorr_dt$meanCorr, meanCorr_dt$region)
 save(obs_meanCorr, file="package_meanCorr.RData")
-``` 
 
-### Combine empirical p-values
-
-using the <em>stouffer</em> function:
-
-``` {r combined_pval, fig.height=6, fig.width=8}
+## ----combined_pval, fig.height=6, fig.width=8----------------------------
 twoTailsStouffer <- FALSE
 data("ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_emp_pval_meanLogFC") # this loads emp_pval_meanLogFC
 data("ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_emp_pval_meanCorr") # this loads emp_pval_meanCorr
@@ -201,12 +147,8 @@ adj_emp_pval_combined <- p.adjust(emp_pval_combined, method="BH")
 head(adj_emp_pval_combined)
 save(emp_pval_combined, file="package_emp_pval_combined.RData")
 save(adj_emp_pval_combined, file="package_adj_emp_pval_combined.RData")
-```
 
-
-### Volcano-like intra-TAD corr. vs. TAD meanLogFC
-
-``` {r plot_volcano, fig.height=6, fig.width=8}
+## ----plot_volcano, fig.height=6, fig.width=8-----------------------------
 stopifnot(setequal(names(obs_meanCorr), names(obs_meanFC)))
 stopifnot(setequal(names(obs_meanCorr), names(adj_emp_pval_combined)))
 
@@ -215,4 +157,4 @@ plot_volcanoTADsCorrFC(meanCorr=obs_meanCorr,
                        comb_pval=adj_emp_pval_combined,
                        padjusted=TRUE,
                        tads_to_annot = "chr11_TAD390")
-```
+

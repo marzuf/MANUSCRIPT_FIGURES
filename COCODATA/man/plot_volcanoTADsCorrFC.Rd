@@ -19,7 +19,7 @@ plot_volcanoTADsCorrFC(meanCorr, meanFC, comb_pval, padjusted = FALSE,
 
 \item{comb_pval}{Vector of TAD p-values (vector names should be TAD IDs).}
 
-\item{padjusted}{If the p-values should be adjusted (BH method).}
+\item{padjusted}{If the p-values are already adjusted (BH method).}
 
 \item{tads_to_annot}{(optional) TAD that should be annotated with a label.}
 

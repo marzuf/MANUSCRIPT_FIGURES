@@ -1,27 +1,27 @@
 
 
-x1=get(load("TMP_FUNC_CONS_ONESHOT/conserved_signif_tad_minBpRatio0.8_minInterGenes3.Rdata"))
-x2=get(load("TMP_FUNC_CONS_v0//conserved_signif_tad_minBpRatio0.8_minInterGenes3.Rdata"))
-signif_conserv_data= get(load("TMP_FUNC_CONS_vFUNC/signif_conserv_data.Rdata"))
-x3 =  signif_conserv_data[["conserved_signif_tads"]]
-all.equal(x1,x2)
-all.equal(x1,x3)
-
-x0 = get(load("TAD_MATCHING_SIGNIF_ACROSS_HICDS_ALLMATCH_v2/conserved_signif_tadsadjPvalComb0.01_minBpRatio0.8_minInterGenes3.Rdata"))
-names(x0) <- NULL
-x0t <- unlist(lapply(x0, function(x) paste0(sort(x), collapse=",")))
-names(x1) <- NULL
-x1t <- unlist(lapply(x1, function(x) paste0(sort(x), collapse=",")))
-all.equal(sort(x0t),sort(x1t))
-
+# x1=get(load("TMP_FUNC_CONS_ONESHOT/conserved_signif_tad_minBpRatio0.8_minInterGenes3.Rdata"))
+# x2=get(load("TMP_FUNC_CONS_v0//conserved_signif_tad_minBpRatio0.8_minInterGenes3.Rdata"))
+# signif_conserv_data= get(load("TMP_FUNC_CONS_vFUNC/signif_conserv_data.Rdata"))
+# x3 =  signif_conserv_data[["conserved_signif_tads"]]
+# all.equal(x1,x2)
+# all.equal(x1,x3)
 # 
-x1=get(load("TMP_FUNC_CONS_ONESHOT/all_signif_matching_dt2.Rdata"))
-x2=get(load("TMP_FUNC_CONS_v0//all_signif_matching_dt2.Rdata"))
-all.equal(x1,x2)
-signif_conserv_data=get(load("TMP_FUNC_CONS_vFUNC/signif_conserv_data.Rdata"))
-x3 =  signif_conserv_data[["matching_table"]]
-all.equal(x2,x3)
-all.equal(x1,x3)
+# x0 = get(load("TAD_MATCHING_SIGNIF_ACROSS_HICDS_ALLMATCH_v2/conserved_signif_tadsadjPvalComb0.01_minBpRatio0.8_minInterGenes3.Rdata"))
+# names(x0) <- NULL
+# x0t <- unlist(lapply(x0, function(x) paste0(sort(x), collapse=",")))
+# names(x1) <- NULL
+# x1t <- unlist(lapply(x1, function(x) paste0(sort(x), collapse=",")))
+# all.equal(sort(x0t),sort(x1t))
+# 
+# # 
+# x1=get(load("TMP_FUNC_CONS_ONESHOT/all_signif_matching_dt2.Rdata"))
+# x2=get(load("TMP_FUNC_CONS_v0//all_signif_matching_dt2.Rdata"))
+# all.equal(x1,x2)
+# signif_conserv_data=get(load("TMP_FUNC_CONS_vFUNC/signif_conserv_data.Rdata"))
+# x3 =  signif_conserv_data[["matching_table"]]
+# all.equal(x2,x3)
+# all.equal(x1,x3)
 
 # 
 # x1=get(load("TMP_FUNC_CONS_ONESHOT/all_signif_matching_dt2.Rdata"))
