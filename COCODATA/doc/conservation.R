@@ -36,11 +36,11 @@ signif_conserv_data <- get_conservedRegion(
   gene_matching_fuse_threshold = conserv_geneMatching,
   verbose=FALSE
 )
-
+save(signif_conserv_data, file="package_signif_conserv_data.Rdata", version=2)
 
 ## ----plot_barplot, fig.height=6, fig.width=10----------------------------
 library(ggplot2)
-fontFamily <- "Hershey"
+
 minConserv <- 2
 
 conserved_dt <- data.frame(
@@ -68,7 +68,6 @@ ggplot(conserved_dt, aes(x=region_rank, y=nConserv)) +
   scale_x_continuous(name=my_xlab, breaks= noZero_breaks(n=5), expand=c(0,0))+
   labs(x=my_xlab, y=my_ylab, color="", fill="")+
    theme(
-	text = element_text(family=fontFamily),
   panel.grid.major.y =  element_line(colour = "grey", size = 0.5, linetype=1),
   panel.grid.minor.y =  element_line(colour = "grey", size = 0.5, linetype=1),
   panel.background = element_rect(fill = "transparent"),

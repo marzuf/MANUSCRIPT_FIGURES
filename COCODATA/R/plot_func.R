@@ -26,7 +26,7 @@ plot_conservedRegions <- function(genes_dt, tads_dt,
                                   geneLw=1,
                                   geneDelLt=2, # vertical lines
                                   geneDelLw=0.5, # vertical lines
-                                  fontFamily="Hershey",
+#                                  fontFamily="Hershey",
                                   dsCat_cols=NULL,
                                   colConsThresh=NULL,
                                   subTit=NULL,
@@ -193,7 +193,7 @@ plot_conservedRegions <- function(genes_dt, tads_dt,
       # force_pull   = 0
     ) +
     theme(plot.margin =margin(t = 25, r = 25, b = 10, l = 10, unit = "pt"),
-          text = element_text(family=fontFamily),
+#          text = element_text(family=fontFamily),
           plot.title = element_text(hjust=0.5, size = 16, face="bold"),
           plot.subtitle = element_text(hjust=0.5, size = 14, face="italic"),
           legend.text = element_text(size=10),
@@ -238,8 +238,7 @@ plot_volcanoTADsCorrFC <- function(meanCorr, meanFC, comb_pval,
                                    strongUp="#EE0011FF",
                                    lightUp="#EE001132",
                                    strongDown="#0C5BB0FF",
-                                   lightDown="#0C5BB032",
-                                   fontFamily="Hershey"
+                                   lightDown="#0C5BB032"
                                    ) {
   
   if(!suppressPackageStartupMessages(require("ggplot2"))) stop("-- ggplot2 package required\n")  
@@ -253,14 +252,14 @@ plot_volcanoTADsCorrFC <- function(meanCorr, meanFC, comb_pval,
     adj_comb_pval <- comb_pval
   }
   
-  interReg <- Reduce(intersect, list(names(meanCorr) , names(meanFC), names(comb_pval)))
+  interReg <- Reduce(intersect, list(names(meanCorr) , names(meanFC), names(adj_comb_pval)))
   keepCorr <- meanCorr[interReg]
   keepFC <- meanFC[interReg]
-  keepComb <- comb_pval[interReg]
+  keepComb <- adj_comb_pval[interReg]
   
-  cat(paste0("... kept meanCorr values:\t", length(keepCorr), "/", length(meanCorr)))
-  cat(paste0("... kept meanFC values:\t", length(keepFC), "/", length(meanFC)))
-  cat(paste0("... kept comb. p-val values:\t", length(keepComb), "/", length(comb_pval)))
+  cat(paste0("... kept meanCorr values:\t", length(keepCorr), "/", length(meanCorr), "\n"))
+  cat(paste0("... kept meanFC values:\t", length(keepFC), "/", length(meanFC), "\n"))
+  cat(paste0("... kept comb. p-val values:\t", length(keepComb), "/", length(adj_comb_pval), "\n"))
   
   
   ex_DT <- data.frame(
@@ -350,7 +349,7 @@ plot_volcanoTADsCorrFC <- function(meanCorr, meanFC, comb_pval,
     guides(size = guide_legend(order=1))+
     guides(fill = guide_legend(override.aes = list(color="white", size=4),order=2))+
     theme(
-      text = element_text(family=fontFamily),
+#      text = element_text(family=fontFamily),
       panel.background = element_rect(fill = "transparent"),
       panel.grid.major.x =  element_blank(),
       panel.grid.minor.x =  element_blank(),

@@ -62,7 +62,7 @@ plot_volcanoTADsCorrFC(meanCorr=all_meanCorr_TAD,
 
 
 
-##### FCC cumsum curves
+### FCC cumsum curves
 
 see the <em>tad_level_stats</em> vignette !
 

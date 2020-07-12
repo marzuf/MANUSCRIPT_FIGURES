@@ -293,7 +293,7 @@ permut_dt$entrezID &lt;- NULL
 
 stopifnot(ncol(permut_dt) == nPermut)
 stopifnot(setequal(rownames(permut_dt), pipeline_geneList))
-save(permut_dt, file=&quot;package_permut_dt.RData&quot;)
+save(permut_dt, file=&quot;package_permut_dt.RData&quot;, version=2)
 </code></pre>
 
 <h3>Sampling across TAD boundaries</h3>
@@ -318,7 +318,7 @@ str(sampAcrossBD_data[[1]])
 #&gt;  $ minDist_right: num 534582
 #&gt;  $ maxDist_right: num 1116480
 stopifnot(length(sampAcrossBD_data) == length(unique(pip_g2t_dt$region)))
-save(sampAcrossBD_data, file=&quot;package_sampAcrossBD_data.RData&quot;)
+save(sampAcrossBD_data, file=&quot;package_sampAcrossBD_data.RData&quot;, version=2)
 </code></pre>
 
 </body>
