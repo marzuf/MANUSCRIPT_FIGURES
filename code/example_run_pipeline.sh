@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 
 
-#  ./example_run_pipeline.sh example1000_ENCSR489OCU_NCI-H460_40kb_run_settings_TCGAlusc_norm_lusc.R 1 2 3 4 5fc 5corr 6 7 8 9 10 11 12 13 # tab 10
+#  ./example_run_pipeline.sh example1000_ENCSR489OCU_NCI-H460_40kb_run_settings_TCGAluad_norm_luad.R 1 2 3 4 5fc 5corr 6 7 8 9 10 11 12 13 # tab 10
 
 script_name="$0"
 

@@ -118,7 +118,7 @@ In step 9 (also impacting step 10), there are two possibilities for retrieving c
 ### Example
 ([Back to top](#table-of-contents))
 
-Example for running the full pipeline with our LUSC data (using provided data for intra-TAD correlation, cf. setting files):
+Example for running the full pipeline with our LUAD data (using provided data for intra-TAD correlation, cf. setting files):
 
 ```{bash}
  ./example_run_pipeline.sh example_ENCSR489OCU_NCI-H460_40kb_run_settings_TCGAluad_norm_luad.R 1 2 3 4 5fc 5corr 6 7 8 9 10 11 12 13
