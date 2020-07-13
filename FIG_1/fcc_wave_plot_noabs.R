@@ -317,8 +317,8 @@ cat(paste0("... written: ", outFile, "\n"))
       data.frame(
         hicds = hicds,
         exprds = exprds,
-        fcc_auc = pct_inc_qt ,
-		fcc_auc_mean = pct_inc,
+        fcc_auc = auc_obs/auc_permutQt ,
+		fcc_auc_mean = auc_obs/auc_permut,
         stringsAsFactors=FALSE
       )
       
