@@ -8,9 +8,8 @@ plot_conservedRegions(genes_dt, tads_dt, TADlinecol = "darkblue",
   consAll_col = "darkgreen", consAbove_col = "orange",
   consBelow_col = "black", tad_gene_space = 0.5,
   gene_line_offset = 0.1, TADlt = 1, TADlw = 2, geneLt = 1,
-  geneLw = 1, geneDelLt = 2, geneDelLw = 0.5,
-  fontFamily = "Hershey", dsCat_cols = NULL, colConsThresh = NULL,
-  subTit = NULL, myTit = NULL)
+  geneLw = 1, geneDelLt = 2, geneDelLw = 0.5, dsCat_cols = NULL,
+  colConsThresh = NULL, subTit = NULL, myTit = NULL)
 }
 \arguments{
 \item{genes_dt}{The text to be printed. Should contain at least the following columns: symbol/chromo/start/end/<count>}

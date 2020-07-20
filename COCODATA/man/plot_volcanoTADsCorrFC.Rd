@@ -9,8 +9,7 @@ plot_volcanoTADsCorrFC(meanCorr, meanFC, comb_pval, padjusted = FALSE,
   y_lab = "TAD mean intraCorr", plotTit = NULL, subTit = NULL,
   fcUpDownThresh = 0, signifThresh = 0.05, verySignifThresh = 0.01,
   strongUp = "#EE0011FF", lightUp = "#EE001132",
-  strongDown = "#0C5BB0FF", lightDown = "#0C5BB032",
-  fontFamily = "Hershey")
+  strongDown = "#0C5BB0FF", lightDown = "#0C5BB032")
 }
 \arguments{
 \item{meanCorr}{Vector of intra-TAD mean correlations (vector names should be TAD IDs).}

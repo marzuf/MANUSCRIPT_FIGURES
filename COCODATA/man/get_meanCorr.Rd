@@ -5,12 +5,14 @@
 \title{Mean intra-TAD correlation}
 \usage{
 get_meanCorr(gene2tad_dt, exprd_dt, corrMeth = "pearson",
-  withDiag = FALSE, nCpu = 2)
+  minNbrGenes = 3, withDiag = FALSE, nCpu = 2)
 }
 \arguments{
 \item{gene2tad_dt}{Dataframe with gene-to-TAD assignment (required columns: "entrezID" for gene IDs, "region" for TAD IDs).}
 
 \item{corrMeth}{Correlation method (one of "pearson", "kendall"or "spearman"; default:"pearson").}
+
+\item{minNbrGenes}{Compute correlation for a TAD only if >= minNbrGenes belong to it.}
 
 \item{withDiag}{If correlation with itself should be included (default: FALSE).}
 
