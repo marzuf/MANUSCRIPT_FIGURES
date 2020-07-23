@@ -278,3 +278,118 @@ get_meanCorr <- function(gene2tad_dt, exprd_dt, corrMeth="pearson",  minNbrGenes
 
 
 
+
+#######################################################################################################################
+#######################################################################################################################
+#######################################################################################################################
+#' Mean intra-TAD correlation
+#'
+#' Function the average pairwise correlations within TADs.
+#'
+#' @param gene2tad_dt Dataframe with gene-to-TAD assignment (required columns: "entrezID" for gene IDs, "region" for TAD IDs).
+#' @param expr_dt Dataframe with gene expression values for which to compute correlation (row names should be gene IDs; all gene IDs from gene2tad_dt should be available).
+#' @param corrMeth Correlation method (one of "pearson", "kendall"or "spearman"; default:"pearson").
+#' @param minNbrGenes Compute correlation for a TAD only if >= minNbrGenes belong to it.
+#' @param withDiag If correlation with itself should be included (default: FALSE).
+#' @param plotCex Number available CPU.
+#' @return A 2-column dataframe (region/meanCorr colums).
+#' @export
+
+
+
+  get_meanPurityCorr <- function(exprTable, purityTable, g2tTable, all_samples, purityCol, 
+                                 transfExpr="log10", logOffset = 0.01, 
+                                 sampleCol="Sample.ID",corrMeth="pearson") {
+    
+    if(!suppressPackageStartupMessages(require("foreach"))) stop("-- foreach package required\n")  
+    if(!suppressPackageStartupMessages(require("doMC"))) stop("-- doMC package required\n")  
+    registerDoMC(nCpu)
+    
+    corrMeth <- match.arg(corrMeth, choices=c("pearson", "kendall", "spearman"))
+    
+    stopifnot(c("entrezID", "region") %in% colnames(g2tTable))
+    stopifnot(all_samples %in% colnames(exprTable))
+    stopifnot(c(sampleCol, purityCol) %in% colnames(purityTable))
+    
+    av_samples <- all_samples[all_samples %in% purityTable[,c(sampleCol)]]
+    cat("... found purity for:\t", length(av_samples), "/", length(all_samples), "\n")
+    all_samples <- av_samples
+    
+    all_tads_purity_dt <- foreach(tad = unique(g2tTable$region), .combine='rbind') %dopar% {
+      
+      tad_entrez <- g2tTable$entrezID[g2tTable$region == tad]
+      stopifnot(tad_entrez %in% rownames(exprTable))
+      
+      
+      
+      tad_fpkm_dt <- exprTable[tad_entrez,]
+      stopifnot(nrow(tad_fpkm_dt) == length(tad_entrez))
+      
+      stopifnot(all_samples %in% colnames(tad_fpkm_dt))
+      
+      
+      
+      
+      purity_values <- setNames(purityTable[purityTable[,c(sampleCol)] %in% all_samples,paste0(purityCol)],
+                                purityTable[purityTable[,c(sampleCol)] %in% all_samples,c(sampleCol)])
+      
+      
+      stopifnot(setequal(names(purity_values), all_samples))
+      
+      
+      
+      tad_dt <- data.frame(t(tad_fpkm_dt[,all_samples]), check.names=FALSE)
+      
+      stopifnot(is.numeric(unlist(tad_dt)))
+      
+      if(!is.null(transfExpr)) {
+        if(grepl("log", transfExpr)) {
+          tad_dt_2 <- do.call(transfExpr, list(tad_dt+logOffset))
+          stopifnot(dim(tad_dt_2)==dim(tad_dt))
+          stopifnot(rownames(tad_dt_2) == rownames(tad_dt))
+          stopifnot(colnames(tad_dt_2) == colnames(tad_dt))
+          tad_dt <- tad_dt_2
+        } else {stop("unnknown\n")}
+        labTransf <- transfExpr
+      } else {
+        labTransf <- ""
+      }
+      
+      stopifnot(colnames(tad_dt) %in% g2tTable$entrezID)
+      
+      stopifnot(setequal(colnames(tad_dt),  tad_entrez))
+      tad_dt$sampID <- rownames(tad_dt)
+      rownames(tad_dt) <- NULL
+      
+      purity_subDT <- data.frame(
+        sampID = names(purity_values),
+        purity = purity_values,
+        stringsAsFactors = FALSE
+      )
+      purity_expr_dt <- merge(purity_subDT, tad_dt, by="sampID", all=TRUE)
+      stopifnot(ncol(purity_expr_dt) == length(tad_entrez) + 2)
+      purity_expr_dt <- purity_expr_dt[,c("sampID", "purity", tad_entrez)]
+      
+      # correlation each column with purity 
+      
+      purity_expr_dt <- na.omit(purity_expr_dt)
+      stopifnot(!duplicated(purity_expr_dt$sampID))
+      if(nrow(purity_expr_dt) == 0) return(NULL)
+      all_purityCors <- apply(purity_expr_dt[,tad_entrez],2, function(col) cor(col, purity_expr_dt$purity, method=corrMeth))
+      stopifnot(!is.na(all_purityCors))
+      data.frame(
+        nSampWithPurity=length(purity_expr_dt$sampID),
+        region = tad,
+        entrezID= names(all_purityCors),
+        purityCorr = as.numeric(all_purityCors),
+        stringsAsFactors = FALSE
+      )
+    }
+    
+    return(all_tads_purity_dt)
+    
+  }
+  
+  
+  
+  
