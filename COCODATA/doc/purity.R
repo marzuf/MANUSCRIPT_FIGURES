@@ -1,0 +1,175 @@
+## ---- include = FALSE----------------------------------------------------
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+
+## ----setup---------------------------------------------------------------
+rm(list=ls())
+if(!require(COCODATA))
+  devtools::install_github("marzuf/MANUSCRIPT_FIGURES", subdir="COCODATA")
+  # alternatively: 
+  # install.packages("COCODATA_0.0.0.1.tar.gz", repos = NULL, type ="source")
+ # data("norm_ID")
+library(COCODATA)
+library(doMC)
+library(foreach)
+nCpu <- 2
+registerDoMC(nCpu)
+
+## ----prep_obs------------------------------------------------------------
+
+      ds <- "TCGAluad_norm_luad"
+      corMet <- "pearson"
+      
+      
+# list of genes used in the pipeline
+data("ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_pipeline_geneList") # this loads pipeline_geneList
+
+
+
+
+## ----meanIntraCorr-------------------------------------------------------
+library(TCGAbiolinks)
+head_sq(Tumor.purity)
+
+purityType <- "ESTIMATE"
+Tumor.purity$Sample.ID <- substr(Tumor.purity$Sample.ID, start=1, stop=15)
+purity_dt <- Tumor.purity[c("Sample.ID", purityType)]
+purity_dt <- aggregate(.~Sample.ID, FUN=mean, data=purity_dt)
+
+data("luad_ID") # this loads cond2_ID
+data("norm_ID") # this loads cond1_ID
+
+ transfExpr <- "log10"
+ logOff <- 0.01
+ 
+mean(cond1_ID %in% purity_dt$Sample.ID)
+mean(cond2_ID %in% purity_dt$Sample.ID)
+
+data("ENCSR489OCU_NCI-H460_TCGAluad_norm_luad_fpkmDT") # this loads fpkmDT
+fpkm_dt <- fpkmDT
+head_sq(fpkm_dt)
+# emulate FPKM
+# normalize sample-wise
+fpkm_dt2 <- apply(fpkm_dt, 2, function(x)x/sum(x))
+# stopifnot(colSums(fpkm_dt2) == 1)
+stopifnot(abs(colSums(fpkm_dt2) - 1) <= 10^-4)
+# and then multiply by 10^6 to have FPKM
+fpkm_dt2 <- fpkm_dt2*10^6
+fpkm_dt2 <- data.frame(fpkm_dt2, check.names = FALSE)
+stopifnot(dim(fpkm_dt) == dim(fpkm_dt2))
+stopifnot(rownames(fpkm_dt) == rownames(fpkm_dt2))
+stopifnot(colnames(fpkm_dt) == colnames(fpkm_dt2))
+fpkm_dt <- fpkm_dt2
+
+# list of genes used in the pipeline
+data("ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_pipeline_geneList") # this loads pipeline_geneList
+stopifnot(names(pipeline_geneList) %in% rownames(fpkm_dt))
+# table with gene-to-TAD assignment
+gene2tad_dt <- read.delim(system.file("extdata", "ENCSR489OCU_NCI-H460_all_genes_positions.txt", package = "COCODATA"),
+                          stringsAsFactors = FALSE,
+                          header=FALSE, 
+                          col.names=c("entrezID", "chromosome", "start", "end", "region"))
+gene2tad_dt$entrezID <- as.character(gene2tad_dt$entrezID)
+
+# take only the genes used in the pipeline
+pip_g2t_dt <- gene2tad_dt[gene2tad_dt$entrezID %in% pipeline_geneList,]
+    
+    ### -> do the same as for the GIMAPs but for all TADs !
+    tad = unique(pip_g2t_dt$region)[1]
+    all_tads_dt <- foreach(tad = unique(pip_g2t_dt$region), .combine='rbind') %dopar% {
+      
+      tad_entrez <- pip_g2t_dt$entrezID[pip_g2t_dt$region == tad]
+      stopifnot(tad_entrez %in% pipeline_geneList)
+
+      tad_entrez_fpkm <- names(pipeline_geneList)[pipeline_geneList %in% tad_entrez]
+      stopifnot(tad_entrez_fpkm %in% rownames(fpkm_dt))
+      tad_fpkm_dt <- fpkm_dt[tad_entrez_fpkm,]
+      stopifnot(nrow(tad_fpkm_dt) == length(tad_entrez_fpkm))
+      
+      stopifnot(cond1_ID %in% colnames(fpkm_dt)); stopifnot(cond2_ID %in% colnames(fpkm_dt))
+
+      
+    pur_samp1 <- purity_dt$Sample.ID[purity_dt$Sample.ID %in% cond1_ID]
+    
+    
+    pur_samp2 <- purity_dt$Sample.ID[purity_dt$Sample.ID %in% cond2_ID]
+
+        
+            
+      all_samps <- sort(c(pur_samp1, pur_samp2))
+      stopifnot(!duplicated(all_samps))
+            stopifnot(all_samps %in% colnames(tad_fpkm_dt))
+
+      
+      purity_values <- setNames(purity_dt[purity_dt$Sample.ID %in% all_samps,paste0(purityType)],
+                                purity_dt[purity_dt$Sample.ID %in% all_samps,c("Sample.ID")])
+      
+      
+      stopifnot(setequal(names(purity_values), all_samps))
+
+            
+      
+      tad_dt <- data.frame(t(tad_fpkm_dt[,all_samps]), check.names=FALSE)
+      
+      stopifnot(is.numeric(unlist(tad_dt)))
+      
+      if(!is.null(transfExpr)) {
+        if(grepl("log", transfExpr)) {
+          tad_dt_2 <- do.call(transfExpr, list(tad_dt+logOff))
+          stopifnot(dim(tad_dt_2)==dim(tad_dt))
+          stopifnot(rownames(tad_dt_2) == rownames(tad_dt))
+          stopifnot(colnames(tad_dt_2) == colnames(tad_dt))
+          tad_dt <- tad_dt_2
+        } else {stop("unnknown\n")}
+        labTransf <- transfExpr
+      } else {
+        labTransf <- ""
+      }
+      
+      stopifnot(colnames(tad_dt) %in% names(pipeline_geneList))
+      stopifnot(!duplicated(pipeline_geneList))
+      # reback to gff dt entrezID -> needed to add column if missing gmaps
+      colnames(tad_dt) <- pipeline_geneList[colnames(tad_dt)]
+      stopifnot(colnames(tad_dt) %in% pipeline_geneList)
+      
+      stopifnot(setequal(colnames(tad_dt),  tad_entrez))
+      tad_dt$sampID <- rownames(tad_dt)
+      rownames(tad_dt) <- NULL
+      
+
+      
+      purity_dt <- data.frame(
+        dataset=ds,
+        sampID = names(purity_values),
+        purity = purity_values,
+        stringsAsFactors = FALSE
+      )
+      purity_expr_dt <- merge(purity_dt, tad_dt, by="sampID", all=TRUE)
+      stopifnot(ncol(purity_expr_dt) == length(tad_entrez) + 3)
+      purity_expr_dt <- purity_expr_dt[,c("dataset", "sampID", "purity", tad_entrez)]
+      
+
+      # correlation each column with purity 
+      
+      purity_expr_dt <- na.omit(purity_expr_dt)
+      stopifnot(!duplicated(purity_expr_dt$sampID))
+      if(nrow(purity_expr_dt) == 0) return(NULL)
+      all_purityCors <- apply(purity_expr_dt[,tad_entrez],2, function(col) cor(col, purity_expr_dt$purity, method=corMet))
+      stopifnot(!is.na(all_purityCors))
+      data.frame(
+        dataset=ds,
+        nSampWithPurity=length(purity_expr_dt$sampID),
+        region = tad,
+        entrezID= names(all_purityCors),
+        purityCorr = as.numeric(all_purityCors),
+        stringsAsFactors = FALSE
+      )
+    }
+      
+      
+      head(all_tads_dt)
+      
+      
+

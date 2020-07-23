@@ -10,6 +10,5 @@ download [here](COCODATA_0.0.0.1.tar.gz) and run `install.packages("COCODATA_0.0
 
 or directly run `devtools::install_github("marzuf/MANUSCRIPT_FIGURES", subdir="COCODATA")` in an R console
 
-<u>available vignettes</u>: [TAD-level statistics](https://raw.githack.com/marzuf/MANUSCRIPT_FIGURES/master/COCODATA/doc/tad_level_stats.html), [permutations](https://raw.githack.com/marzuf/MANUSCRIPT_FIGURES/master/COCODATA/doc/permutations.html), [recurrently DA TADs](https://raw.githack.com/marzuf/MANUSCRIPT_FIGURES/master/COCODATA/doc/conservation.html), [plotting](https://raw.githack.com/marzuf/MANUSCRIPT_FIGURES/master/COCODATA/doc/plotting.html)
-
+<u>available vignettes</u>: [TAD-level statistics](https://raw.githack.com/marzuf/MANUSCRIPT_FIGURES/master/COCODATA/doc/tad_level_stats.html), [permutations](https://raw.githack.com/marzuf/MANUSCRIPT_FIGURES/master/COCODATA/doc/permutations.html), [recurrently DA TADs](https://raw.githack.com/marzuf/MANUSCRIPT_FIGURES/master/COCODATA/doc/conservation.html), [plotting](https://raw.githack.com/marzuf/MANUSCRIPT_FIGURES/master/COCODATA/doc/plotting.html), [TAD-level correlation with purity](https://raw.githack.com/marzuf/MANUSCRIPT_FIGURES/master/COCODATA/doc/purity.html)
 
