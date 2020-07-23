@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 
-<title>Calculation of some TAD-level statistics</title>
+<title>Calculation of TAD-level correlation with purity</title>
 
 <script type="text/javascript">
 window.onload = function() {
@@ -201,7 +201,7 @@ hr {
 </head>
 
 <body>
-<h1>Calculation of some TAD-level statistics</h1>
+<h1>Calculation of TAD-level correlation with purity</h1>
 
 <h3>Load some packages</h3>
 
@@ -218,58 +218,23 @@ nCpu &lt;- 2
 registerDoMC(nCpu)
 </code></pre>
 
-<h3>Prepare the observed data</h3>
+<h3>Prepare the data from the pipeline</h3>
 
-<pre><code class="r">
-      ds &lt;- &quot;TCGAluad_norm_luad&quot;
-      corMet &lt;- &quot;pearson&quot;
-
-
-# list of genes used in the pipeline
+<pre><code class="r"># list of genes used in the pipeline
 data(&quot;ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_pipeline_geneList&quot;) # this loads pipeline_geneList
-
-</code></pre>
-
-<h3>Compute correlation with purity</h3>
-
-<p>using the <em>get_meanCorr</em> function:</p>
-
-<pre><code class="r">library(TCGAbiolinks)
-#&gt; Registered S3 method overwritten by &#39;R.oo&#39;:
-#&gt;   method        from       
-#&gt;   throw.default R.methodsS3
-#&gt; Warning: multiple methods tables found for &#39;type&#39;
-
-#&gt; Warning: multiple methods tables found for &#39;type&#39;
-#&gt; Warning: replacing previous import &#39;BiocGenerics::type&#39; by
-#&gt; &#39;DelayedArray::type&#39; when loading &#39;SummarizedExperiment&#39;
-#&gt; Warning: replacing previous import &#39;BiocGenerics::type&#39; by
-#&gt; &#39;Biostrings::type&#39; when loading &#39;GenomicAlignments&#39;
-#&gt; Warning: replacing previous import &#39;BiocGenerics::type&#39; by
-#&gt; &#39;Biostrings::type&#39; when loading &#39;ShortRead&#39;
-head_sq(Tumor.purity)
-#&gt;          Sample.ID Cancer.type ESTIMATE ABSOLUTE   LUMP
-#&gt; 1 TCGA-OR-A5J1-01A         ACC   0,9368      NaN 0,9774
-#&gt; 2 TCGA-OR-A5J2-01A         ACC   0,9175      NaN 0,6174
-#&gt; 3 TCGA-OR-A5J3-01A         ACC    0,967      NaN 0,9249
-#&gt; 4 TCGA-OR-A5J4-01A         ACC      NaN      NaN 0,9199
-#&gt; 5 TCGA-OR-A5J5-01A         ACC   0,9761      NaN      1
-
-purityType &lt;- &quot;ESTIMATE&quot;
-Tumor.purity$Sample.ID &lt;- substr(Tumor.purity$Sample.ID, start=1, stop=15)
-purity_dt &lt;- Tumor.purity[c(&quot;Sample.ID&quot;, purityType)]
-purity_dt &lt;- aggregate(.~Sample.ID, FUN=mean, data=purity_dt)
-
+# sample IDs
 data(&quot;luad_ID&quot;) # this loads cond2_ID
 data(&quot;norm_ID&quot;) # this loads cond1_ID
 
- transfExpr &lt;- &quot;log10&quot;
- logOff &lt;- 0.01
+# table with gene-to-TAD assignment
+gene2tad_dt &lt;- read.delim(system.file(&quot;extdata&quot;, &quot;ENCSR489OCU_NCI-H460_all_genes_positions.txt&quot;, package = &quot;COCODATA&quot;),
+                          stringsAsFactors = FALSE,
+                          header=FALSE, 
+                          col.names=c(&quot;entrezID&quot;, &quot;chromosome&quot;, &quot;start&quot;, &quot;end&quot;, &quot;region&quot;))
+gene2tad_dt$entrezID &lt;- as.character(gene2tad_dt$entrezID)
 
-mean(cond1_ID %in% purity_dt$Sample.ID)
-#&gt; [1] 0
-mean(cond2_ID %in% purity_dt$Sample.ID)
-#&gt; [1] 1
+# take only the genes used in the pipeline
+pip_g2t_dt &lt;- gene2tad_dt[gene2tad_dt$entrezID %in% pipeline_geneList,]
 
 data(&quot;ENCSR489OCU_NCI-H460_TCGAluad_norm_luad_fpkmDT&quot;) # this loads fpkmDT
 #&gt; Warning in data(&quot;ENCSR489OCU_NCI-H460_TCGAluad_norm_luad_fpkmDT&quot;): data set
@@ -301,120 +266,71 @@ stopifnot(rownames(fpkm_dt) == rownames(fpkm_dt2))
 stopifnot(colnames(fpkm_dt) == colnames(fpkm_dt2))
 fpkm_dt &lt;- fpkm_dt2
 
-# list of genes used in the pipeline
-data(&quot;ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_pipeline_geneList&quot;) # this loads pipeline_geneList
 stopifnot(names(pipeline_geneList) %in% rownames(fpkm_dt))
-# table with gene-to-TAD assignment
-gene2tad_dt &lt;- read.delim(system.file(&quot;extdata&quot;, &quot;ENCSR489OCU_NCI-H460_all_genes_positions.txt&quot;, package = &quot;COCODATA&quot;),
-                          stringsAsFactors = FALSE,
-                          header=FALSE, 
-                          col.names=c(&quot;entrezID&quot;, &quot;chromosome&quot;, &quot;start&quot;, &quot;end&quot;, &quot;region&quot;))
-gene2tad_dt$entrezID &lt;- as.character(gene2tad_dt$entrezID)
+stopifnot(!duplicated(pipeline_geneList[names(pipeline_geneList) %in% rownames(fpkm_dt)]))
+fpkm_dt &lt;- fpkm_dt[ rownames(fpkm_dt) %in% names(pipeline_geneList),]
+rownames(fpkm_dt) &lt;- sapply( rownames(fpkm_dt), function(x) pipeline_geneList[names(pipeline_geneList) == x ])
+stopifnot(rownames(fpkm_dt) %in% pip_g2t_dt$entrezID)
+</code></pre>
 
-# take only the genes used in the pipeline
-pip_g2t_dt &lt;- gene2tad_dt[gene2tad_dt$entrezID %in% pipeline_geneList,]
+<h3>Prepare purity data</h3>
 
-    ### -&gt; do the same as for the GIMAPs but for all TADs !
-    tad = unique(pip_g2t_dt$region)[1]
-    all_tads_dt &lt;- foreach(tad = unique(pip_g2t_dt$region), .combine=&#39;rbind&#39;) %dopar% {
+<pre><code class="r">library(TCGAbiolinks)
+#&gt; Registered S3 method overwritten by &#39;R.oo&#39;:
+#&gt;   method        from       
+#&gt;   throw.default R.methodsS3
+#&gt; Warning: multiple methods tables found for &#39;type&#39;
 
-      tad_entrez &lt;- pip_g2t_dt$entrezID[pip_g2t_dt$region == tad]
-      stopifnot(tad_entrez %in% pipeline_geneList)
+#&gt; Warning: multiple methods tables found for &#39;type&#39;
+#&gt; Warning: replacing previous import &#39;BiocGenerics::type&#39; by
+#&gt; &#39;DelayedArray::type&#39; when loading &#39;SummarizedExperiment&#39;
+#&gt; Warning: replacing previous import &#39;BiocGenerics::type&#39; by
+#&gt; &#39;Biostrings::type&#39; when loading &#39;GenomicAlignments&#39;
+#&gt; Warning: replacing previous import &#39;BiocGenerics::type&#39; by
+#&gt; &#39;Biostrings::type&#39; when loading &#39;ShortRead&#39;
+head_sq(Tumor.purity)
+#&gt;          Sample.ID Cancer.type ESTIMATE ABSOLUTE   LUMP
+#&gt; 1 TCGA-OR-A5J1-01A         ACC   0,9368      NaN 0,9774
+#&gt; 2 TCGA-OR-A5J2-01A         ACC   0,9175      NaN 0,6174
+#&gt; 3 TCGA-OR-A5J3-01A         ACC    0,967      NaN 0,9249
+#&gt; 4 TCGA-OR-A5J4-01A         ACC      NaN      NaN 0,9199
+#&gt; 5 TCGA-OR-A5J5-01A         ACC   0,9761      NaN      1
+purityType &lt;- &quot;ESTIMATE&quot;
+Tumor.purity$Sample.ID &lt;- as.character(Tumor.purity$Sample.ID)
+Tumor.purity$Sample.ID &lt;- substr(Tumor.purity$Sample.ID, start=1, stop=15)
+purity_dt &lt;- aggregate(.~Sample.ID, FUN=mean, data=Tumor.purity[c(&quot;Sample.ID&quot;, purityType)])
+mean(cond1_ID %in% purity_dt$Sample.ID) # available samples for cond1
+#&gt; [1] 0
+mean(cond2_ID %in% purity_dt$Sample.ID) # available samples for cond2
+#&gt; [1] 1
+</code></pre>
 
-      tad_entrez_fpkm &lt;- names(pipeline_geneList)[pipeline_geneList %in% tad_entrez]
-      stopifnot(tad_entrez_fpkm %in% rownames(fpkm_dt))
-      tad_fpkm_dt &lt;- fpkm_dt[tad_entrez_fpkm,]
-      stopifnot(nrow(tad_fpkm_dt) == length(tad_entrez_fpkm))
+<h3>Compute correlation with purity</h3>
 
-      stopifnot(cond1_ID %in% colnames(fpkm_dt)); stopifnot(cond2_ID %in% colnames(fpkm_dt))
+<p>using the <em>get_meanPurityCorr</em> function:</p>
 
+<pre><code class="r">tads_all_purity_dt &lt;- get_meanPurityCorr(exprTable=fpkm_dt, purityTable=purity_dt, g2tTable=pip_g2t_dt, 
+                                      all_samples=c(cond1_ID, cond2_ID), purityCol=&quot;ESTIMATE&quot; )
+#&gt; ... found purity for:     502 / 561
+head(tads_all_purity_dt)
+#&gt;   nSampWithPurity     region entrezID purityCorr
+#&gt; 1             502 chr10_TAD2    22982 0.01028636
+#&gt; 2             502 chr10_TAD2    23185 0.15617954
+#&gt; 3             502 chr10_TAD2    23560 0.27393326
+#&gt; 4             502 chr10_TAD2    91734 0.26660291
+#&gt; 5             502 chr10_TAD2    55853 0.08424493
+#&gt; 6             502 chr10_TAD2     3422 0.16022671
 
-    pur_samp1 &lt;- purity_dt$Sample.ID[purity_dt$Sample.ID %in% cond1_ID]
-
-
-    pur_samp2 &lt;- purity_dt$Sample.ID[purity_dt$Sample.ID %in% cond2_ID]
-
-
-
-      all_samps &lt;- sort(c(pur_samp1, pur_samp2))
-      stopifnot(!duplicated(all_samps))
-            stopifnot(all_samps %in% colnames(tad_fpkm_dt))
-
-
-      purity_values &lt;- setNames(purity_dt[purity_dt$Sample.ID %in% all_samps,paste0(purityType)],
-                                purity_dt[purity_dt$Sample.ID %in% all_samps,c(&quot;Sample.ID&quot;)])
-
-
-      stopifnot(setequal(names(purity_values), all_samps))
-
-
-
-      tad_dt &lt;- data.frame(t(tad_fpkm_dt[,all_samps]), check.names=FALSE)
-
-      stopifnot(is.numeric(unlist(tad_dt)))
-
-      if(!is.null(transfExpr)) {
-        if(grepl(&quot;log&quot;, transfExpr)) {
-          tad_dt_2 &lt;- do.call(transfExpr, list(tad_dt+logOff))
-          stopifnot(dim(tad_dt_2)==dim(tad_dt))
-          stopifnot(rownames(tad_dt_2) == rownames(tad_dt))
-          stopifnot(colnames(tad_dt_2) == colnames(tad_dt))
-          tad_dt &lt;- tad_dt_2
-        } else {stop(&quot;unnknown\n&quot;)}
-        labTransf &lt;- transfExpr
-      } else {
-        labTransf &lt;- &quot;&quot;
-      }
-
-      stopifnot(colnames(tad_dt) %in% names(pipeline_geneList))
-      stopifnot(!duplicated(pipeline_geneList))
-      # reback to gff dt entrezID -&gt; needed to add column if missing gmaps
-      colnames(tad_dt) &lt;- pipeline_geneList[colnames(tad_dt)]
-      stopifnot(colnames(tad_dt) %in% pipeline_geneList)
-
-      stopifnot(setequal(colnames(tad_dt),  tad_entrez))
-      tad_dt$sampID &lt;- rownames(tad_dt)
-      rownames(tad_dt) &lt;- NULL
-
-
-
-      purity_dt &lt;- data.frame(
-        dataset=ds,
-        sampID = names(purity_values),
-        purity = purity_values,
-        stringsAsFactors = FALSE
-      )
-      purity_expr_dt &lt;- merge(purity_dt, tad_dt, by=&quot;sampID&quot;, all=TRUE)
-      stopifnot(ncol(purity_expr_dt) == length(tad_entrez) + 3)
-      purity_expr_dt &lt;- purity_expr_dt[,c(&quot;dataset&quot;, &quot;sampID&quot;, &quot;purity&quot;, tad_entrez)]
-
-
-      # correlation each column with purity 
-
-      purity_expr_dt &lt;- na.omit(purity_expr_dt)
-      stopifnot(!duplicated(purity_expr_dt$sampID))
-      if(nrow(purity_expr_dt) == 0) return(NULL)
-      all_purityCors &lt;- apply(purity_expr_dt[,tad_entrez],2, function(col) cor(col, purity_expr_dt$purity, method=corMet))
-      stopifnot(!is.na(all_purityCors))
-      data.frame(
-        dataset=ds,
-        nSampWithPurity=length(purity_expr_dt$sampID),
-        region = tad,
-        entrezID= names(all_purityCors),
-        purityCorr = as.numeric(all_purityCors),
-        stringsAsFactors = FALSE
-      )
-    }
-
-
-      head(all_tads_dt)
-#&gt;              dataset nSampWithPurity     region entrezID purityCorr
-#&gt; 1 TCGAluad_norm_luad             502 chr10_TAD2    22982 0.01028636
-#&gt; 2 TCGAluad_norm_luad             502 chr10_TAD2    23185 0.15617954
-#&gt; 3 TCGAluad_norm_luad             502 chr10_TAD2    23560 0.27393326
-#&gt; 4 TCGAluad_norm_luad             502 chr10_TAD2    91734 0.26660291
-#&gt; 5 TCGAluad_norm_luad             502 chr10_TAD2    55853 0.08424493
-#&gt; 6 TCGAluad_norm_luad             502 chr10_TAD2     3422 0.16022671
+# average at the TAD-level
+aggTAD_purity_dt &lt;- aggregate(purityCorr~region, FUN=mean, data=tads_all_purity_dt)
+head(aggTAD_purity_dt)
+#&gt;        region   purityCorr
+#&gt; 1   chr1_TAD1  0.030081939
+#&gt; 2 chr1_TAD100 -0.002241675
+#&gt; 3 chr1_TAD101  0.067805156
+#&gt; 4 chr1_TAD102 -0.020305588
+#&gt; 5 chr1_TAD109 -0.381170455
+#&gt; 6 chr1_TAD110 -0.109189469
 </code></pre>
 
 </body>
