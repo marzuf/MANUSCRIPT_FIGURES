@@ -16,9 +16,9 @@ get_meanCorr(gene2tad_dt, exprd_dt, corrMeth = "pearson",
 
 \item{withDiag}{If correlation with itself should be included (default: FALSE).}
 
-\item{expr_dt}{Dataframe with gene expression values for which to compute correlation (row names should be gene IDs; all gene IDs from gene2tad_dt should be available).}
+\item{nCpu}{Number available CPU.}
 
-\item{plotCex}{Number available CPU.}
+\item{expr_dt}{Dataframe with gene expression values for which to compute correlation (row names should be gene IDs; all gene IDs from gene2tad_dt should be available).}
 }
 \value{
 A 2-column dataframe (region/meanCorr colums).

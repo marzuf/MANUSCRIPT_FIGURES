@@ -246,7 +246,7 @@ get_auc_ratio <- function(fcc_vect, fcc_permDT, permQt=0.95, doPlot=FALSE,
 #' @param corrMeth Correlation method (one of "pearson", "kendall"or "spearman"; default:"pearson").
 #' @param minNbrGenes Compute correlation for a TAD only if >= minNbrGenes belong to it.
 #' @param withDiag If correlation with itself should be included (default: FALSE).
-#' @param plotCex Number available CPU.
+#' @param nCpu Number available CPU.
 #' @return A 2-column dataframe (region/meanCorr colums).
 #' @export
 
@@ -282,24 +282,25 @@ get_meanCorr <- function(gene2tad_dt, exprd_dt, corrMeth="pearson",  minNbrGenes
 #######################################################################################################################
 #######################################################################################################################
 #######################################################################################################################
-#' Mean intra-TAD correlation
+#' Correlation between gene expression and purity by TAD
 #'
-#' Function the average pairwise correlations within TADs.
+#' Function the correlation between gene expression and purity for all TADs.
 #'
-#' @param gene2tad_dt Dataframe with gene-to-TAD assignment (required columns: "entrezID" for gene IDs, "region" for TAD IDs).
-#' @param expr_dt Dataframe with gene expression values for which to compute correlation (row names should be gene IDs; all gene IDs from gene2tad_dt should be available).
+#' @param exprTable Dataframe with gene expression values for which to compute correlation (row names should be gene IDs; all gene IDs from g2tTable should be available).
+#' @param purityTable Dataframe with sample purity values (required columns: purityCol and sampleCol).
+#' @param g2tTable Dataframe with gene-to-TAD assignment (required columns: "entrezID" for gene IDs, "region" for TAD IDs).
+#' @param all_samples Vector of samples. Should match exprTable columns and sampleCol column of purityTable. 
+#' @param purityCol Name of the column of purityTable that holds purity values.
+#' @param sampleCol Name of the column of purityTable that holds sample IDs.
+#' @param transfExpr Transformation to apply to gene expression before computing gene expression (should be a function name, such as log10).
+#' @param logOffset Numeric value added to gene expression before applying transfExpr (might be useful for log-transformation).
 #' @param corrMeth Correlation method (one of "pearson", "kendall"or "spearman"; default:"pearson").
-#' @param minNbrGenes Compute correlation for a TAD only if >= minNbrGenes belong to it.
-#' @param withDiag If correlation with itself should be included (default: FALSE).
-#' @param plotCex Number available CPU.
-#' @return A 2-column dataframe (region/meanCorr colums).
+#' @param nCpu Number available CPU.
+#' @return A 4-column dataframe (nSampWithPurity/region/entrezID/purityCorr colums). The returned dataframe is not averaged at TAD level.
 #' @export
 
-
-
-  get_meanPurityCorr <- function(exprTable, purityTable, g2tTable, all_samples, purityCol, 
-                                 transfExpr="log10", logOffset = 0.01, 
-                                 sampleCol="Sample.ID",corrMeth="pearson") {
+  get_meanPurityCorr <- function(exprTable, purityTable, g2tTable, all_samples, purityCol, sampleCol="Sample.ID",
+                                 transfExpr="log10", logOffset = 0.01, corrMeth="pearson", nCpu=2) {
     
     if(!suppressPackageStartupMessages(require("foreach"))) stop("-- foreach package required\n")  
     if(!suppressPackageStartupMessages(require("doMC"))) stop("-- doMC package required\n")  
@@ -310,6 +311,7 @@ get_meanCorr <- function(gene2tad_dt, exprd_dt, corrMeth="pearson",  minNbrGenes
     stopifnot(c("entrezID", "region") %in% colnames(g2tTable))
     stopifnot(all_samples %in% colnames(exprTable))
     stopifnot(c(sampleCol, purityCol) %in% colnames(purityTable))
+    stopifnot(g2tTable$entrezID %in% rownames(exprTable))
     
     av_samples <- all_samples[all_samples %in% purityTable[,c(sampleCol)]]
     cat("... found purity for:\t", length(av_samples), "/", length(all_samples), "\n")
@@ -320,23 +322,16 @@ get_meanCorr <- function(gene2tad_dt, exprd_dt, corrMeth="pearson",  minNbrGenes
       tad_entrez <- g2tTable$entrezID[g2tTable$region == tad]
       stopifnot(tad_entrez %in% rownames(exprTable))
       
-      
-      
       tad_fpkm_dt <- exprTable[tad_entrez,]
       stopifnot(nrow(tad_fpkm_dt) == length(tad_entrez))
       
       stopifnot(all_samples %in% colnames(tad_fpkm_dt))
-      
-      
-      
       
       purity_values <- setNames(purityTable[purityTable[,c(sampleCol)] %in% all_samples,paste0(purityCol)],
                                 purityTable[purityTable[,c(sampleCol)] %in% all_samples,c(sampleCol)])
       
       
       stopifnot(setequal(names(purity_values), all_samples))
-      
-      
       
       tad_dt <- data.frame(t(tad_fpkm_dt[,all_samples]), check.names=FALSE)
       
@@ -385,9 +380,7 @@ get_meanCorr <- function(gene2tad_dt, exprd_dt, corrMeth="pearson",  minNbrGenes
         stringsAsFactors = FALSE
       )
     }
-    
     return(all_tads_purity_dt)
-    
   }
   
   
