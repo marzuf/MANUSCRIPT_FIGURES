@@ -259,81 +259,15 @@ for(maxConserved in conserved_regions_to_plot) {
   region_plot_dt$ds_col <- all_cols[as.character(region_plot_dt$cmpType)]
   stopifnot(!is.na(region_plot_dt$ds_col))
   
-  gene_plot_dt <- gene_plot_dt[order(gene_plot_dt$start, gene_plot_dt$end),]
-  gene_plot_dt$gene_rank <- max(region_plot_dt$ds_rank) + tad_gene_space + 1:nrow(gene_plot_dt)
   
-  gene_plot_dt$gene_pos <- 0.5*(gene_plot_dt$start+gene_plot_dt$end)
   
-  TADlinecol <- "darkblue"
-  TADlt <- 1
-  TADlw <- 2
-  geneLt <- 1
-  geneLw <- 1
-  geneDelLt <- 2
-  geneDelLw <- 0.5
   
-  gene_plot_dt$col <- factor(gene_plot_dt$col, levels = as.character(geneColSetting))
   
-  xscale <- seq(from=min(region_plot_dt$start) , to=max(region_plot_dt$end) , length.out=10)
   
-  region_p <- ggplot() + 
-    
-    ggtitle(myTit, subtitle=subTit)+
-    
-    labs(x="", y="")+
-    # lines for the TADs
-    geom_segment( aes(x = region_plot_dt$start, y = region_plot_dt$ds_rank, 
-                      xend=region_plot_dt$end, yend = region_plot_dt$ds_rank), 
-                  colour = TADlinecol, linetype = TADlt, size = TADlw,
-                  inherit.aes = F) + 
-    # lines for the genes
-    geom_segment( aes(x = gene_plot_dt$start, y = gene_plot_dt$gene_rank,
-                      xend=gene_plot_dt$end, yend = gene_plot_dt$gene_rank,
-                      
-                      # colour = geneColSetting[paste0(gene_plot_dt$col)]
-                      colour = gene_plot_dt$col
-                      
-                      
-                      ),
-                  # colour = gene_plot_dt$col, 
-                  linetype = geneLt, size = geneLw,
-                  
-                  show.legend=TRUE,
-                  
-                  inherit.aes = F) +
-    
-    scale_color_manual(values= setNames(as.character(geneColSetting),as.character(geneColSetting)), 
-                       labels = setNames(names(geneColSetting), as.character(geneColSetting))) +
-    labs(color="# conserved")+
   
-    
-    # vertical lines for the gene delimiters
-    geom_segment( aes(x = c(gene_plot_dt$start, gene_plot_dt$end), 
-                      xend= c(gene_plot_dt$start, gene_plot_dt$end),
-                      # y = rep(min(region_plot_dt$ds_rank)-gene_line_offset, 2),
-                      y = rep(min(region_plot_dt$ds_rank)-gene_line_offset, 1),
-                      # yend=rep(gene_plot_dt$gene_rank, 2)), 
-                  yend=rep(gene_plot_dt$gene_rank, 2)), 
-                  colour = rep(as.character(gene_plot_dt$col),2), linetype = geneDelLt, size = geneDelLw,
-                  inherit.aes = F) +
-    
-    
-    theme_void()
   
-  save(gene_plot_dt, file="gene_plot_dt.Rdata", version=2)
   
-  region_p2 <-  region_p + 
-  geom_text_repel(
-    aes(x = gene_plot_dt$gene_pos, y =  gene_plot_dt$gene_rank, label = gene_plot_dt$symbol,
-        color=gene_plot_dt$col), inherit.aes = F, show.legend=F,
-    font_face="italic",
-    # nudge_x      = 0.05,
-    # direction    = "y",
-    nudge_y      = 2,
-    direction    = "y",
-    hjust        = 0.5,
-    segment.size = 1
-  )
+  
   
   region_plot_dt$raw_labels <- paste0(as.character(region_plot_dt$hicds_lab), " - ", as.character(region_plot_dt$exprds_lab))
   region_plot_dt$ds_lab <- sapply(1:nrow(region_plot_dt), function(i) {
@@ -394,13 +328,13 @@ for(maxConserved in conserved_regions_to_plot) {
     ### TAKE ONLY THE MOST OVERLAPPING
     # sub_dt <- sub_dt[sub_dt$tad_size == max(sub_dt$tad_size),]
     
-      ## Using pairs to find intersection of overlapping ranges
-      query <- IRanges(start=plstart, end=plend) 
-      subject <- IRanges(start = sub_dt$start, end=sub_dt$end)
-      hits <- findOverlaps(query, subject)
-      p <- Pairs(query, subject, hits=hits)
-      v0 <- which.max(   width(pintersect(p)))
-      
+    ## Using pairs to find intersection of overlapping ranges
+    query <- IRanges(start=plstart, end=plend) 
+    subject <- IRanges(start = sub_dt$start, end=sub_dt$end)
+    hits <- findOverlaps(query, subject)
+    p <- Pairs(query, subject, hits=hits)
+    v0 <- which.max(   width(pintersect(p)))
+    
     v1 <- which.max( sapply(1:nrow(sub_dt), function(x) {
       ## Using pairs to find intersection of overlapping ranges
       query <- IRanges(start=plstart, end=plend) 
@@ -423,6 +357,115 @@ for(maxConserved in conserved_regions_to_plot) {
   immune_region_plot_dt <- immune_region_plot_dt[,colnames(region_plot_dt)]
   
   region_plot_dt <- rbind(region_plot_dt, immune_region_plot_dt)
+  
+  
+  
+  
+  
+  
+  gene_plot_dt <- gene_plot_dt[order(gene_plot_dt$start, gene_plot_dt$end),]
+  gene_plot_dt$gene_rank <- max(region_plot_dt$ds_rank) + tad_gene_space + 1:nrow(gene_plot_dt)
+  
+  gene_plot_dt$gene_pos <- 0.5*(gene_plot_dt$start+gene_plot_dt$end)
+  
+  TADlinecol <- "darkblue"
+  TADlt <- 1
+  TADlw <- 2
+  geneLt <- 1
+  geneLw <- 1
+  geneDelLt <- 2
+  geneDelLw <- 0.5
+  
+  gene_plot_dt$col <- factor(gene_plot_dt$col, levels = as.character(geneColSetting))
+  
+  xscale <- seq(from=min(region_plot_dt$start) , to=max(region_plot_dt$end) , length.out=10)
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  region_p <- ggplot() + 
+    
+    ggtitle(myTit, subtitle=subTit)+
+    
+    labs(x="", y="")+
+    # lines for the TADs
+    geom_segment( aes(x = region_plot_dt$start, y = region_plot_dt$ds_rank, 
+                      xend=region_plot_dt$end, yend = region_plot_dt$ds_rank), 
+                  colour = TADlinecol, linetype = TADlt, size = TADlw,
+                  inherit.aes = F) + 
+    # lines for the genes
+    geom_segment( aes(x = gene_plot_dt$start, y = gene_plot_dt$gene_rank,
+                      xend=gene_plot_dt$end, yend = gene_plot_dt$gene_rank,
+                      
+                      # colour = geneColSetting[paste0(gene_plot_dt$col)]
+                      colour = gene_plot_dt$col
+                      
+                      
+                      ),
+                  # colour = gene_plot_dt$col, 
+                  linetype = geneLt, size = geneLw,
+                  
+                  show.legend=TRUE,
+                  
+                  inherit.aes = F) +
+    
+    scale_color_manual(values= setNames(as.character(geneColSetting),as.character(geneColSetting)), 
+                       labels = setNames(names(geneColSetting), as.character(geneColSetting))) +
+    labs(color="# conserved")+
+  
+    
+    # vertical lines for the gene delimiters
+    geom_segment( aes(x = c(gene_plot_dt$start, gene_plot_dt$end), 
+                      xend= c(gene_plot_dt$start, gene_plot_dt$end),
+                      # y = rep(min(region_plot_dt$ds_rank)-gene_line_offset, 2),
+                      y = rep(min(region_plot_dt$ds_rank)-gene_line_offset, 1),
+                      # yend=rep(gene_plot_dt$gene_rank, 2)), 
+                  yend=rep(gene_plot_dt$gene_rank, 2)), 
+                  colour = rep(as.character(gene_plot_dt$col),2), linetype = geneDelLt, size = geneDelLw,
+                  inherit.aes = F) +
+    
+    
+    theme_void()
+  
+  save(gene_plot_dt, file="gene_plot_dt.Rdata", version=2)
+  
+  region_p2 <-  region_p + 
+  geom_text_repel(
+    aes(x = gene_plot_dt$gene_pos, y =  gene_plot_dt$gene_rank, label = gene_plot_dt$symbol,
+        color=gene_plot_dt$col), inherit.aes = F, show.legend=F,
+    font_face="italic",
+    # nudge_x      = 0.05,
+    # direction    = "y",
+    nudge_y      = 2,
+    direction    = "y",
+    hjust        = 0.5,
+    segment.size = 1
+  )
+
   
   
   # region_plot_dt$ds_lab[27]=region_plot_dt$ds_lab[10]

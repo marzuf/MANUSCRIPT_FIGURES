@@ -259,12 +259,172 @@ for(maxConserved in conserved_regions_to_plot) {
   region_plot_dt$ds_col <- all_cols[as.character(region_plot_dt$cmpType)]
   stopifnot(!is.na(region_plot_dt$ds_col))
   
+  
+  
+  
+  TADlinecol <- "darkblue"
+  tad_bicols <- c(TADlinecol, "darkturquoise")
+  
+  
+  
+  
+  
+  
+  
+  region_plot_dt$raw_labels <- paste0(as.character(region_plot_dt$hicds_lab), " - ", as.character(region_plot_dt$exprds_lab))
+  region_plot_dt$ds_lab <- sapply(1:nrow(region_plot_dt), function(i) {
+    label_part1 <- gsub("(.+) (.+) vs. (.+)", "\\1", region_plot_dt$raw_labels[i])
+    label_part2 <- gsub("(.+) (.+) vs. (.+)", "\\2", region_plot_dt$raw_labels[i])
+    label_part3 <- gsub("(.+) (.+) vs. (.+)", "\\3", region_plot_dt$raw_labels[i])
+    if(region_plot_dt$meanFC[i] > 0){
+      mylab <- gsub(" ","~", paste0(label_part1, "~", label_part2, "~vs.~bold(", label_part3, ")"))
+    }else {
+      mylab <- gsub(" ","~", paste0(label_part1, "~bold(", label_part2, ")~vs.~", label_part3))
+    }
+    
+    mylab <- gsub("_", "[{\"-\"}]*", mylab)  # underscore are not recognize -> replace with dash lowerscript
+    
+    # if the first caracter are numbers -> need to separate ! -> should match 22Rv1 but not 786[]
+    # mylab <- gsub("^(\\d+)", "\\1*", mylab)
+    mylab <- gsub("^(\\d+)([a-zA-Z])", "\\1*\\2", mylab)
+    
+    mylab
+  })
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  #### ADD HERE THE IMMUNE DATA FOR PLOTTING <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  ds=immune_ds[1]
+  immuneFolder <- file.path("../../IMMUNE_DATA_v2_Yuanlong")
+  immuneCol <- "blueviolet"
+  
+  plstart <- min(region_plot_dt$start)
+  plend <- max(region_plot_dt$end)
+  stopifnot(plend > plstart)
+  plchr <- unique(region_plot_dt$chromo)
+  stopifnot(length(plchr) == 1)
+  immune_region_plot_dt <- foreach(ds = immune_ds, .combine='rbind') %dopar% {
+    
+    region_dt <- read.delim(file.path(immuneFolder, ds, "genes2tad", "all_assigned_regions.txt"),
+                            stringsAsFactors = FALSE, header=F,
+                            col.names = c("chromo", "region", "start", "end"))
+    region_dt <- region_dt[grepl("_TAD", region_dt$region),]
+    sub_dt <- region_dt[region_dt$start <= plend & region_dt$end >= plstart & region_dt$chromo == plchr,]
+    # should have following columns:
+    # [1] "hicds"       "exprds"      "region"      "start"       "end"        
+    # [6] "chromo"      "region_id"   "hicds_lab"   "exprds_lab"  "raw_labels" 
+    # [11] "meanFC"      "tad_size"    "cmpType"     "cmpType_num" "ds_rank"    
+    # [16] "ds_col"      "ds_lab"     
+    sub_dt$hicds <- ds
+    sub_dt$exprds <- ""
+    sub_dt$region_id <- file.path(sub_dt$hicds, sub_dt$exprds, sub_dt$region)
+    sub_dt$hicds_lab <- gsub("_40kb", "", sub_dt$hicds)
+    sub_dt$exprds_lab <- sub_dt$exprds
+    sub_dt$raw_labels <- paste0(sub_dt$hicds, sub_dt$exprds)
+    sub_dt$meanFC <- NA
+    sub_dt$tad_size <- sub_dt$end - sub_dt$start + 1
+    sub_dt$cmpType <- "immuneCells"
+    sub_dt$cmpType_num <- max(region_plot_dt$cmpType_num) + 1
+    sub_dt$ds_rank <- max(region_plot_dt$ds_rank) + which(immune_ds == ds)
+    sub_dt$ds_col <- immuneCol
+    sub_dt$ds_lab <- paste(sub_dt$hicds_lab, sub_dt$exprds_lab)
+    
+    ### TAKE ONLY THE MOST OVERLAPPING
+    # sub_dt <- sub_dt[sub_dt$tad_size == max(sub_dt$tad_size),]
+    
+    ## Using pairs to find intersection of overlapping ranges
+    query <- IRanges(start=plstart, end=plend) 
+    subject <- IRanges(start = sub_dt$start, end=sub_dt$end)
+    hits <- findOverlaps(query, subject)
+    p <- Pairs(query, subject, hits=hits)
+    v0 <- which.max(   width(pintersect(p)))
+    
+    v1 <- which.max( sapply(1:nrow(sub_dt), function(x) {
+      ## Using pairs to find intersection of overlapping ranges
+      query <- IRanges(start=plstart, end=plend) 
+      subject <- IRanges(start = sub_dt[x,"start"], end=sub_dt[x,"end"])
+      hits <- findOverlaps(query, subject)
+      p <- Pairs(query, subject, hits=hits)
+      width(pintersect(p))
+    }))
+    stopifnot(v0 == v1)
+    
+    #    sub_dt[v0,]
+    sub_dt # biCol version -> take all overlaps !!!
+  }
+  
+  save(immune_region_plot_dt, file="immune_region_plot_dt.Rdata", version=2)
+  save(region_plot_dt, file="region_plot_dt.Rdata", version=2)
+  
+  
+  stopifnot(setequal(colnames(immune_region_plot_dt), colnames(region_plot_dt)))
+  
+  immune_region_plot_dt <- immune_region_plot_dt[,colnames(region_plot_dt)]
+  
+  region_plot_dt <- rbind(region_plot_dt, immune_region_plot_dt)
+  
+  all_tad_cols <- unlist(sapply(as.numeric(table(region_plot_dt$ds_rank)), function(x) rep(tad_bicols, ceiling(x/2) )[1:x]))
+  
+  stopifnot(length(all_tad_cols) == nrow(region_plot_dt))
+  
+  region_plot_dt$tadLineCol <- all_tad_cols
+  
+  # region_plot_dt$ds_lab[27]=region_plot_dt$ds_lab[10]
+  # region_plot_dt$ds_lab[27]="786[{\"-\"}]*O~-~KICH~bold(normal)~vs.~tumor"
+  # region_plot_dt$ds_lab[1:26]="."
+  
+  # region_plot_dt$ds_lab[6]="22Rv1~-~PRAD~bold(normal)~vs.~tumor"
+  # should be 
+  # region_plot_dt$ds_lab[6]="22*Rv1~-~PRAD~bold(normal)~vs.~tumor"
+  
+  axisOffset <- min(region_plot_dt$end-region_plot_dt$start)#90000
+  
+  region_plot_dt$ds_lab[6]
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   gene_plot_dt <- gene_plot_dt[order(gene_plot_dt$start, gene_plot_dt$end),]
   gene_plot_dt$gene_rank <- max(region_plot_dt$ds_rank) + tad_gene_space + 1:nrow(gene_plot_dt)
   
   gene_plot_dt$gene_pos <- 0.5*(gene_plot_dt$start+gene_plot_dt$end)
   
-  TADlinecol <- "darkblue"
+
   TADlt <- 1
   TADlw <- 2
   geneLt <- 1
@@ -276,6 +436,8 @@ for(maxConserved in conserved_regions_to_plot) {
   
   xscale <- seq(from=min(region_plot_dt$start) , to=max(region_plot_dt$end) , length.out=10)
   
+  save(region_plot_dt, file="tmp.Rdata", version=2)
+  
   region_p <- ggplot() + 
     
     ggtitle(myTit, subtitle=subTit)+
@@ -284,7 +446,9 @@ for(maxConserved in conserved_regions_to_plot) {
     # lines for the TADs
     geom_segment( aes(x = region_plot_dt$start, y = region_plot_dt$ds_rank, 
                       xend=region_plot_dt$end, yend = region_plot_dt$ds_rank), 
-                  colour = TADlinecol, linetype = TADlt, size = TADlw,
+                  colour = region_plot_dt$tadLineCol,    ###>>>>>>>>>>>><>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<< change here biCol
+                  # colour = TADlinecol,    ###>>>>>>>>>>>><>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<< change here biCol
+                  linetype = TADlt, size = TADlw,
                   inherit.aes = F) + 
     # lines for the genes
     geom_segment( aes(x = gene_plot_dt$start, y = gene_plot_dt$gene_rank,
@@ -335,108 +499,6 @@ for(maxConserved in conserved_regions_to_plot) {
     segment.size = 1
   )
   
-  region_plot_dt$raw_labels <- paste0(as.character(region_plot_dt$hicds_lab), " - ", as.character(region_plot_dt$exprds_lab))
-  region_plot_dt$ds_lab <- sapply(1:nrow(region_plot_dt), function(i) {
-    label_part1 <- gsub("(.+) (.+) vs. (.+)", "\\1", region_plot_dt$raw_labels[i])
-    label_part2 <- gsub("(.+) (.+) vs. (.+)", "\\2", region_plot_dt$raw_labels[i])
-    label_part3 <- gsub("(.+) (.+) vs. (.+)", "\\3", region_plot_dt$raw_labels[i])
-    if(region_plot_dt$meanFC[i] > 0){
-      mylab <- gsub(" ","~", paste0(label_part1, "~", label_part2, "~vs.~bold(", label_part3, ")"))
-    }else {
-      mylab <- gsub(" ","~", paste0(label_part1, "~bold(", label_part2, ")~vs.~", label_part3))
-    }
-    
-    mylab <- gsub("_", "[{\"-\"}]*", mylab)  # underscore are not recognize -> replace with dash lowerscript
-    
-    # if the first caracter are numbers -> need to separate ! -> should match 22Rv1 but not 786[]
-    # mylab <- gsub("^(\\d+)", "\\1*", mylab)
-    mylab <- gsub("^(\\d+)([a-zA-Z])", "\\1*\\2", mylab)
-    
-    mylab
-  })
-  
-  #### ADD HERE THE IMMUNE DATA FOR PLOTTING <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  ds=immune_ds[1]
-  immuneFolder <- file.path("../../IMMUNE_DATA_v2_Yuanlong")
-  immuneCol <- "blueviolet"
-  
-  plstart <- min(region_plot_dt$start)
-  plend <- max(region_plot_dt$end)
-  stopifnot(plend > plstart)
-  plchr <- unique(region_plot_dt$chromo)
-  stopifnot(length(plchr) == 1)
-  immune_region_plot_dt <- foreach(ds = immune_ds, .combine='rbind') %dopar% {
-    
-    region_dt <- read.delim(file.path(immuneFolder, ds, "genes2tad", "all_assigned_regions.txt"),
-                            stringsAsFactors = FALSE, header=F,
-                            col.names = c("chromo", "region", "start", "end"))
-    region_dt <- region_dt[grepl("_TAD", region_dt$region),]
-    sub_dt <- region_dt[region_dt$start <= plend & region_dt$end >= plstart & region_dt$chromo == plchr,]
-    # should have following columns:
-    # [1] "hicds"       "exprds"      "region"      "start"       "end"        
-    # [6] "chromo"      "region_id"   "hicds_lab"   "exprds_lab"  "raw_labels" 
-    # [11] "meanFC"      "tad_size"    "cmpType"     "cmpType_num" "ds_rank"    
-    # [16] "ds_col"      "ds_lab"     
-    sub_dt$hicds <- ds
-    sub_dt$exprds <- ""
-    sub_dt$region_id <- file.path(sub_dt$hicds, sub_dt$exprds, sub_dt$region)
-    sub_dt$hicds_lab <- gsub("_40kb", "", sub_dt$hicds)
-    sub_dt$exprds_lab <- sub_dt$exprds
-    sub_dt$raw_labels <- paste0(sub_dt$hicds, sub_dt$exprds)
-    sub_dt$meanFC <- NA
-    sub_dt$tad_size <- sub_dt$end - sub_dt$start + 1
-    sub_dt$cmpType <- "immuneCells"
-    sub_dt$cmpType_num <- max(region_plot_dt$cmpType_num) + 1
-    sub_dt$ds_rank <- max(region_plot_dt$ds_rank) + which(immune_ds == ds)
-    sub_dt$ds_col <- immuneCol
-    sub_dt$ds_lab <- paste(sub_dt$hicds_lab, sub_dt$exprds_lab)
-    
-    ### TAKE ONLY THE MOST OVERLAPPING
-    # sub_dt <- sub_dt[sub_dt$tad_size == max(sub_dt$tad_size),]
-    
-      ## Using pairs to find intersection of overlapping ranges
-      query <- IRanges(start=plstart, end=plend) 
-      subject <- IRanges(start = sub_dt$start, end=sub_dt$end)
-      hits <- findOverlaps(query, subject)
-      p <- Pairs(query, subject, hits=hits)
-      v0 <- which.max(   width(pintersect(p)))
-      
-    v1 <- which.max( sapply(1:nrow(sub_dt), function(x) {
-      ## Using pairs to find intersection of overlapping ranges
-      query <- IRanges(start=plstart, end=plend) 
-      subject <- IRanges(start = sub_dt[x,"start"], end=sub_dt[x,"end"])
-      hits <- findOverlaps(query, subject)
-      p <- Pairs(query, subject, hits=hits)
-      width(pintersect(p))
-    }))
-    stopifnot(v0 == v1)
-    
-#    sub_dt[v0,]
-	sub_dt # biCol version -> take all overlaps !!!
-  }
-  
-  save(immune_region_plot_dt, file="immune_region_plot_dt.Rdata", version=2)
-  save(region_plot_dt, file="region_plot_dt.Rdata", version=2)
-  
-  
-  stopifnot(setequal(colnames(immune_region_plot_dt), colnames(region_plot_dt)))
-  
-  immune_region_plot_dt <- immune_region_plot_dt[,colnames(region_plot_dt)]
-  
-  region_plot_dt <- rbind(region_plot_dt, immune_region_plot_dt)
-  
-  
-  # region_plot_dt$ds_lab[27]=region_plot_dt$ds_lab[10]
-  # region_plot_dt$ds_lab[27]="786[{\"-\"}]*O~-~KICH~bold(normal)~vs.~tumor"
-  # region_plot_dt$ds_lab[1:26]="."
-  
-  # region_plot_dt$ds_lab[6]="22Rv1~-~PRAD~bold(normal)~vs.~tumor"
-  # should be 
-  # region_plot_dt$ds_lab[6]="22*Rv1~-~PRAD~bold(normal)~vs.~tumor"
-  
-  axisOffset <- min(region_plot_dt$end-region_plot_dt$start)#90000
-  
-  region_plot_dt$ds_lab[6]
   
 
 
