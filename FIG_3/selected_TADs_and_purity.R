@@ -30,6 +30,8 @@ if(purity_ds == "") {
   stop("--invalid purity_ds\n")
 }
 
+#  purity_ds <- "CPE"
+#  purity_plot_name <- "Aran - CPE"
 
 ### HARD-CODED - MAIN SETTINGS
 
@@ -121,7 +123,7 @@ plot_multiDens(split(merge_dt$purityCorr, merge_dt$signif_lab),
                plotTit = plotTit, my_xlab = myx_lab)
 lines(density(merge_dt$purityCorr), col="green")
 abline(v=purityCorrThresh, col="darkgrey")
-legend("topleft", lty=1, lwd=2, col=c("green", "darkgrey"), bty="n", legend=c("all", paste0(corrPurityQtThresh, "-qt all TADs\n(=", round(purityCorrThresh, 2), ")")))
+legend("topleft", lty=1, lwd=2, col=c("green", "darkgrey"), bty="n", legend=c("all", paste0(corrPurityQtThresh, "-qt non-signif. TADs\n(=", round(purityCorrThresh, 2), ")")))
 abline(v=agg_purity$purityCorr[agg_purity$regID %in% selected_tads], col="blue")
 # mtext(side=1, at = agg_purity$purityCorr[agg_purity$regID %in% selected_tads], text=agg_purity$regID_lab[agg_purity$regID %in% selected_tads],  col="blue", las=2, cex=0.6, padj = c(0,1))
 text_dt <- agg_purity[agg_purity$regID %in% selected_tads,]

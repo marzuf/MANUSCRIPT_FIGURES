@@ -5,12 +5,20 @@ SSHFS=F
 setDir <- "/media/electron"
 setDir <- ""
 
-# Rscript ds_conservation_acrossDS.R
+# Rscript ds_conservation_acrossDS_purityFilter.R
+
+purity_ds="EPIC"
+purity_plot_name="EPIC"
+purity_ds=""
+purity_plot_name="Aran"
+purity_ds="CPE"
+purity_plot_name="Aran - CPE"
+transfExpr="log10"
 
 hicds="K562_40kb"
 exprds="TCGAlaml_wt_mutFLT3"
 
-script_name <- "ds_conservation_acrossDS.R"
+script_name <- "ds_conservation_acrossDS_purityFilter.R"
 
 startTime <- Sys.time()
 
@@ -39,7 +47,7 @@ if(length(args) == 0){
   stopifnot(cmpType %in% c("subtypes", "wt_vs_mut", "norm_vs_tumor"))
 }
 
-outFolder <- file.path("DS_CONSERVATION_ACROSSDS", cmpType)
+outFolder <- file.path("DS_CONSERVATION_ACROSSDS_PURITYFILTER", cmpType, purity_ds, transfExpr)
 dir.create(outFolder, recursive=TRUE)
 
 entrez2symb_dt <- read.delim(file.path(setDir,
@@ -69,10 +77,11 @@ minMatch_genes <- 3
 atLeast <- 10
 atMin <- 2
 
+all_datasets <- sort(unique(file.path(result_dt$hicds, result_dt$exprds)))
 
 # retrieve the max from permut
 all_perm_dt <- get(load(file.path(runFolder,
-                      "CONSERV_SIGNIF_OBSSHUFFLE/all_perm_dt.Rdata")))
+                      "CONSERV_SIGNIF_OBSSHUFFLE_PURITYFILTER_VSAMENBR", purity_ds, transfExpr, "all_perm_dt.Rdata")))
 max_perm <- max(all_perm_dt$conserved)
 
 permline_col <- "black"
@@ -87,15 +96,23 @@ add_maxPerm_line <- function(p) {
 }
 
 inFile <- file.path(runFolder,
-                    "TAD_MATCHING_SIGNIF_ACROSS_HICDS_ALLMATCH_v2",
-                    cmpType,
-                    paste0("plot_matching_dt_signif_tadsadjPvalComb", tad_pval, "_minBpRatio", minMatchBp_ratio, "_minInterGenes", minMatch_genes, ".Rdata"))
+                    "TAD_MATCHING_SIGNIF_ACROSS_HICDS_ALLMATCH_v2_PURITYFILTER",
+                    cmpType,purity_ds, transfExpr,
+                    paste0("conserved_signif_tadsadjPvalComb", tad_pval, "_minBpRatio", minMatchBp_ratio, "_minInterGenes", minMatch_genes, ".Rdata"))
 
-matching_dt <- get(load(inFile))
+obs_data <- get(load(inFile))
 
-dt <- t(matching_dt)
-m_dt <- melt(dt)
+all_nCons <- lengths(obs_data)
+dsByReg_dt <- do.call(rbind, lapply(obs_data, function(x) as.numeric(all_datasets %in% unique(dirname(x)))))
+colnames(dsByReg_dt) <- all_datasets
+stopifnot(sum(dsByReg_dt) == sum(all_nCons))
+stopifnot(max(rowSums(dsByReg_dt)) == max(all_nCons))
+obsCons_dt <- dsByReg_dt
+
+m_dt <- melt(obsCons_dt)
+
 colnames(m_dt) <- c("region", "dataset", "conserved")
+stopifnot(grepl("region", m_dt$region))
 m_dt$dataset <- as.character(m_dt$dataset)
 m_dt$hicds <- dirname(m_dt$dataset)
 m_dt$exprds <- basename(m_dt$dataset)
@@ -163,7 +180,7 @@ my_ylab <- "# datasets conserved"
 # my_xlab <- "Ranked conserved regions"
 my_xlab <- paste0("Ranked conserved regions (", nCons, " with >= ", atMin, " DS cons.)")
 myTit <- "Signif. conserved regions"
-subTit <- paste0("TAD adj. p-val <= ", tad_pval, "\nconserv. match ratio bp >= ", minMatchBp_ratio, " and match genes >= ", minMatch_genes)
+subTit <- paste0(purity_plot_name , " data - TAD adj. p-val <= ", tad_pval, "\nconserv. match ratio bp >= ", minMatchBp_ratio, " and match genes >= ", minMatch_genes)
 
 
 plot_dt$cmpType_lab <- factor(plot_dt$cmpType_lab, levels=cmp_levels)
@@ -232,7 +249,7 @@ my_ylab <- "# datasets conserved"
 # my_xlab <- "Ranked conserved regions"
 my_xlab <- paste0("Ranked conserved regions (", nCons, " with >= ", atLeast, " DS cons.)")
 myTit <- "Signif. conserved regions"
-subTit <- paste0("TAD adj. p-val <= ", tad_pval, "\nconserv. match ratio bp >= ", minMatchBp_ratio, " and match genes >= ", minMatch_genes)
+subTit <- paste0(purity_plot_name, " data - TAD adj. p-val <= ", tad_pval, "\nconserv. match ratio bp >= ", minMatchBp_ratio, " and match genes >= ", minMatch_genes)
 
 
 plot_dt$cmpType_lab <- factor(plot_dt$cmpType_lab, levels=cmp_levels)
@@ -299,7 +316,7 @@ byCmp_dt <- foreach(cmpT = allCmpTypes, .combine='rbind') %dopar% {
 my_ylab <- "# datasets conserved"
 my_xlab <- "Ranked conserved regions"
 myTit <- "Signif. conserved regions"
-subTit <- paste0("TAD adj. p-val <= ", tad_pval, "\nconserv. match ratio bp >= ", minMatchBp_ratio, " and match genes >= ", minMatch_genes)
+subTit <- paste0(purity_plot_name, " data - TAD adj. p-val <= ", tad_pval, "\nconserv. match ratio bp >= ", minMatchBp_ratio, " and match genes >= ", minMatch_genes)
 
 byCmp_dt$cmpType_lab <- cmp_names[paste0(byCmp_dt$cmpType)]
 stopifnot(!is.na(byCmp_dt$cmpType_lab))
@@ -354,29 +371,39 @@ grid::grid.draw(g)
 foo <- dev.off()
 cat(paste0("... written: ", outFile, "\n"))
 
+######################################################################################
+######################################################################################
+######################################################################################
+
+all_dt <- get(load("DS_CONSERVATION_ACROSSDS/fig4A_conservedRegions_dt.Rdata"))
+agg_all_dt <- aggregate(conserved~region, FUN=sum, data=all_dt)
+
+cpe_dt <- get(load("DS_CONSERVATION_ACROSSDS_PURITYFILTER/CPE/log10/fig4A_conservedRegions_dt.Rdata"))
+cpe_agg_all_dt <- aggregate(conserved~region, FUN=sum, data=cpe_dt)
 
 
+epic_dt <- get(load("DS_CONSERVATION_ACROSSDS_PURITYFILTER/EPIC/log10/fig4A_conservedRegions_dt.Rdata"))
+epic_agg_all_dt <- aggregate(conserved~region, FUN=sum, data=epic_dt)
 
+aran_dt <- get(load("DS_CONSERVATION_ACROSSDS_PURITYFILTER/log10/fig4A_conservedRegions_dt.Rdata"))
+aran_agg_all_dt <- aggregate(conserved~region, FUN=sum, data=aran_dt)
+
+source("../../Cancer_HiC_data_TAD_DA/utils_fct.R")
+
+png("cmp_nDS_conserved_purity_filter.png", height=400, width=600)
+plot_multiDens(
+  list(noFilt = agg_all_dt$conserved,
+       aranCpeFilt = cpe_agg_all_dt$conserved,
+       aranFilt = aran_agg_all_dt$conserved,
+       epicFilt = epic_agg_all_dt$conserved
+       ), my_xlab = "# datasets conserved", plotTit = "Recurrent DA TADs - # datasets conservation"
+)
+foo <- dev.off()
+                                                
 ######################################################################################
 ######################################################################################
 ######################################################################################
 cat("*** DONE\n")
 cat(paste0(startTime, "\n", Sys.time(), "\n"))
 
-######################################################################################
-# => checked ok
-# 
-# inFile <- file.path(runFolder,
-#                     "TAD_MATCHING_SIGNIF_ACROSS_HICDS_ALLMATCH_v2",
-#                     cmpType,
-#                     paste0("plot_matching_dt_signif_tadsadjPvalComb", tad_pval, "_minBpRatio", minMatchBp_ratio, "_minInterGenes", minMatch_genes, ".Rdata"))
-# x = get(load(inFile))
-# cr_count <- colSums(x) 
-# cr_count <- sort(cr_count)
-# 
-# y=get(load("DS_CONSERVATION_ACROSSDS/fig4A_conservedRegions_dt.Rdata"))
-# yb <- aggregate(conserved~region, data=y, FUN=sum)
-# cr_count2 <- setNames(yb$conserved, yb$region)
-# cr_count2 <- sort(cr_count2)
-# 
-# stopifnot(all.equal(cr_count2, cr_count))
+
