@@ -14,7 +14,7 @@
 #' @export
 #' 
 plot_conservedRegions <- function(genes_dt, tads_dt,
-                                  TADlinecol="darkblue",
+                                  TADlinecol1="darkblue",  TADlinecol2="darkturquoise",
                                   consAll_col="darkgreen",
                                   consAbove_col="orange",
                                   consBelow_col="black",
@@ -32,6 +32,10 @@ plot_conservedRegions <- function(genes_dt, tads_dt,
                                   subTit=NULL,
                                   myTit=NULL
                                   ){
+
+
+  tad_bicols <- c(TADlinecol1, TADlinecol2)
+
   
   if(!suppressPackageStartupMessages(require("ggplot2"))) stop("-- ggplot2 package required\n")  
   if(!suppressPackageStartupMessages(require("ggrepel"))) stop("-- ggrepel package required\n")  
@@ -131,6 +135,15 @@ plot_conservedRegions <- function(genes_dt, tads_dt,
     mylab <- gsub("^(\\d+)([a-zA-Z])", "\\1*\\2", mylab)
     mylab
   })
+
+
+####>>>>> UPDATE HERE IN CASE THERE ARE SEVERAL TADs BY DATASET
+  all_tad_cols <- unlist(sapply(as.numeric(table(tads_dt$ds_rank)), function(x) rep(tad_bicols, ceiling(x/2) )[1:x]))
+  stopifnot(length(all_tad_cols) == nrow(tads_dt))
+  tads_dt$tadLineCol <- all_tad_cols
+####>>>>>
+
+
   
   axisOffset <- min(tads_dt$end-tads_dt$start)#90000
   xscale <- seq(from=min(tads_dt$start) , to=max(tads_dt$end) , length.out=10)
@@ -141,7 +154,9 @@ plot_conservedRegions <- function(genes_dt, tads_dt,
     # lines for the TADs
     geom_segment( aes(x = tads_dt$start, y = tads_dt$ds_rank, 
                       xend=tads_dt$end, yend = tads_dt$ds_rank), 
-                  colour = TADlinecol, linetype = TADlt, size = TADlw,
+####>>>>>   UPDATE HERE IN CASE THERE ARE SEVERAL TADs BY DATASET               colour = TADlinecol, 
+                  colour = tads_dt$tadLineCol, 
+				linetype = TADlt, size = TADlw,
                   inherit.aes = F) + 
     # lines for the genes
     geom_segment( aes(x = genes_dt$start, y = genes_dt$gene_rank,
@@ -159,6 +174,16 @@ plot_conservedRegions <- function(genes_dt, tads_dt,
     } else {
       region_p <- region_p + guides(color=FALSE)
     }
+
+
+####>>>>> UPDATE HERE IN CASE THERE ARE SEVERAL TADs BY DATASET
+  ds_tads_dt <- tads_dt[,c("start", "ds_rank", "ds_lab", "ds_col")]
+  ds_tads_dt <- aggregate(start~., data=ds_tads_dt, FUN=min)
+  stopifnot(!duplicated(ds_tads_dt$ds_lab))
+
+
+
+
     
     region_p <- region_p + 
     
@@ -166,7 +191,8 @@ plot_conservedRegions <- function(genes_dt, tads_dt,
     geom_segment( aes(x = c(genes_dt$start, genes_dt$end), 
                       xend= c(genes_dt$start, genes_dt$end),
                       # y = rep(min(tads_dt$ds_rank)-gene_line_offset, 2),
-                      y = rep(min(tads_dt$ds_rank)-gene_line_offset, 1),
+                      #y = rep(min(tads_dt$ds_rank)-gene_line_offset, 1), 
+                      y = rep(min(ds_tads_dt$ds_rank)-gene_line_offset, 1), ####>>>>> UPDATE HERE IN CASE THERE ARE SEVERAL TADs BY DATASET
                       # yend=rep(genes_dt$gene_rank, 2)), 
                       yend=rep(genes_dt$gene_rank, 2)), 
                   colour = rep(as.character(genes_dt$col),2), linetype = geneDelLt, size = geneDelLw,
@@ -183,12 +209,22 @@ plot_conservedRegions <- function(genes_dt, tads_dt,
       hjust        = 0.5,
       segment.size = 1
     )+ 
-    xlim(min(c(tads_dt$start, genes_dt$start)- axisOffset), NA) +
+#    xlim(min(c(tads_dt$start, genes_dt$start)- axisOffset), NA) +
+#    geom_text_repel(
+#      aes(x = tads_dt$start, y =  tads_dt$ds_rank, label = tads_dt$ds_lab), inherit.aes = FALSE,
+#      nudge_x       = 3.5 - tads_dt$start,
+#      direction     = "y",
+#      color = tads_dt$ds_col, # ADDED 
+#      hjust         = 1, parse = T, size=3#,
+#      # force_pull   = 0
+#    ) +
+ ####>>>>> UPDATE HERE IN CASE THERE ARE SEVERAL TADs BY DATASET
+    xlim(min(c(ds_tads_dt$start, genes_dt$start)- axisOffset), NA) +
     geom_text_repel(
-      aes(x = tads_dt$start, y =  tads_dt$ds_rank, label = tads_dt$ds_lab), inherit.aes = FALSE,
-      nudge_x       = 3.5 - tads_dt$start,
+      aes(x = ds_tads_dt$start, y =  ds_tads_dt$ds_rank, label = ds_tads_dt$ds_lab), inherit.aes = FALSE,
+      nudge_x       = 3.5 - ds_tads_dt$start,
       direction     = "y",
-      color = tads_dt$ds_col, # ADDED 
+      color = ds_tads_dt$ds_col, # ADDED 
       hjust         = 1, parse = T, size=3#,
       # force_pull   = 0
     ) +
