@@ -508,13 +508,17 @@ for(maxConserved in conserved_regions_to_plot) {
 #    xlim  = x_limits  ### => all labels start at 3 if x_limits = c(3, NA)
 #  ) +
 
+  ds_region_plot_dt <- region_plot_dt[,c("start", "ds_rank", "ds_lab", "ds_col")]
+  ds_region_plot_dt <- aggregate(start~., data=ds_region_plot_dt, FUN=min)
+  stopifnot(!duplicated(ds_region_plot_dt$ds_lab))
+    save(ds_region_plot_dt, file="ds_region_plot_dt.Rdata", version=2)
 
-  region_p3 <- region_p2 + xlim(min(c(region_plot_dt$start, gene_plot_dt$start)- axisOffset), NA) +
+  region_p3 <- region_p2 + xlim(min(c(ds_region_plot_dt$start, gene_plot_dt$start)- axisOffset), NA) +
           geom_text_repel(
-            aes(x = region_plot_dt$start, y =  region_plot_dt$ds_rank, label = region_plot_dt$ds_lab), inherit.aes = F,
-            nudge_x       = 3.5 - region_plot_dt$start,
+            aes(x = ds_region_plot_dt$start, y =  ds_region_plot_dt$ds_rank, label = ds_region_plot_dt$ds_lab), inherit.aes = F,
+            nudge_x       = 3.5 - ds_region_plot_dt$start,
             direction     = "y",
-            color = region_plot_dt$ds_col, # ADDED 
+            color = ds_region_plot_dt$ds_col, # ADDED 
             hjust         = 1, parse = T, size=3,
             force_pull   = 0
           ) +

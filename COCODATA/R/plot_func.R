@@ -409,5 +409,223 @@ plot_volcanoTADsCorrFC <- function(meanCorr, meanFC, comb_pval,
   return(fc_corr_p)
 }
 
+#######################################################################################################################
+#######################################################################################################################
+#######################################################################################################################
+#' Smile plot TAD ratioDown concordance
+#'
+#' Function that returns line and histogram plots of intra-TAD ratioDown concordance (similar to Fig. 2F of LeDily et al. 2014)
+#'
+#' @param observed_rD Vector of intra-TAD ratioDown (vector names should be TAD IDs).
+#' @param permut_rD_dt Data frame of ratioDown for the permutations (rownames should be TAD IDs, each column a permutation).
+#' @param ... Other parameters for fine-tuning the plot.
+#' @return A list containing the two plots (1st the line plot, 2nd the histogram plot).
+#' @export
+#' 
+#' 
+
+errbar <- function (x, y, yplus, yminus, cap = 0.015, main = NULL, sub = NULL, 
+          xlab = as.character(substitute(x)), ylab = if (is.factor(x) || 
+                                                         is.character(x)) "" else as.character(substitute(y)), 
+          add = FALSE, lty = 1, type = "p", ylim = NULL, lwd = 1, pch = 16, 
+          errbar.col = par("fg"), Type = rep(1, length(y)), ...) 
+{
+  if (is.null(ylim)) 
+    ylim <- range(y[Type == 1], yplus[Type == 1], yminus[Type == 
+                                                           1], na.rm = TRUE)
+  if (is.factor(x) || is.character(x)) {
+    x <- as.character(x)
+    n <- length(x)
+    t1 <- Type == 1
+    t2 <- Type == 2
+    n1 <- sum(t1)
+    n2 <- sum(t2)
+    omai <- par("mai")
+    mai <- omai
+    mai[2] <- max(strwidth(x, "inches")) + 0.25
+    par(mai = mai)
+    on.exit(par(mai = omai))
+    plot(NA, NA, xlab = ylab, ylab = "", xlim = ylim, ylim = c(1, 
+                                                               n + 1), axes = FALSE, main = main, sub = sub, ...)
+    axis(1)
+    w <- if (any(t2)) 
+      n1 + (1:n2) + 1
+    else numeric(0)
+    axis(2, at = c(seq.int(length.out = n1), w), labels = c(x[t1], 
+                                                            x[t2]), las = 1, adj = 1)
+    points(y[t1], seq.int(length.out = n1), pch = pch, type = type, 
+           ...)
+    segments(yplus[t1], seq.int(length.out = n1), yminus[t1], 
+             seq.int(length.out = n1), lwd = lwd, lty = lty, col = errbar.col)
+    if (any(Type == 2)) {
+      abline(h = n1 + 1, lty = 2, ...)
+      offset <- mean(y[t1]) - mean(y[t2])
+      if (min(yminus[t2]) < 0 & max(yplus[t2]) > 0) 
+        lines(c(0, 0) + offset, c(n1 + 1, par("usr")[4]), 
+              lty = 2, ...)
+      points(y[t2] + offset, w, pch = pch, type = type, 
+             ...)
+      segments(yminus[t2] + offset, w, yplus[t2] + offset, 
+               w, lwd = lwd, lty = lty, col = errbar.col)
+      at <- pretty(range(y[t2], yplus[t2], yminus[t2]))
+      axis(side = 3, at = at + offset, labels = format(round(at, 
+                                                             6)))
+    }
+    return(invisible())
+  }
+  if (add) 
+    points(x, y, pch = pch, type = type, ...)
+  else plot(x, y, ylim = ylim, xlab = xlab, ylab = ylab, pch = pch, 
+            type = type, ...)
+  xcoord <- par()$usr[1:2]
+  smidge <- cap * (xcoord[2] - xcoord[1])/2
+  segments(x, yminus, x, yplus, lty = lty, lwd = lwd, col = errbar.col)
+  if (par()$xlog) {
+    xstart <- x * 10^(-smidge)
+    xend <- x * 10^(smidge)
+  }
+  else {
+    xstart <- x - smidge
+    xend <- x + smidge
+  }
+  segments(xstart, yminus, xend, yminus, lwd = lwd, lty = lty, 
+           col = errbar.col)
+  segments(xstart, yplus, xend, yplus, lwd = lwd, lty = lty, 
+           col = errbar.col)
+  return(invisible())
+}
+
+
+plot_smileRatioDownConcord <- function(observed_rD,
+                                       permut_rD_dt, 
+                                       plotTit1="Smile plot of TAD ratioDown concordance",
+                                       concordThresh=0.75,
+                                       plotTit2=NULL,
+                                       subtitDir1=NULL,
+                                       subtitDir2=NULL,
+                                       obsCol="bisque",
+                                       obsColText="bisque2",
+                                       permutCol="mediumseagreen",
+                                       histBreakStep=0.1){
+
+  # require(Hmisc) # for errbar  
+  nRandom <- ncol(permut_rD_dt)
+  
+  if(is.null(plotTit2)) plotTit2 <- plotTit1
+  
+  thresh2 <- 1-concordThresh   # for the subtit
+  curr_ratio_breaks <- seq(0,1,histBreakStep)
+  
+  stopifnot(nrow(permut_rD_dt) == length(observed_rD))
+  stopifnot( (1/histBreakStep) %% 1 == 0 )
+  stopifnot(setequal(rownames(permut_rD_dt),  names(observed_rD)))
+  
+  # compute how many above thresh1 and below 1-thresh1 - OBSERVED
+  obsThresh <- mean(observed_rD >= concordThresh | observed_rD <= thresh2)
+  stopifnot( obsThresh >= 0 & obsThresh <= 1)
+  
+  # compute how many above thresh1 and below 1-thresh1 - PERMUT
+  allThreshPermut <- unlist(apply(permut_rD_dt, 2, function(x) mean(x >= concordThresh | x <= thresh2)))
+  stopifnot( allThreshPermut >= 0 & allThreshPermut <= 1)
+  stopifnot(length(allThreshPermut) == nRandom)
+  
+  nTAD <- nrow(permut_rD_dt)
+  permut_ratioDown_vect <- as.numeric(unlist(permut_rD_dt))
+  stopifnot(length(permut_ratioDown_vect) == ncol(permut_rD_dt) * nTAD)
+  
+  # compute the histogram - OBSERVED
+  obs_rel_hist <- hist(observed_rD, breaks=curr_ratio_breaks, plot=FALSE)
+  # compute the histogram - PERMUT
+  shuff_rel_hist <-  hist(permut_ratioDown_vect,breaks=curr_ratio_breaks, plot=F)
+  
+  stopifnot(sum(shuff_rel_hist$counts/nRandom) == sum(obs_rel_hist$counts))   
+  stopifnot(sum(shuff_rel_hist$counts) == length(permut_ratioDown_vect))
+  stopifnot(sum(obs_rel_hist$counts) == length(na.omit(observed_rD)))
+  
+  # build table for drawing
+  rel_freqValues_dt <- rbind(obs_rel_hist$counts, shuff_rel_hist$counts/nRandom)
+  rownames(rel_freqValues_dt) <- c("observed", "randomized")
+  
+  # FOR THE ERROR BARS:
+  # for each randomization, calculate the observed, then divide expected by observed
+  # table 1 column = 1 randomization, rows = breaks of the hist.
+  rel_HistValues <- apply(permut_rD_dt,
+                          2, function(x) hist(x,breaks=curr_ratio_breaks, plot=F)$counts)
+  stopifnot(nrow(rel_HistValues) == length(obs_rel_hist$counts))
+  # for each randomization, divide observ./exp.
+  rel_obsOverExp <- apply(rel_HistValues, 2, function(x) log2(obs_rel_hist$counts/x))
+  # now get the SEM for each break of the hist (i.e. each row)
+  rel_obsOverExp_sem <- apply(rel_obsOverExp, 1, function(x) {
+    x <- na.omit(x[is.finite(x)])
+    sd(x, na.rm=T)/sqrt(length(x))
+  })
+  
+  # Calculate observed/expected ratio
+  rel_logRatio <- log2(rel_freqValues_dt["observed",]/rel_freqValues_dt["randomized",])
+  # put y coord at the middle of the breaks
+  rel_ycoord <- (curr_ratio_breaks * 100)[-1]
+  rel_ycoord <- rel_ycoord-(histBreakStep*100)/2
+  stopifnot(length(rel_ycoord) == length(rel_logRatio))
+  toKeep <- !is.na(rel_logRatio) & abs(rel_logRatio) != "Inf"
+  rel_logRatio <- rel_logRatio[toKeep]
+  rel_ycoord <- rel_ycoord[toKeep]
+  rel_obsOverExp_sem <- rel_obsOverExp_sem[toKeep] 
+  xlabels <- paste0(rel_ycoord - (histBreakStep*100)/2, "-", rel_ycoord + (histBreakStep*100)/2)
+  
+  
+  if(is.null(subtitDir1)) {
+    subtitDir1 <- paste0("# permut=", nRandom, "; >=",  concordThresh, "|<=", thresh2, ": ", round(obsThresh*100, 2),
+                         "% (avg. permut: ", round(mean(allThreshPermut) * 100, 2), "%)")
+    
+  }
+  if(is.null(subtitDir2)) {
+    subtitDir2 <- paste0("# permut=", nRandom, "; >=",  concordThresh, "|<=", thresh2, ": ", round(obsThresh*100, 2),
+                         "% (avg. permut: ", round(mean(allThreshPermut) * 100, 2), "%)")
+    
+  }
+  rel_ycoord <- rel_ycoord/100
+  
+  ####### 1st PLOT HERE
+  myxlab <-  paste0("% of down-regulated genes per TAD")
+  
+  # A) TOP PLOT - smile plot
+  plot(rel_logRatio ~ rel_ycoord, type="l",axes=F, cex.main=0.9,
+       main = plotTit1,
+       xlab = myxlab, ylab = "log2(Observed/Randomized)")
+  mtext(side=3, paste0(subtitDir1))
+  box(bty="l")
+  axis(2)
+  axis(1, at=rel_ycoord, labels = xlabels)
+  abline(h=0, lty=2)
+  errbar(x=rel_ycoord, y=rel_logRatio, 
+         yplus=rel_logRatio+rel_obsOverExp_sem, 
+         yminus=rel_logRatio-rel_obsOverExp_sem, add=T)
+  
+  p1 <- recordPlot()
+  
+  plot.new()
+  
+  # B) BOTTOM PLOT - histogram bar plot
+  xy_pos <- barplot(rel_freqValues_dt, beside=T, col=c(obsCol, permutCol), 
+                    main=plotTit2,
+                    ylab="Frequency", 
+                    xlab=myxlab)
+  legend("topright", c( "observed Freq.", "randomized Freq."),
+         text.col=c(obsColText, permutCol), bty='n', cex=1)
+  mtext(side=3, text = subtitDir2)
+  
+  box(bty="l")
+  axis(1, at=apply(xy_pos,2,mean), labels = xlabels)
+  axis(2, at=c(0, max(rel_freqValues_dt, na.rm=T)), labels=F)
+  
+  p2 <- recordPlot()
+  plot.new()
+  
+  return(invisible(list(
+    linePlot=p1,
+    histPlot=p2
+  )))
+}
+
 
 
