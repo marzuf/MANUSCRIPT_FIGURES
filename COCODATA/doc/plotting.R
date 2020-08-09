@@ -71,7 +71,6 @@ require(foreach)
 ## Prepare the ratioDown for permutation data
 data("cut1000_ENCSR489OCU_NCI-H460_40kb_TCGAluad_norm_luad_permutationsDT") # this loads permutationsDT
 head_sq(permutationsDT)
-permutationsDT <- permutationsDT[,1:10]
 stopifnot(setequal(rownames(permutationsDT), pipeline_geneList))
 tad_levels <- as.character(ratioDown_dt$region)
 all_permut_ratioDown_dt <- foreach(i = 1:ncol(permutationsDT), .combine='cbind') %dopar% {
