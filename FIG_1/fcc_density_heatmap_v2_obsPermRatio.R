@@ -2,7 +2,9 @@
 
 require(ggplot2)
 
-plotType <- "png"
+plotType <- "svg"
+svg_dpi <- 50
+
 
 source("../settings.R")
 
@@ -75,15 +77,15 @@ cat(myWidthGG, "\n")
     
 
 outFile <- file.path(outFolder, paste0("FCC_score_ratio_dist_allDS_obs_perm_densityheatmap.", plotType))
-ggsave(density_plot1, filename = outFile,  height=myHeightGG, width=myWidthGG)
+ggsave(density_plot1, filename = outFile,  height=myHeightGG, width=myWidthGG, dpi=svg_dpi)
 cat(paste0("... written: ", outFile, "\n"))
 
 outFile <- file.path(outFolder, paste0("FCC_score_ratio_dist_allDS_obs_perm_densityheatmap_vPal.", plotType))
-ggsave(density_plot2, filename = outFile,  height=myHeightGG, width=myWidthGG)
+ggsave(density_plot2, filename = outFile,  height=myHeightGG, width=myWidthGG, dpi=svg_dpi)
 cat(paste0("... written: ", outFile, "\n"))
 
 outFile <- file.path(outFolder, paste0("FCC_score_ratio_dist_allDS_obs_perm_densityheatmap_vMatlab.", plotType))
-ggsave(density_plot3, filename = outFile,  height=myHeightGG, width=myWidthGG)
+ggsave(density_plot3, filename = outFile,  height=myHeightGG, width=myWidthGG, dpi=svg_dpi)
 cat(paste0("... written: ", outFile, "\n"))
 
 
@@ -137,15 +139,15 @@ density_plot1 <- density_plot  +
     
   
 outFile <- file.path(outFolder, paste0("FCC_score_ratio_dist_allDS_obs_perm_densityheatmap_cutMin.", plotType))
-ggsave(density_plot1, filename = outFile,  height=myHeightGG, width=myWidthGG)
+ggsave(density_plot1, filename = outFile,  height=myHeightGG, width=myWidthGG, dpi=svg_dpi)
 cat(paste0("... written: ", outFile, "\n"))
 
 outFile <- file.path(outFolder, paste0("FCC_score_ratio_dist_allDS_obs_perm_densityheatmap_vPal_cutMin.", plotType))
-ggsave(density_plot2, filename = outFile,  height=myHeightGG, width=myWidthGG)
+ggsave(density_plot2, filename = outFile,  height=myHeightGG, width=myWidthGG, dpi=svg_dpi)
 cat(paste0("... written: ", outFile, "\n"))
 
 outFile <- file.path(outFolder, paste0("FCC_score_ratio_dist_allDS_obs_perm_densityheatmap_vMatlab_cutMin.", plotType))
-ggsave(density_plot3, filename = outFile,  height=myHeightGG, width=myWidthGG)
+ggsave(density_plot3, filename = outFile,  height=myHeightGG, width=myWidthGG, dpi=svg_dpi)
 cat(paste0("... written: ", outFile, "\n"))
 
 

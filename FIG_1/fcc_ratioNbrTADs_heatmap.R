@@ -20,7 +20,7 @@ a_t <- "observed"
 outFolder <- "FCC_RATIONBRTADS_HEATMAP"
 dir.create(outFolder, recursive = TRUE)
 
-buildData <- FALSE
+buildData <- TRUE
 
 fcc_fract <- seq(from=-1, to=1, by=0.1)
 # fcc_fract_names <- paste0("FCC > ", fcc_fract[1:(length(fcc_fract)-1)], " and FCC <= ",fcc_fract[2:length(fcc_fract)])

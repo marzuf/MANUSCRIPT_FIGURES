@@ -21,11 +21,14 @@ require(ggpubr)
 require(ggplot2)
 registerDoMC(40)
 
-plotType <- "png"
+plotType <- "svg"
 myHeight <- 400
 myWidth <- 400
 myHeightGG <- 7
 myWidthGG <- 14
+
+svg_dpi <- 50
+
 
 plotCex <- 1.4
 
@@ -244,7 +247,7 @@ density_plot <- density_plot_s + 	geom_vline(xintercept=seq(from=1.5, by=1, leng
   
   
   outFile <- file.path(outFolder, paste0("FCC_score_dist_allDS_", a_t, "_densityheatmap_vMatlab_cut2.", plotType))
-  ggsave(density_plot, filename = outFile,  height=myHeightGG, width=myWidthGG)
+  ggsave(density_plot, filename = outFile,  height=myHeightGG, width=myWidthGG, dpi=svg_dpi)
   cat(paste0("... written: ", outFile, "\n"))
   
   
@@ -253,7 +256,7 @@ density_plot <- density_plot_s + 	geom_vline(xintercept=seq(from=1.5, by=1, leng
 
   
   outFile <- file.path(outFolder, paste0("FCC_score_dist_allDS_", a_t, "_densityheatmap.", plotType))
-  ggsave(density_plot1, filename = outFile,  height=myHeightGG, width=myWidthGG)
+  ggsave(density_plot1, filename = outFile,  height=myHeightGG, width=myWidthGG, dpi=svg_dpi)
   cat(paste0("... written: ", outFile, "\n"))
 
 #  outFile <- file.path(outFolder, paste0("FCC_score_dist_allDS_", a_t, "_densityheatmap_vPal.", plotType))
@@ -261,11 +264,11 @@ density_plot <- density_plot_s + 	geom_vline(xintercept=seq(from=1.5, by=1, leng
 #  cat(paste0("... written: ", outFile, "\n"))
 
   outFile <- file.path(outFolder, paste0("FCC_score_dist_allDS_", a_t, "_densityheatmap_vMatlab.", plotType))
-  ggsave(density_plot3, filename = outFile,  height=myHeightGG, width=myWidthGG)
+  ggsave(density_plot3, filename = outFile,  height=myHeightGG, width=myWidthGG, dpi=svg_dpi)
   cat(paste0("... written: ", outFile, "\n"))
   
   outFile <- file.path(outFolder, paste0("FCC_score_dist_allDS_", a_t, "_densityheatmap_vMatlab_cut.", plotType))
-  ggsave(density_plot3_cut, filename = outFile,  height=myHeightGG, width=myWidthGG)
+  ggsave(density_plot3_cut, filename = outFile,  height=myHeightGG, width=myWidthGG, dpi=svg_dpi)
   cat(paste0("... written: ", outFile, "\n"))
 
   
@@ -352,7 +355,7 @@ density_plot <- density_plot_s + 	geom_vline(xintercept=seq(from=1.5, by=1, leng
   density_plot <- density_plot + geom_vline(xintercept=seq(from=1.5, by=1, length.out = nDS-1), linetype=3)
   
   outFile <- file.path(outFolder, paste0("FCC_score_dist_allDS_", a_t, "_densityheatmap_checkplot.", plotType))
-  ggsave(density_plot, filename = outFile,  height=myHeightGG, width=myWidthGG)
+  ggsave(density_plot, filename = outFile,  height=myHeightGG, width=myWidthGG, dpi=svg_dpi)
   cat(paste0("... written: ", outFile, "\n"))
   
 
