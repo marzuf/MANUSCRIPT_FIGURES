@@ -38,7 +38,7 @@ myWidth <- myHeight
 axisCex <- 1.4
 
 source("../settings.R")
-
+source("../full_dataset_names.R")
 
 myWidthGG <- 5
 myHeightGG <- 5
@@ -108,9 +108,9 @@ for(rd_type in all_rd_types) {
     cex.main = plotCex,
     cex.lab = plotCex
   )
-  mtext(side=3, text = paste0("all DS - n=", nrow(plot_dt), "; TAD signif. tresh: adj. p-val <= ", tadSignifThresh))
+  mtext(side=3, text = paste0("# datsets = ", nrow(plot_dt), "; TAD signif. tresh: adj. p-val <= ", tadSignifThresh), cex  =plotCex, font=3)
   addCorr(x=my_x,y=my_y, bty="n")
-  legend("bottomright", legend=names(all_cols), pch=16,col = all_cols, bty="n")
+  legend("bottomright", legend=cmp_names[names(all_cols)], pch=16,col = all_cols, bty="n")
   # curve(1*x, col="darkgrey", add=T)
   #legend("bottomleft", 
   foo <- dev.off()
