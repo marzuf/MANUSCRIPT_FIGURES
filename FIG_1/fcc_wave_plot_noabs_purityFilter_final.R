@@ -306,18 +306,27 @@ all_fcc_dt <- foreach(hicds = all_obs_hicds, .combine='rbind') %dopar% {
       auc_obs <- auc(x = x_val, y = obs_cumsum)
       auc_permut <- auc(x = x_val, y = meanPermut_cumsum)
       auc_permutQt <- auc(x = x_val, y = qt95Permut_cumsum)
-
-saveFile <- file.path(outFolder, paste0("fig1F_", hicds, "_", exprds, "_", "fcc_cumsum_dt.Rdata"))      
-fcc_cumsum_dt <- data.frame(
-			hicds=hicds,
-			exprds=exprds,
-			x_rank = x_val,
-			obs_FCC = obs_cumsum,
-			qt95Permut_FCC=qt95Permut_cumsum,
-			stringsAsFactors=FALSE
-)
-save(fcc_cumsum_dt, file= saveFile)
-cat(paste0("... written: ", outFile, "\n"))
+      
+      stopifnot(length(purityFtd_x_val) == length(purityFtd_obs_cumsum))
+      stopifnot(length(purityFtd_x_val) <= length(meanPermut_cumsum))
+      stopifnot(length(purityFtd_x_val) <= length(qt95Permut_cumsum))
+      
+      auc_obsPF <- auc(x = purityFtd_x_val, y = purityFtd_obs_cumsum)
+      auc_permutPF <- auc(x = purityFtd_x_val, y = meanPermut_cumsum[1:length(purityFtd_x_val)])
+      auc_permutQtPF <- auc(x = purityFtd_x_val, y = qt95Permut_cumsum[1:length(purityFtd_x_val)])
+      
+# 
+# saveFile <- file.path(outFolder, paste0("fig1F_", hicds, "_", exprds, "_", "fcc_cumsum_dt.Rdata"))      
+# fcc_cumsum_dt <- data.frame(
+# 			hicds=hicds,
+# 			exprds=exprds,
+# 			x_rank = x_val,
+# 			obs_FCC = obs_cumsum,
+# 			qt95Permut_FCC=qt95Permut_cumsum,
+# 			stringsAsFactors=FALSE
+# )
+# save(fcc_cumsum_dt, file= saveFile)
+# cat(paste0("... written: ", outFile, "\n"))
       
       outFile <- file.path(outFolder, paste0(hicds, "_", exprds, "_", "auc_obs.Rdata"))
       save(auc_obs, file= outFile)
@@ -325,6 +334,15 @@ cat(paste0("... written: ", outFile, "\n"))
       outFile <- file.path(outFolder, paste0(hicds, "_", exprds, "_", "auc_permutQt.Rdata"))
       save(auc_permutQt, file= outFile)
       cat(paste0("... written: ", outFile, "\n"))
+      
+      outFile <- file.path(outFolder, paste0(hicds, "_", exprds, "_", "auc_obsPF.Rdata"))
+      save(auc_obsPF, file= outFile)
+      cat(paste0("... written: ", outFile, "\n"))
+      outFile <- file.path(outFolder, paste0(hicds, "_", exprds, "_", "auc_permutQtPF.Rdata"))
+      save(auc_permutQtPF, file= outFile)
+      cat(paste0("... written: ", outFile, "\n"))
+      
+      
       
       # save(auc_obs, file= "auc_obs.Rdata")
       # save(auc_permut, file="auc_permut.Rdata")
@@ -380,6 +398,9 @@ cat(paste0("... written: ", outFile, "\n"))
         exprds = exprds,
         fcc_auc = auc_obs/auc_permutQt ,
 		fcc_auc_mean = auc_obs/auc_permut,
+		
+		fcc_auc_PF = auc_obsPF/auc_permutQtPF ,
+		fcc_auc_mean_PF = auc_obsPF/auc_permutPF,
         stringsAsFactors=FALSE
       )
       

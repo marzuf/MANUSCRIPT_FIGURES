@@ -119,6 +119,138 @@ for(rd_type in all_rd_types) {
 
 
 
+nTot_dt <- in_dt[,c("dataset", "nTot_obs", "nPurityFlagged_obs")]
+nTot_dt <- unique(nTot_dt)
+nTot_dt$nTot_sub <- nTot_dt$nTot_obs - nTot_dt$nPurityFlagged_obs
+nTot_dt <- nTot_dt[order(nTot_dt$nTot_obs, decreasing = TRUE),]
+
+nTot_dt[nTot_dt$dataset == as.character(nTot_dt$dataset)[1],]
+# dataset nTot_obs nPurityFlagged_obs nTot_sub
+# 157 HMEC_40kb/TCGAbrca_lum_bas     1820                 84     1736
+nTot_dt$nTot_obs <- NULL
+nTot_dt_m <- melt(nTot_dt, id="dataset")
+nTot_dt_m$dataset <- factor(nTot_dt_m$dataset, levels=as.character(nTot_dt$dataset))
+stopifnot(!is.na(nTot_dt_m$dataset))
+
+ggbarplot(nTot_dt_m, x="dataset", y="value", fill="variable") +
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 10), expand=c(0,10))+
+  labs(y="# TADs", x="Datasets", fill="")+
+  theme(
+    text = element_text(family=fontFamily),
+    panel.grid.major.y =  element_line(colour = "grey", size = 0.5, linetype=1),
+    panel.grid.minor.y =  element_line(colour = "grey", size = 0.5, linetype=1),
+    panel.background = element_rect(fill = "transparent"),
+    panel.grid.major.x =  element_blank(),
+    panel.grid.minor.x =  element_blank(),
+    axis.title.x = element_text(size=14, hjust=0.5, vjust=0.5),
+    axis.title.y = element_text(size=14, hjust=0.5, vjust=0.5),
+    axis.text.y = element_text(size=12, hjust=0.5, vjust=0.5),
+    # axis.text.x = element_text(size=12, hjust=0.5, vjust=0.5),
+    axis.text.x = element_blank(),
+    plot.title = element_text(hjust=0.5, size = 16, face="bold"),
+    plot.subtitle = element_text(hjust=0.5, size = 14, face="italic"),
+    legend.title = element_text(face="bold")
+  )
+# min(nTot_dt$nTot_sub)
+# [1] 1493
+resc_y <- 1400
+nTot_dt <- in_dt[,c("dataset", "nTot_obs", "nPurityFlagged_obs")]
+nTot_dt <- unique(nTot_dt)
+nTot_dt$nTot_sub <- nTot_dt$nTot_obs - nTot_dt$nPurityFlagged_obs - resc_y
+nTot_dt <- nTot_dt[order(nTot_dt$nTot_obs, decreasing = TRUE),]
+nTot_dt$nTot_obs <- NULL
+nTot_dt_m <- melt(nTot_dt, id="dataset")
+nTot_dt_m$dataset <- factor(nTot_dt_m$dataset, levels=as.character(nTot_dt$dataset))
+stopifnot(!is.na(nTot_dt_m$dataset))
+
+y_v <- scales::pretty_breaks(n = 10)(nTot_dt_m$value)
+y_l <- resc_y + scales::pretty_breaks(n = 10)(nTot_dt_m$value)
+  
+ggbarplot(nTot_dt_m, x="dataset", y="value", fill="variable") +
+  labs(y="# TADs", x="Datasets", fill="")+
+  # scale_y_continuous(breaks = scales::pretty_breaks(n = 10))+
+  scale_y_continuous(breaks = y_v, labels = y_l, expand=c(0,10))+
+  theme(
+    text = element_text(family=fontFamily),
+    panel.grid.major.y =  element_line(colour = "grey", size = 0.5, linetype=1),
+    panel.grid.minor.y =  element_line(colour = "grey", size = 0.5, linetype=1),
+    panel.background = element_rect(fill = "transparent"),
+    panel.grid.major.x =  element_blank(),
+    panel.grid.minor.x =  element_blank(),
+    axis.title.x = element_text(size=14, hjust=0.5, vjust=0.5),
+    axis.title.y = element_text(size=14, hjust=0.5, vjust=0.5),
+    axis.text.y = element_text(size=12, hjust=0.5, vjust=0.5),
+    # axis.text.x = element_text(size=12, hjust=0.5, vjust=0.5),
+    plot.title = element_text(hjust=0.5, size = 16, face="bold"),
+    axis.text.x = element_blank(),
+    plot.subtitle = element_text(hjust=0.5, size = 14, face="italic"),
+    legend.title = element_text(face="bold")
+  )
+
+  
+
+nSignif_dt <- in_dt[,c("dataset", "nSignif_obs", "nSignifAndFlagged_obs")]
+nSignif_dt <- unique(nSignif_dt)
+nSignif_dt$nSignif_sub <- nSignif_dt$nSignif_obs - nSignif_dt$nSignifAndFlagged_obs
+nSignif_dt <- nSignif_dt[order(nSignif_dt$nSignif_obs, decreasing = TRUE),]
+nSignif_dt$nSignif_obs <- NULL
+nSignif_dt_m <- melt(nSignif_dt, id="dataset")
+nSignif_dt_m$dataset <- factor(nSignif_dt_m$dataset, levels=as.character(nTot_dt$dataset))
+stopifnot(!is.na(nSignif_dt_m$dataset))
+
+ggbarplot(nSignif_dt_m, x="dataset", y="value", fill="variable") +
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 10), expand=c(0,1))+
+  labs(y="# signif. TADs", x="Datasets", fill="")+
+  theme(
+    text = element_text(family=fontFamily),
+    panel.grid.major.y =  element_line(colour = "grey", size = 0.5, linetype=1),
+    panel.grid.minor.y =  element_line(colour = "grey", size = 0.5, linetype=1),
+    panel.background = element_rect(fill = "transparent"),
+    panel.grid.major.x =  element_blank(),
+    panel.grid.minor.x =  element_blank(),
+    axis.title.x = element_text(size=14, hjust=0.5, vjust=0.5),
+    axis.title.y = element_text(size=14, hjust=0.5, vjust=0.5),
+    axis.text.y = element_text(size=12, hjust=0.5, vjust=0.5),
+    # axis.text.x = element_text(size=12, hjust=0.5, vjust=0.5),
+    axis.text.x = element_blank(),
+    plot.title = element_text(hjust=0.5, size = 16, face="bold"),
+    plot.subtitle = element_text(hjust=0.5, size = 14, face="italic"),
+    legend.title = element_text(face="bold")
+  )
+
+
+
+
+
+obs_dt <- in_dt[,c("dataset", "ratioSignif_obs", "ratioFlagged_obs")]
+obs_dt <- unique(obs_dt)
+
+
+
+plot(x=obs_dt$ratioSignif_obs, y=obs_dt$ratioFlagged_obs, 
+     xlab="ratioSignif_obs", ylab="ratioFlagged_obs",
+     cex=0.7, pch=16, cex.lab=plotCex, cex.main=plotCex)
+addCorr(x=obs_dt$ratioSignif_obs, y=obs_dt$ratioFlagged_obs)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
