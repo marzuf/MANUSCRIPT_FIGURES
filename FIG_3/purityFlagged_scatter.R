@@ -115,6 +115,9 @@ for(rd_type in all_rd_types) {
   #legend("bottomleft", 
   foo <- dev.off()
   cat(paste0("... written: ", outFile, "\n"))
+  
+  save(plot_dt, file=file.path(outFolder, paste0("plot_dt_", rd_type, ".Rdata")), version=2)
+  
 }
 
 
