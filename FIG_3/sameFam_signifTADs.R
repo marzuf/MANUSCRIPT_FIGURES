@@ -39,8 +39,8 @@ myHeight <- ifelse(plotType=="png", 400, 8)
 myWidth <- myHeight
 axisCex <- 1.4
 
-myWidthGG <- 12
-myHeightGG <- 12
+myWidthGG <- 7
+myHeightGG <- 7
 
 
 outFolder <- "SAMEFAM_SIGNIFTADS"
@@ -147,7 +147,7 @@ if(buildTable) {
             ) 
           
           outFile <- file.path(outFolder, paste0(hicds, "_", exprds, "_", plot_var, "_signif_notSignif_density.", plotType))
-          ggsave(p3, file=outFile, height=myHeight, width=myWidth)
+          ggsave(p3, file=outFile, height=myHeightGG, width=myWidthGG)
           cat(paste0("... written: ", outFile, "\n"))
 
           outFile <- file.path(outFolder, paste0(hicds, "_", exprds, "_", plot_var, "_signif_notSignif_boxplot.", plotType))
@@ -241,7 +241,7 @@ for(col_var in all_col_vars){
     ) 
   
   outFile <- file.path(outFolder, paste0( "allDS_", col_var, "_signif_notSignif_density.", plotType))
-  ggsave(p3, file=outFile, height=myHeight, width=myWidth)
+  ggsave(p3, file=outFile, height=myHeightGG, width=myWidthGG)
   cat(paste0("... written: ", outFile, "\n"))
   
   outFile <- file.path(outFolder, paste0("allDS_", col_var, "_signif_notSignif_boxplot.", plotType))

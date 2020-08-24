@@ -83,7 +83,9 @@ stopifnot(!is.na(plot_dt$dotcols))
 
 plot_var <- "sameTAD_diffTAD_ratio"
 
+
 rd_to_plot <- c("RANDOMMIDPOS","RANDOMMIDPOSDISC", "RANDOMMIDPOSSTRICT")
+rd_to_plot <- "PERMUTG2T"
 rd="RANDOMMIDPOSSTRICT"
 for(rd in rd_to_plot) {
   
