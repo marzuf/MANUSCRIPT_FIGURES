@@ -8,11 +8,11 @@ options(scipen=100)
 
 SSHFS=F
 
-# Rscript purityFilter_density.R
+# Rscript purityFilter_density_sameSize.R
 
 
 
-script_name <- "purityFilter_density.R"
+script_name <- "purityFilter_density_sameSize.R"
 
 startTime <- Sys.time()
 
@@ -35,7 +35,7 @@ buildTable <- TRUE
 
 plotType <- "svg"
 myHeight <- ifelse(plotType=="png", 400, 5)
-myWidth <- 8
+myWidth <- 12
 axisCex <- 1.4
 
 ### HARD-CODED - MAIN SETTINGS
@@ -58,12 +58,13 @@ source("../settings.R")
 
 plotType <- "svg"
 myHeight <- ifelse(plotType=="png", 400, 5)
-myWidth <- 8
+myWidth <- 10
 
+buildSamp <- FALSE
 
 script0_name <- "0_prepGeneData"
 
-outFolder <- file.path("PURITYFILTER_DENSITY",  purity_ds, pm, transfExpr)
+outFolder <- file.path("PURITYFILTER_DENSITY_SAMESIZE",  purity_ds, pm, transfExpr)
 dir.create(outFolder, recursive = TRUE)
 
 
@@ -93,7 +94,7 @@ subTit <- paste0(corMet, "'s corr.", " - ", purity_plot_name, " data")
 plotTit <- paste0("Purity corr. distribution")
 myx_lab <- paste0(transfExpr, " expr. and purity correlation (meanTAD)")
 outFile <- file.path(outFolder, paste0("exprPurityCorr_meanTAD_signif_notSignif_density.", plotType))
-do.call(plotType, list(outFile, height=myHeight, width=myWidth*1.5))
+do.call(plotType, list(outFile, height=myHeight, width=myWidth))
 plot_multiDens(split(merge_dt$purityCorr, merge_dt$signif_lab),
                plotTit = plotTit, my_xlab = myx_lab)
 lines(density(merge_dt$purityCorr), col="green")
@@ -104,6 +105,105 @@ foo <- dev.off()
 cat(paste0("... written: ", outFile, "\n"))
 
 stopifnot(!duplicated(file.path(merge_dt$hicds, merge_dt$exprds, merge_dt$region)))
+
+
+
+# change here subsample by TAD size
+require(stringr)
+
+set.seed(20200908)
+
+
+nSamp <- 1000
+
+merge_dt$nGenes <- str_count(string=merge_dt$region_genes, pattern=",") + 1
+stopifnot(merge_dt$nGenes >= 3)
+
+signif_merge_dt <- merge_dt[merge_dt$signif,]
+notSignif_merge_dt <- merge_dt[!merge_dt$signif,]
+
+tad_size = unique(signif_merge_dt$nGenes)[1]
+
+if(buildSamp) {
+  allSamp_notSignif_merge_dt <- foreach(i = 1:nSamp, .combine='rbind') %dopar% {
+    subSamp_notSignif_merge_dt <- foreach(tad_size = unique(signif_merge_dt$nGenes), .combine='rbind') %dopar% {
+      tmp_signif_merge_dt <- signif_merge_dt[signif_merge_dt$nGenes == tad_size,]
+      tmp_notSignif_merge_dt <- notSignif_merge_dt[notSignif_merge_dt$nGenes == tad_size,]
+      
+      nSignif <- nrow(tmp_signif_merge_dt)
+      
+      stopifnot(nrow(tmp_notSignif_merge_dt) >= nSignif)
+      
+      sample_rows <- sample(x=1:nrow(tmp_notSignif_merge_dt), size=nSignif)
+      
+      out_dt <- tmp_notSignif_merge_dt[sample_rows,]
+      stopifnot(nrow(out_dt) == nrow(tmp_signif_merge_dt))
+      out_dt
+    }  
+    stopifnot(sum(subSamp_notSignif_merge_dt$nGenes) == sum(signif_merge_dt$nGenes))
+    subSamp_notSignif_merge_dt
+  }
+  stopifnot(nrow(allSamp_notSignif_merge_dt) == nSamp * nrow(signif_merge_dt))
+  
+  samp_merge_dt <- rbind(allSamp_notSignif_merge_dt, signif_merge_dt)
+  
+  save(samp_merge_dt, file=file.path(outFolder, "samp_merge_dt.Rdata"), version=2)
+  
+} else {
+  samp_merge_dt <- get(load(file.path(outFolder, "samp_merge_dt.Rdata")))
+}
+
+purityCorrThresh <- as.numeric(quantile(samp_merge_dt$purityCorr[!samp_merge_dt$signif], probs = corrPurityQtThresh ))
+
+subTit <- paste0(corMet, "'s corr.", " - ", purity_plot_name, " data (nSamp=", nSamp, ")")
+plotTit <- paste0("Purity corr. distribution")
+myx_lab <- paste0(transfExpr, " expr. and purity correlation (meanTAD)")
+outFile <- file.path(outFolder, paste0("exprPurityCorr_meanTAD_signif_notSignif_subSampData_density.", plotType))
+do.call(plotType, list(outFile, height=myHeight, width=myWidth))
+plot_multiDens(split(samp_merge_dt$purityCorr, samp_merge_dt$signif_lab),
+               plotTit = plotTit, my_xlab = myx_lab)
+lines(density(merge_dt$purityCorr), col="green")
+abline(v=purityCorrThresh, col="blue")
+legend("topleft", lty=1, lwd=2, col=c("green", "blue"), bty="n", legend=c("all", paste0(corrPurityQtThresh, "-qt non-signif. TADs\n(=", round(purityCorrThresh, 2), ")")))
+mtext(side=3, text = subTit)
+foo <- dev.off()
+cat(paste0("... written: ", outFile, "\n"))
+
+
+notSignif_merge_dt <- merge_dt[!merge_dt$signif,]
+notSignif_merge_dt$signif_lab <- "OBS. adj. p-val >0.01"
+
+samp_and_obs_merge_dt <- rbind(samp_merge_dt, notSignif_merge_dt)
+
+purityCorrThreshObs <- as.numeric(quantile(samp_and_obs_merge_dt$purityCorr[samp_and_obs_merge_dt$signif_lab == "OBS. adj. p-val >0.01"], probs = corrPurityQtThresh ))
+purityCorrThreshRandom <- as.numeric(quantile(samp_and_obs_merge_dt$purityCorr[samp_and_obs_merge_dt$signif_lab == "adj. p-val >0.01"], probs = corrPurityQtThresh ))
+
+stopifnot(round(purityCorrThreshObs, 2) == round(purityCorrThreshRandom, 2))
+
+subTit <- paste0(corMet, "'s corr.", " - ", purity_plot_name, " data (nSamp=", nSamp, ")")
+plotTit <- paste0("Purity corr. distribution")
+myx_lab <- paste0(transfExpr, " expr. and purity correlation (meanTAD)")
+outFile <- file.path(outFolder, paste0("exprPurityCorr_meanTAD_signif_notSignif_obs_and_subSampData_density.", plotType))
+do.call(plotType, list(outFile, height=myHeight, width=myWidth))
+plot_multiDens(split(samp_and_obs_merge_dt$purityCorr, samp_and_obs_merge_dt$signif_lab),
+               plotTit = plotTit, my_xlab = myx_lab)
+lines(density(merge_dt$purityCorr), col="green")
+abline(v=c(purityCorrThreshObs,purityCorrThreshRandom) , col="blue")
+legend("topleft", lty=1, lwd=2, col=c("green", "blue"), bty="n", 
+       legend=c("all obs.", paste0(corrPurityQtThresh, "-qt non-signif. TADs\n(OBS=", round(purityCorrThreshObs, 2), "; RANDOM=", round(purityCorrThreshRandom, 2), ")")))
+mtext(side=3, text = subTit)
+foo <- dev.off()
+cat(paste0("... written: ", outFile, "\n"))
+
+
+
+
+
+stop("--ok\n")
+
+
+
+
 
 merge_dt <- merge(agg_purity, resultData, by=c("dataset", "region"))
 merge_dt$signif <- merge_dt$adjPvalComb <= signifThresh
