@@ -27,7 +27,7 @@ hicds_names <- c(
  "GSE118514_22Rv1_40kb" ="22Rv1",   
  "GSE118514_RWPE1_40kb"  = "RWPE1",          
  "GSE118588_Panc_beta_40kb" ="Panc. \u03B2-cells" ,
- "GSE99051_786_O_40kb" = "786_O",              
+ "GSE99051_786_O_40kb" = "786-O",#"786_O",
  "HMEC_40kb" = "HMEC",      
  "K562_40kb" ="K562",              
  "LG1_40kb" ="Lung (1)",               

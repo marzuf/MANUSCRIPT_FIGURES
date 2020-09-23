@@ -31,7 +31,7 @@ myWidth <- ifelse(plotType == "png", 400, 7)
 myHeightGG <- 7
 myWidthGG <- 7
 
-
+step0_folder <- "0_prepGeneData"
 step8fcc_folder <- "8cOnlyFCC_runAllDown"
 
 fontFamily <- "Hershey"
@@ -56,6 +56,9 @@ fontFamily <- "Hershey"
 #pal_simpsons()(100) # 16
 #pal_gsea()(100) # 12
 #pal_material()(100) # 10
+require(ggsci)
+observ_col <- pal_lancet()(3)[1]
+permut_col <- pal_lancet()(3)[2]
 
 tad_signif_col <- "dodgerblue3"
 gene_signif_col <- "firebrick3"
@@ -71,9 +74,17 @@ source("../../Yuanlong_Cancer_HiC_data_TAD_DA/subtype_cols.R")
 #all_cols[all_cols == "green"] <- "forestgreen" # subtypes
 
 
-all_cols[all_cols == "red"] <- "violetred" #"chocolate"  # wt vs mut
-all_cols[all_cols == "blue"] <- "slateblue" # norm vs tum
-all_cols[all_cols == "green"] <- "slategray" # "yellow3" # subtypes
+#all_cols[all_cols == "red"] <- "violetred" #"chocolate"  # wt vs mut
+#all_cols[all_cols == "blue"] <- "slateblue" # norm vs tum
+#all_cols[all_cols == "green"] <- "slategray" # "yellow3" # subtypes
+
+#all_cols[all_cols == "red"] <- "firebrick3" #"chocolate"  # wt vs mut
+#all_cols[all_cols == "blue"] <- "navy" # norm vs tum
+#all_cols[all_cols == "green"] <- "gray20" # "yellow3" # subtypes
+all_cols[all_cols == "red"] <- "firebrick3" #"chocolate"  # wt vs mut
+all_cols[all_cols == "blue"] <- "navy" # norm vs tum
+all_cols[all_cols == "green"] <- "gray50" # "yellow3" # subtypes
+
 
 options(save.defaults = list(version=2), scipen=100)
 
@@ -87,7 +98,8 @@ my_box_theme <- theme(
   panel.grid.major.y =  element_line(colour = "grey", size = 0.5, linetype=1),
   panel.grid.minor.y =  element_line(colour = "grey", size = 0.5, linetype=1),
   panel.background = element_rect(fill = "transparent"),
-
+  panel.grid.major.x =  element_blank(),
+  panel.grid.minor.x =  element_blank(),
   axis.title.x = element_text(size=14, hjust=0.5, vjust=0.5),
   axis.title.y = element_text(size=14, hjust=0.5, vjust=0.5),
   axis.text.y = element_text(size=12, hjust=0.5, vjust=0.5),
@@ -108,6 +120,9 @@ noZero_breaks <- function (n = 5, ...) {
   }
 }
 
+
+exprBox_cond1Col <- "black"#"gray8"
+exprBox_cond2Col <- "gray48"
 
 
 
