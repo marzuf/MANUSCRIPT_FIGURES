@@ -35,7 +35,7 @@ ratioAnnotFilter <- 0.5
 
 
 
-buildTable <- TRUE
+buildTable <- F
 
 plotType <- "png"
 myHeight <- ifelse(plotType=="png", 400, 8)
@@ -229,6 +229,11 @@ stopifnot(!is.na(agg_dt$nbrUniqueFams_lab))
 subTit <- paste0(names(nSignif_count), " : ", as.numeric(nSignif_count), collapse = "; ")
 subTit <- paste0("TADs with ratioAnnot >=  ",ratioAnnotFilter, " - ",  subTit)
 
+
+  outFile <- file.path(outFolder, "agg_dt.Rdata")
+  save(agg_dt, file=outFile, version=2)
+  cat(paste0("... written: ", outFile, "\n"))
+  
 
 nDS <- length(unique(all_sameFam_signif_dt$dataset))
   
