@@ -23,7 +23,7 @@ myHeightGG <- 5
 outFolder <- "CHECK_FCC1"
 dir.create(outFolder, recursive = TRUE)
 
-buildData <- TRUE
+buildData <- FALSE
 
 mycols <- setNames(c(observ_col, permut_col), c("observed", "permut."))
 
@@ -218,11 +218,6 @@ outFile <- file.path(outFolder, paste0("FCC1ratioSize3_obsPerm_boxplot.", plotTy
 ggsave(p2, filename = outFile, height=myHeightGG, width=myWidthGG)
 cat(paste0("... written: ", outFile, "\n"))
 
-
-
-
-
-
 sub2_dt <- m_all_dt[!grepl("nFCC", m_all_dt$varLab) & grepl("ratioSize7more", m_all_dt$varLab),]
 
 sub2_dt$varType[sub2_dt$varType == "obs"] <- "observed"
@@ -259,20 +254,6 @@ cat(paste0("... written: ", outFile, "\n"))
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 sub3_dt <- m_all_dt[!grepl("nFCC", m_all_dt$varLab) & ! grepl("ratio", m_all_dt$varLab),]
 
 sub3_dt$varType[sub3_dt$varType == "obs"] <- "observed"
@@ -289,4 +270,24 @@ ggsave(p3, filename = outFile, height=myHeightGG, width=myWidthGG)
 cat(paste0("... written: ", outFile, "\n"))
 
 
+
+
+subMean_dt <- m_all_dt[!grepl("nFCC", m_all_dt$varLab) & ! grepl("ratio", m_all_dt$varLab),]
+
+subMean_dt <- subMean_dt[subMean_dt$varLab == "meanSizeFCC1",]
+
+subMean_dt$varType[subMean_dt$varType == "obs"] <- "observed"
+subMean_dt$varType[subMean_dt$varType == "permMean"] <- "permut."
+
+save(subMean_dt, file = file.path(outFolder, "subMean_dt.Rdata"), version=2)
+
+plotTit <- "Mean # genes of fully concordant TADs"
+
+p3 <- plot_myBox(ggplot(subMean_dt, aes(x=varLab, color=varType, y=value)) + 
+                   ggtitle(plotTit, subtitle = subTit)+
+                   labs(fill ="", color="", x="", y="Mean size (# genes) of FCC=1 TADs" ))
+
+outFile <- file.path(outFolder, paste0("FCC1meanSize_obsPerm_boxplot.", plotType))
+ggsave(p3, filename = outFile, height=myHeightGG, width=myWidthGG)
+cat(paste0("... written: ", outFile, "\n"))
 
