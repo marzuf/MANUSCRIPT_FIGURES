@@ -130,3 +130,27 @@ matching_withRank_dt$sameCptmt_eight <- matching_withRank_dt$ref_region_cptmt_ei
 
 outFile <- file.path(outFolder, "matching_withRank_dt.Rdata")
 save(matching_withRank_dt, file=outFile, version=2)
+cat(paste0("... written: ", outFile, "\n"))
+
+revFig_dt <- get(load(file.path( "PREP_REVISIONFIG1_DATA/revision_fig1_cptmtAnnot_with_corr_purity.Rdata")))
+revFig_dt$regionID <- file.path(revFig_dt$hicds, revFig_dt$exprds, revFig_dt$region)
+
+## go ahead with only the notPF data !!!
+tadSignifThresh=0.01
+corrPurityQtThresh=0.05
+revFig_dt$signif <- revFig_dt$adjPvalComb <= tadSignifThresh
+purityCorrThresh <- as.numeric(quantile(revFig_dt$purityCorr[!revFig_dt$signif], probs = corrPurityQtThresh ))
+tokeep_tads <- revFig_dt$regionID[revFig_dt$purityCorr > purityCorrThresh]
+revFig_dt <- revFig_dt[revFig_dt$purityCorr > purityCorrThresh,]
+
+
+matching_withRank_notPF_dt <- matching_withRank_dt
+matching_withRank_notPF_dt <- matching_withRank_notPF_dt[matching_withRank_notPF_dt$ref_region_ID %in% tokeep_tads & 
+                             matching_withRank_notPF_dt$matching_region_ID %in% tokeep_tads 
+                             ,] 
+
+outFile <- file.path(outFolder, "matching_withRank_notPF_dt.Rdata")
+save(matching_withRank_notPF_dt, file=outFile, version=2)
+cat(paste0("... written: ", outFile, "\n"))
+
+

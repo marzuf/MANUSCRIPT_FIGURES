@@ -8,7 +8,7 @@ runFolder <- "../../v2_Yuanlong_Cancer_HiC_data_TAD_DA"
 tadSignifThresh <- 0.01
 corrPurityQtThresh <- 0.05
 
-cptmtQtThresh <- 0.75 
+cptmtQtThresh <- 0.9
 
 nHistBins <- 100
 
@@ -100,6 +100,69 @@ outFile <- file.path(outFolder,paste0("norm_vs_tumor_cptmt", suffix, "_change_si
 ggsave(ggbar_p, filename = outFile, height=myHeightGG_bp, width=myWidthGG_bp)
 cat(paste0("... written: ", outFile, "\n"))
 
+cptmt_var_lab <- "2-cptmt change"
+
+tmp_dt <- matching_dt
+tmp_dt$agg_col <- tmp_dt[,paste0("norm2tumor_cptmtChange", suffix)]
+
+nonsignif_dt <- tmp_dt[tmp_dt$ref_region_pval > tadSignifThresh,]
+nonsignif_agg_dt <- aggregate(as.formula(paste0("ref_region_ID ~ ", "agg_col")), data=nonsignif_dt, FUN=length)
+colnames(nonsignif_agg_dt)[colnames(nonsignif_agg_dt) == "ref_region_ID"] <- "nTADs"
+nonsignif_agg_dt$ratioTADs <- nonsignif_agg_dt$nTADs/nrow(nonsignif_dt)
+nonsignif_agg_dt$ratioTADs_lab <- paste0(round(nonsignif_agg_dt$ratioTADs*100, 2), "%")
+
+signif_dt <- tmp_dt[tmp_dt$ref_region_pval <= tadSignifThresh,]
+signif_agg_dt <- aggregate(as.formula(paste0("ref_region_ID ~ ", "agg_col")), data=signif_dt, FUN=length)
+colnames(signif_agg_dt)[colnames(signif_agg_dt) == "ref_region_ID"] <- "nTADs"
+signif_agg_dt$ratioTADs <- signif_agg_dt$nTADs/nrow(signif_dt)
+signif_agg_dt$ratioTADs_lab <- paste0(round(signif_agg_dt$ratioTADs*100, 2), "%")
+
+bp_nonsignif_dt <- nonsignif_agg_dt
+bp_signif_dt <- signif_agg_dt
+both_dt <- merge(bp_nonsignif_dt, bp_signif_dt, by=c("agg_col"), suffixes = c("_nonsignif", "_signif"), all=TRUE)
+
+both_dt$signif_enrich <-  both_dt$ratioTADs_signif/both_dt$ratioTADs_nonsignif
+stopifnot(!is.na(both_dt$signif_enrich))
+
+both_dt$signif_enrich_hk <-  both_dt$signif_enrich-1
+
+shift_trans = function(d = 0) {
+  scales::trans_new("shift", transform = function(x) x - d, inverse = function(x) x + d)
+}
+
+myTit <- paste0("Signif./non signif. CDs dist. across ", cptmt_var_lab)
+
+mysub <- paste0("# DS comparisons = ", length(all_cmps), "; # CDs = ", nrow(matching_dt), 
+                " (signif.: ", sum(matching_dt$adjPval <= tadSignifThresh), ")")
+
+both_dt$agg_col <- factor(both_dt$agg_col, levels=cptmt_levels)
+stopifnot(!is.na(both_dt$agg_col))
+
+enrich_p <- ggbarplot(data=both_dt,x="agg_col", y = "signif_enrich", fill = "agg_col",
+                      xlab="", ylab ="signif./non signif. ratio of CDs") + 
+  geom_hline(yintercept = 1) +
+  scale_y_continuous(trans = shift_trans(1)) +
+  ggtitle(myTit, subtitle=mysub)+
+  eval(parse(text = paste0("scale_fill_", eightCptmtPalette, "()")))+ #
+  labs(fill="")+
+  title_theme +
+  theme(
+    # plot.title = element_text(size=14, face="bold", hjust=0.5),
+    # plot.subtitle = element_text(size=12, face="italic", hjust=0.5),
+    axis.line=element_line(),
+    axis.text.y = element_text(size=16, color="black"),
+    axis.text.x = element_text(size=16, color="black"),
+    axis.title.y = element_text(size=20, color="black")
+  )
+# blank_theme
+
+outFile <- file.path(outFolder, paste0( "ratio_distSignifOverAllTADs_by_", "cptmt_change", "_barplot.", plotType))
+ggsave(enrich_p, file=outFile, height=myHeightGG_bp, width=myWidthGG_bp)
+cat(paste0("... written: ", outFile, "\n"))
+
+save(both_dt, file=file.path(outFolder, "both_dt.Rdata"), version=2)
+save(nonsignif_agg_dt, file=file.path(outFolder, "nonsignif_agg_dt.Rdata"), version=2)
+save(signif_agg_dt, file=file.path(outFolder, "signif_agg_dt.Rdata"), version=2)
 
 
 #*********************************************************************************************************
@@ -159,6 +222,15 @@ cat(paste0("... written: ", outFile, "\n"))
 ################### PLOT 3: distribution of  abs rank diff
 #*********************************************************************************************************
 
+# for plot 3 and 4:
+col_var <- "absRankDiff"
+thresh1 <- quantile(abs(matching_dt$rankDiff)[!matching_dt$sameCptmt_eight], probs=cptmtQtThresh)
+curr_thresh <- thresh1
+curr_thresh_name <- cptmtQtThresh
+threshLab <-   paste0(cptmtQtThresh, "-qt for cptmt-changing CDs (", round(curr_thresh, 4), ")") 
+
+
+
 matching_dt <- init_matching_dt
 
 cptmt_type <- "eight"
@@ -170,7 +242,7 @@ plotTit <- paste0("CD rank diff. and 8-cptmt change")
 all_cmps <- unique(file.path(matching_dt$matching_hicds, matching_dt$matching_exprds,
                              matching_dt$ref_hicds, matching_dt$ref_exprds))
 
-mySub <- paste0("# DS comparisons = ", length(all_cmps), "; # TADs = ", nrow(matching_dt), 
+mySub <- paste0("# DS comparisons = ", length(all_cmps), "; # CDs = ", nrow(matching_dt), 
                 " (signif.: ", sum(matching_dt$adjPval <= tadSignifThresh), ")")
 
 matching_dt$absRankDiff <- abs(matching_dt$rankDiff)
@@ -180,6 +252,9 @@ matching_dt$plot_lab <- ifelse(matching_dt[,paste0("sameCptmt_", cptmt_type)], p
 
 my_cols <- setNames(pal_jama()(3)[c(2, 3)], sort(unique(matching_dt$plot_lab)))
 
+mylineTxt <- paste(
+  threshLab)
+
 
 p3 <- gghistogram(matching_dt,
                   x = paste0("absRankDiff"),
@@ -187,7 +262,7 @@ p3 <- gghistogram(matching_dt,
                   y = "..density..",
                   bins=100,
                   # combine = TRUE,                  # Combine the 3 plots
-                  xlab = paste0("Rank diff. with matched TAD"),
+                  xlab = paste0("Abs. rank diff. with matched CD"),
                   # ylab = "# of TADs",
                   ylab="Density",
                   # add = "median",                  # Add median line.
@@ -203,9 +278,20 @@ p3 <- gghistogram(matching_dt,
   guides(color=FALSE)+
   scale_y_continuous(breaks = scales::pretty_breaks(n = 10))+
   scale_x_continuous(breaks = scales::pretty_breaks(n = 10))+
-  mytheme
+  mytheme + 
+theme(legend.text = element_text(size=12))+
+  geom_vline(xintercept=curr_thresh, linetype=2, col=qtcol)
 
-outFile <- file.path(outFolder, paste0("tad_absRankDiff_same_diff_cptmt_", cptmt_type, "_density.", plotType))
+
+txtY <- ggplot_build(p3)$layout$panel_scales_y[[1]]$range$range[2]
+
+p3 <- p3 +   annotate("text", 
+                      label=mylineTxt, 
+                      x=curr_thresh, 
+                      y =txtY, color = qtcol, hjust = 0, vjust=1)
+
+
+outFile <- file.path(outFolder, paste0("tad_absRankDiff_same_diff_cptmt_", cptmt_type, "_", gsub("\\.", "",cptmtQtThresh), "qt_density.", plotType))
 ggsave(p3, file=outFile, height=myHeightGG_dist, width=myWidthGG_dist)
 cat(paste0("... written: ", outFile, "\n"))
 
@@ -213,18 +299,11 @@ cat(paste0("... written: ", outFile, "\n"))
 ################### PLOT 4: enrichment signif in rank diff 
 #*********************************************************************************************************
 
-thresh1 <- quantile(abs(matching_dt$rankDiff)[!matching_dt$sameCptmt_eight], probs=cptmtQtThresh)
   
 plot_dt=matching_dt
 
 nsignif <- sum(plot_dt$ref_tadSignif == "signif.")
 nnonsignif <- sum(plot_dt$ref_tadSignif == "not signif.")
-
-col_var <- "absRankDiff"
-
-curr_thresh <- thresh1
-curr_thresh_name <- cptmtQtThresh
-threshLab <-   paste0(cptmtQtThresh, "-qt for cptmt-changing TADs (", round(curr_thresh, 4), ")") 
 
 
 print(paste0("curr_thresh=", round(curr_thresh, 4), "\n"))
@@ -244,19 +323,19 @@ obs_geQt_nonsignif <- ctg_mat["TRUE", "not signif."]
 all_cmps <- unique(file.path(matching_dt$matching_hicds, matching_dt$matching_exprds,
                              matching_dt$ref_hicds, matching_dt$ref_exprds))
 
-mySub <- paste0("# DS comparisons = ", length(all_cmps), "; # TADs = ", nrow(matching_dt), 
+mySub <- paste0("# DS comparisons = ", length(all_cmps), "; # CDs = ", nrow(matching_dt), 
                 " (signif.: ", sum(matching_dt$adjPval <= tadSignifThresh), ")")
 
 mylineTxt <- paste(
   threshLab,
-  paste0(round(100*obs_geQt_signif/sum(ctg_mat[, "signif."]) , 2), "% of signif. TADs"),
-  paste0(round(100*obs_geQt_nonsignif/sum(ctg_mat[, "not signif."]) , 2), "% of not signif. TADs"),
+  paste0(round(100*obs_geQt_signif/sum(ctg_mat[, "signif."]) , 2), "% of signif. CDs"),
+  paste0(round(100*obs_geQt_nonsignif/sum(ctg_mat[, "not signif."]) , 2), "% of not signif. CDs"),
   paste0("Fisher test p-val = ", formatC(fisher.test(ctg_mat)$p.value, format = "e", digits = 4)),
   # paste0("emp. p-val signif. (n=", nRandom_stats,") = ", formatC(empPval_signif, format = "e", digits = 4)),
   # paste0("emp. p-val nonsignif. (n=", nRandom_stats,") = ", formatC(empPval_nonsignif, format = "e", digits = 4)),
   sep="\n")
 
-plotTit <- paste0("CD abs. rank diff. and signif. (not PF)")
+plotTit <- paste0("CD abs. rank diff. and signif.")
 
 p3 <- ggdensity(matching_dt,
                   x = paste0("absRankDiff"),

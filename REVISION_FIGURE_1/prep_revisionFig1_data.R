@@ -97,7 +97,6 @@ outFile <- file.path(outFolder, "revision_fig1_cptmtAnnot_with_corr_purity.Rdata
 save(out_dt, file=outFile, version=2)
 cat(paste0("... written: ", outFile,"\n"))
 
-
 stopifnot(merge_dt3$hicds %in% names(hicds_names))
 merge_dt3$hicds <- hicds_names[paste0(merge_dt3$hicds)]
 
@@ -107,6 +106,31 @@ merge_dt3$exprds <- exprds_names[paste0(merge_dt3$exprds)]
 outFile <- file.path(outFolder, "revision_fig1_cptmtAnnot_with_corr_purity.txt")
 write.table(merge_dt3[,outcols_order], file=outFile, col.names=T, row.names=F, sep="\t", quote=F)
 cat(paste0("... written: ", outFile,"\n"))
+
+##### filtered data
+tadSignifThresh <- 0.01
+corrPurityQtThresh <- 0.05
+revFig_dt <- out_dt
+revFig_dt$signif <- revFig_dt$adjPvalComb <= tadSignifThresh
+purityCorrThresh <- as.numeric(quantile(revFig_dt$purityCorr[!revFig_dt$signif], probs = corrPurityQtThresh ))
+revFig_dt <- revFig_dt[revFig_dt$purityCorr > purityCorrThresh,]
+
+out_dt <- revFig_dt[,outcols_order]
+outFile <- file.path(outFolder, "revision_fig1_cptmtAnnot_with_corr_purity_notPF.Rdata")
+save(out_dt, file=outFile, version=2)
+cat(paste0("... written: ", outFile,"\n"))
+
+merge_dt3 <- revFig_dt
+stopifnot(merge_dt3$hicds %in% names(hicds_names))
+merge_dt3$hicds <- hicds_names[paste0(merge_dt3$hicds)]
+
+stopifnot(merge_dt3$exprds %in% names(exprds_names))
+merge_dt3$exprds <- exprds_names[paste0(merge_dt3$exprds)]
+
+outFile <- file.path(outFolder, "revision_fig1_cptmtAnnot_with_corr_purity_notPF.txt")
+write.table(merge_dt3[,outcols_order], file=outFile, col.names=T, row.names=F, sep="\t", quote=F)
+cat(paste0("... written: ", outFile,"\n"))
+
 
 
 # out_dt <- merge_dt3
