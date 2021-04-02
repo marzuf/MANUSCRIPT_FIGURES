@@ -1,6 +1,6 @@
 # Rscript prep_geneList_txt.R K562_40kb TCGAlaml_wt_mutFLT3
 # Rscript prep_geneList_txt.R GSE118514_RWPE1_40kb TCGAprad_norm_prad
-
+# Rscript prep_geneList_txt.R GSE118514_22Rv1_40kb TCGAprad_norm_prad
 args <- commandArgs(trailingOnly = TRUE)
 
 stopifnot(length(args) == 2)
