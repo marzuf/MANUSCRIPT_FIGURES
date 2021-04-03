@@ -24,8 +24,8 @@ signif_level <- 0.05
 
 # 22Rv1minusRWPE1 -> higher intensity in 22Rv1;
 
-ref_hicds <- "LNCaP"
-matching_hicds <- "RWPE1"
+ref_hicds <- "RWPE1"
+matching_hicds <- "22Rv1"
 
 if(ref_hicds == "22Rv1" | ref_hicds =="LNCaP") {
   ds_dir2 <- matching_hicds
@@ -88,6 +88,7 @@ if(buildTable) {
     stopifnot(sum(pval_mat_log10 > 0) == sum(pval_mat_log10 > 0))
     
     data.frame(
+      tad_name = names(dt)[i],
       tad_dir = all_dirs[i],
       p_values = pval_mat,
       p_values_log10 = pval_mat_log10,
@@ -102,6 +103,8 @@ if(buildTable) {
   outFile <- file.path(outFolder, paste0("ref", ref_hicds, "_", matchingDir, "_plot_dt.Rdata"))
   plot_dt <- get(load(outFile))
 }
+################################################################################################## 
+################################################# prep data
 
 plot_dt$tad_dir_short <- plot_dt$tad_dir
 plot_dt$tad_dir_short[grepl("notsignif",plot_dt$tad_dir_short )] <- "not signif." 
@@ -114,11 +117,62 @@ plot_dt$tad_dir_short <- paste0(plot_dt$tad_dir_short, "\n(", all_cmps[as.charac
                                 "n=", n_vals[as.character(plot_dt$tad_dir_short)], ")")
 stopifnot(!is.na(plot_dt$tad_dir_short))
 
+plot_dt$tad_dir_short2 <- plot_dt$tad_dir
+plot_dt$tad_dir_short2[grepl("notsignif",plot_dt$tad_dir_short2 )] <- "not signif." 
+plot_dt$tad_dir_short2[grepl("^signif\\.",plot_dt$tad_dir_short2 )] <- "signif." 
+
+all_dirs_short2 <- all_dirs
+all_dirs_short2[grepl("notsignif",all_dirs_short2 )] <- "not signif." 
+all_dirs_short2[grepl("^signif\\.",all_dirs_short2 )] <- "signif." 
+n_vals2 <- setNames(as.numeric(table(all_dirs_short2)), names(table(all_dirs_short2)))
+plot_dt$tad_dir_short2 <- paste0(plot_dt$tad_dir_short2, 
+                                "\n(n=", n_vals2[as.character(plot_dt$tad_dir_short2)], ")")
+stopifnot(!is.na(plot_dt$tad_dir_short2))
+
 plotTit <- paste0(ref_hicds, " TADs")
 subTit <- paste0(legText, collapse=";")
 
+################################################################################################## 
+################################################# boxplot ratio
+
+
+plot_dt$abs_p_values <- abs(plot_dt$p_values)
+plot_dt$signif_pval <- plot_dt$abs_p_values  <= signif_level
+
+agg_dt <- aggregate(signif_pval ~ tad_name + tad_dir + tad_dir_short2, data=plot_dt, FUN=mean)
+stopifnot(!duplicated(agg_dt$tad_name))
+colnames(agg_dt)[colnames(agg_dt)=="signif_pval"] <- "ratio_signif_pval"
+
+mycolsSignif <- setNames(pal_igv()(4)[c(4,3)],  unique(sort(agg_dt$tad_dir_short2)))
+
+
+p_box <- ggboxplot(data=agg_dt, x="tad_dir_short2", y="ratio_signif_pval", color="tad_dir_short2",
+          outlier.shape=NA, add="jitter",
+          xlab="", ylab="ratio signif. p-vals", palette="jco") +
+  ggtitle(plotTit, subtitle=subTit)+
+  scale_color_manual(values=mycolsSignif)+
+  guides(color=FALSE)+
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 10))+
+  labs(color="") +
+  theme(  plot.subtitle=element_text(size=14, face="italic", hjust=0.5),
+          plot.title=element_text(size=16, face="bold", hjust=0.5),
+          legend.position = "none") 
+
+outFile <- file.path(outFolder, paste0("ref", ref_hicds, "_", matchingDir, "_ratioSignifPvalsBySignif.png"))
+ggsave(p_box, file=outFile, height=5, width = 5)
+cat(paste0("... written: ", outFile, "\n"))
+
+stop("--ok\n")
+
+################################################################################################## 
+################################################# density plots
+
 plot_var="p_values_log10"
 for(plot_var in c("p_values", "p_values_log10")) {
+  
+  plot_dt[,paste0(plot_var, "_abs")] <- abs(plot_dt[,plot_var])
+  
+  ##*********************************** full distribution
   
   p_dens <- ggdensity(plot_dt,
             x = paste0(plot_var),
@@ -151,13 +205,49 @@ for(plot_var in c("p_values", "p_values_log10")) {
   ggsave(p_dens, file=outFile, height=5.5, width = 6.5)
   cat(paste0("... written: ", outFile, "\n"))
   
+  
+  
+  ##*********************************** full distribution - abs
+  
+  p_dens_abs <- ggdensity(plot_dt,
+                      x = paste0(plot_var, "_abs"),
+                      y = "..density..",
+                      # combine = TRUE,                  # Combine the 3 plots
+                      xlab = paste0(plot_var, "_abs"),
+                      # add = "median",                  # Add median line.
+                      rug = FALSE,                      # Add marginal rug
+                      color = "tad_dir_short2",
+                      fill = "tad_dir_short2",
+                      palette = "d3"
+  ) +
+    labs(x=paste0(matchingDir, " ", plot_var), y="Density", fill="", color="" )+
+    ggtitle(plotTit, subtitle=subTit)+
+    # geom_vline(xintercept=0, linetype=2, color="darkgrey") +
+    theme(  plot.subtitle=element_text(size=14, face="italic", hjust=0.5),
+            plot.title=element_text(size=16, face="bold", hjust=0.5)) 
+  p_dens_abs <- p_dens_abs + 
+    geom_vline(xintercept=c(signif_lev), linetype=1, color="orange")
+  
+  outFile <- file.path(outFolder, paste0("ref", ref_hicds, "_", plot_var, "_", matchingDir, "_density_by_tadDir_abs.png"))
+  ggsave(p_dens_abs, file=outFile, height=5.5, width = 6.5)
+  cat(paste0("... written: ", outFile, "\n"))
+  
+  
+  
+  ##*********************************** log 10
+  
   density_data <- ggplot_build(p_dens)$data[[1]]
+  density_data_abs <- ggplot_build(p_dens_abs)$data[[1]]
+  
   
   if(plot_var == "p_values") {
     sub_data_ymax <- max(density_data[abs(density_data$x) <= signif_lev, "y"])
     p_cut <- p_dens +  coord_cartesian(xlim=c(-signif_lev,signif_lev), ylim=c(0, sub_data_ymax))
     
-    widthGG <- 6.5
+    sub_data_ymax_abs <- max(density_data_abs[abs(density_data_abs$x) <= signif_lev, "y"])
+    p_cut_abs <- p_dens_abs +  coord_cartesian(xlim=c(0,signif_lev), ylim=c(0, sub_data_ymax_abs))    
+    
+    widthGGabs <- widthGG <- 6.5
     
     
   }else if(plot_var == "p_values_log10") {
@@ -168,6 +258,12 @@ for(plot_var in c("p_values", "p_values_log10")) {
     sub_data_left_xmin <- min(density_data[density_data$x <= -signif_lev, "x"])
     sub_data_right_xmax <- max(density_data[density_data$x >= signif_lev, "x"])
     
+    
+    sub_data_ymax_abs <- max(density_data_abs[abs(density_data_abs$x) >= signif_lev, "y"])
+    sub_data_xmax_abs <- max(density_data_abs[density_data_abs$x >= signif_lev, "x"])
+    
+    p_cut_abs <- p_dens_abs +  coord_cartesian(xlim=c(signif_lev, sub_data_xmax_abs), ylim=c(0, sub_data_ymax_abs))    
+    widthGGabs <-  6.5
     
     # p_left <- p_dens + coord_cartesian(xlim=c(NA, -signif_lev), ylim=c(NA, sub_data_left_ymax))
     # p_right <- p_dens + coord_cartesian(xlim=c(signif_lev, NA), ylim=c(NA,sub_data_right_ymax))
@@ -193,6 +289,9 @@ for(plot_var in c("p_values", "p_values_log10")) {
   ggsave(p_cut, file=outFile, height=5.5, width = widthGG)
   cat(paste0("... written: ", outFile, "\n"))
   
+  outFile <- file.path(outFolder, paste0("ref", ref_hicds, "_", plot_var, "_", matchingDir, "_density_by_tadDir_vCut_abs.png"))
+  ggsave(p_cut_abs, file=outFile, height=5.5, width = widthGGabs)
+  cat(paste0("... written: ", outFile, "\n"))
   
 }
 
