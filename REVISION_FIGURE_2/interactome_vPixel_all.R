@@ -1,5 +1,5 @@
-setDir <- "/media/electron"
-# setDir <- ""
+# setDir <- "/media/electron"
+setDir <- ""
 
 require(ggpubr)
 require(ggsci)
@@ -10,7 +10,7 @@ require(patchwork)
 
 # Rscript interactome_vPixel_all.R
 
-buildTable <- F
+buildTable <- T
 
 outFolder <- "INTERACTOME_VPIXEL_ALL"
 dir.create(outFolder, recursive = TRUE)
@@ -24,16 +24,32 @@ signif_level <- 0.05
 
 # 22Rv1minusRWPE1 -> higher intensity in 22Rv1;
 
-ref_hicds <- "RWPE1"
-matching_hicds <- "22Rv1"
+ref_hicds <- "LNCaP"
+matching_hicds <- "RWPE1"
 
-matchingDir <- paste0(matching_hicds, "_minus_", ref_hicds)
+if(ref_hicds == "22Rv1" | ref_hicds =="LNCaP") {
+  ds_dir2 <- matching_hicds
+  ds_dir1 <- ref_hicds
+  # matchingDir <- paste0(matching_hicds, "_minus_", ref_hicds)
+} else {
+  ds_dir1 <- matching_hicds
+  ds_dir2 <- ref_hicds
+  # matchingDir <- paste0(ref_hicds, "_minus_", matching_hicds)  
+  # legText <- c(paste0(">0 = higher in ", matching_hicds),
+  #              paste0("<0 = higher in ", ref_hicds))
+}
+matchingDir <- paste0(ds_dir1, "_minus_", ds_dir2)  
+legText <- c(paste0(">0 = higher in ", ds_dir1),
+             paste0("<0 = higher in ", ds_dir2))
 
-legText <- c(paste0(">0 = higher in ", matching_hicds),
-             paste0("<0 = higher in ", ref_hicds))
 
-dt <- get(load(file.path(setDir,
-                         paste0("/mnt/ndata/Yuanlong/1.Projects/19.With_Marie/1.Data/GSE118514_", ref_hicds, "_40kb_TADs_for_hicdc_withSignif.output.v3.Rdata"))))
+all_files <- list.files(file.path(setDir,
+                                  paste0("/mnt/ndata/Yuanlong/1.Projects/19.With_Marie/1.Data")), pattern="_40kb_TADs_for_hicdc_withSignif.output.v3.Rdata$",
+                        full.names=TRUE)
+
+my_file <- all_files[grepl(ref_hicds, basename(all_files))]
+stopifnot(length(my_file) == 1)
+dt <- get(load(my_file))
 i=1
 # chr12_TAD194	54160001	54440000
 # chr7_TAD424	116080001	116320000
@@ -63,6 +79,7 @@ if(buildTable) {
     
     stopifnot(length(i) == 1)
     pval_mat <-   dt[[i]][["diffInt_pmat"]][[matchingDir]]
+    if(is.null(pval_mat)) return(NULL) # for LNCaP -> some are null
     stopifnot(isSymmetric(as.matrix(pval_mat)))
     pval_mat <- as.numeric(as.matrix(pval_mat)[lower.tri(as.matrix(pval_mat), diag = TRUE)])
     abs_pval_mat_log10 <- -log10(abs(pval_mat))
@@ -78,20 +95,27 @@ if(buildTable) {
     )
     
   }
-  outFile <- file.path(outFolder, "plot_dt.Rdata")
+  outFile <- file.path(outFolder, paste0("ref", ref_hicds, "_", matchingDir, "_plot_dt.Rdata"))
   save(plot_dt, file=outFile, version=2)
   cat(paste0("... written: ", outFile, "\n"))
 } else {
-  outFile <- file.path(outFolder, "plot_dt.Rdata")
+  outFile <- file.path(outFolder, paste0("ref", ref_hicds, "_", matchingDir, "_plot_dt.Rdata"))
   plot_dt <- get(load(outFile))
 }
 
 plot_dt$tad_dir_short <- plot_dt$tad_dir
 plot_dt$tad_dir_short[grepl("notsignif",plot_dt$tad_dir_short )] <- "not signif." 
 
+all_dirs_short <- all_dirs
+all_dirs_short[grepl("notsignif",all_dirs_short )] <- "not signif." 
+all_cmps <- setNames(c("","tumor; ", "normal; "),c("not signif.", "signif.up", "signif.down") )
+n_vals <- setNames(as.numeric(table(all_dirs_short)), names(table(all_dirs_short)))
+plot_dt$tad_dir_short <- paste0(plot_dt$tad_dir_short, "\n(", all_cmps[as.character(plot_dt$tad_dir_short)], 
+                                "n=", n_vals[as.character(plot_dt$tad_dir_short)], ")")
+stopifnot(!is.na(plot_dt$tad_dir_short))
+
 plotTit <- paste0(ref_hicds, " TADs")
-subTit <- paste0(paste0(">0 = higher in ", matching_hicds),"; ",
-             paste0("<0 = higher in ", ref_hicds))
+subTit <- paste0(legText, collapse=";")
 
 plot_var="p_values_log10"
 for(plot_var in c("p_values", "p_values_log10")) {
@@ -109,7 +133,9 @@ for(plot_var in c("p_values", "p_values_log10")) {
   ) +
     labs(x=paste0(matchingDir, " ", plot_var), y="Density", fill="", color="" )+
     ggtitle(plotTit, subtitle=subTit)+
-    geom_vline(xintercept=0, linetype=2, color="darkgrey")
+    geom_vline(xintercept=0, linetype=2, color="darkgrey") +
+    theme(  plot.subtitle=element_text(size=14, face="italic", hjust=0.5),
+            plot.title=element_text(size=16, face="bold", hjust=0.5)) 
   
   if(plot_var == "p_values") {
     signif_lev <- signif_level
@@ -121,28 +147,41 @@ for(plot_var in c("p_values", "p_values_log10")) {
   p_dens <- p_dens + 
     geom_vline(xintercept=c(-signif_lev,signif_lev), linetype=1, color="orange")
   
-  outFile <- file.path(outFolder, paste0(plot_var, "_density_by_tadDir.png"))
+  outFile <- file.path(outFolder, paste0("ref", ref_hicds, "_", plot_var, "_", matchingDir, "_density_by_tadDir.png"))
   ggsave(p_dens, file=outFile, height=5.5, width = 6.5)
   cat(paste0("... written: ", outFile, "\n"))
   
+  density_data <- ggplot_build(p_dens)$data[[1]]
+  
   if(plot_var == "p_values") {
-    p_cut <- p_dens +  scale_x_continuous(limits=c(-signif_lev,signif_lev))
+    sub_data_ymax <- max(density_data[abs(density_data$x) <= signif_lev, "y"])
+    p_cut <- p_dens +  coord_cartesian(xlim=c(-signif_lev,signif_lev), ylim=c(0, sub_data_ymax))
     
     widthGG <- 6.5
     
     
   }else if(plot_var == "p_values_log10") {
   
-    density_data <- ggplot_build(p_dens)$data[[1]]
     sub_data_left_ymax <- max(density_data[density_data$x <= -signif_lev, "y"])
     sub_data_right_ymax <- max(density_data[density_data$x >= signif_lev, "y"])
     
-    p_left <- p_dens + coord_cartesian(xlim=c(NA, -signif_lev), ylim=c(NA, sub_data_left_ymax))
-    p_right <- p_dens + coord_cartesian(xlim=c(signif_lev, NA), ylim=c(NA,sub_data_right_ymax))
+    sub_data_left_xmin <- min(density_data[density_data$x <= -signif_lev, "x"])
+    sub_data_right_xmax <- max(density_data[density_data$x >= signif_lev, "x"])
     
+    
+    # p_left <- p_dens + coord_cartesian(xlim=c(NA, -signif_lev), ylim=c(NA, sub_data_left_ymax))
+    # p_right <- p_dens + coord_cartesian(xlim=c(signif_lev, NA), ylim=c(NA,sub_data_right_ymax))
+    # on electron, does not work with NA !!!
+    p_left <- p_dens + coord_cartesian(xlim=c(sub_data_left_xmin, -signif_lev), ylim=c(0, sub_data_left_ymax)) + theme(plot.title = element_blank(),
+                                                                                                                       plot.subtitle = element_blank())
+    p_right <- p_dens + coord_cartesian(xlim=c(signif_lev, sub_data_right_xmax), ylim=c(0,sub_data_right_ymax))+ theme(plot.title = element_blank(),
+                                                                                                                       plot.subtitle = element_blank())
     p_cut <- (p_left + p_right) +
       plot_layout(guides = "collect") & 
+      plot_annotation(title=plotTit, subtitle=subTit, theme=theme(  plot.subtitle=element_text(size=14, face="italic", hjust=0.5),
+                                                                    plot.title=element_text(size=16, face="bold", hjust=0.5))) &
       theme(legend.position = 'bottom')
+          
     
     widthGG <- 7.5
     
@@ -150,7 +189,7 @@ for(plot_var in c("p_values", "p_values_log10")) {
     stop("error\n")
   }
   
-  outFile <- file.path(outFolder, paste0(plot_var, "_density_by_tadDir_vCut.png"))
+  outFile <- file.path(outFolder, paste0("ref", ref_hicds, "_", plot_var, "_", matchingDir, "_density_by_tadDir_vCut.png"))
   ggsave(p_cut, file=outFile, height=5.5, width = widthGG)
   cat(paste0("... written: ", outFile, "\n"))
   
