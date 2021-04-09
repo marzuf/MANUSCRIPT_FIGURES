@@ -2,13 +2,14 @@
 ### adapted from dryhic package
 
 require(dryhic)
-
+require(magrittr)
 my_plot_matrix <- function (mat, tad_coord, resolution, bins_around=NULL, transformation = logfinite,
                             color = colorRampPalette(c("white", "red"))(100), sym = FALSE,
                             borderCol = "darkgrey",
                             borderWidth=2,
                             withDiagBorder=TRUE,
                             plotBorder=TRUE,
+                            plotOnly=NULL,
                             trim = 0.01, rotate = FALSE, unit_x_axis = 1000000, label_x_axis = "Genomic Position / Mbp",
                             na.col = "white", ...)
 {
@@ -22,7 +23,7 @@ my_plot_matrix <- function (mat, tad_coord, resolution, bins_around=NULL, transf
   
   
   if(!is.null(bins_around)) {
-    coord <- tad_coord+c(-bins_around*bin_size, bins_around*bin_size)  
+    coord <- tad_coord+c(-bins_around*resolution, bins_around*resolution)  
     startX_line <- bins_around[1]
     endX_line <- (tad_coord[2]-tad_coord[1])/resolution+1-bins_around[2]
   }else {
@@ -43,7 +44,8 @@ my_plot_matrix <- function (mat, tad_coord, resolution, bins_around=NULL, transf
   guides <- pretty(x = rownames(mat) %>% as.numeric)
   guides_pos <- data.frame(y = 1:nrow(mat), x = rownames(mat) %>% 
                              as.numeric) %>% lm(y ~ x, .) %>% predict(newdata = data.frame(x = guides))
-  par(mar = c(4, 0, 0, 0), pty = "s")
+  # par(mar = c(4, 0, 0, 0), pty = "s")
+  par(mar = c(4, 0, 3, 0), pty = "s")
   if (trim > 0) {
     trim <- as.matrix(mat) %>% c %>% quantile(c(trim/2, 1 - 
                                                   trim/2), na.rm = T)
@@ -64,6 +66,19 @@ my_plot_matrix <- function (mat, tad_coord, resolution, bins_around=NULL, transf
     x[] <- color[cut(c(x), seq(lower, upper, len = length(color) + 
                                  1), include = T)]
   }
+  
+  if(!is.null(plotOnly)) {
+    stopifnot(plotOnly %in% c("upper_tri", "upper_tri_noDiag", "lower_tri", "lower_tri_noDiag"))  
+    
+    if(grepl( "upper_tri", plotOnly )) {
+      x[lower.tri(x, diag = plotOnly=="upper_tri_noDiag")] <- NA
+    }
+    if(grepl( "lower_tri", plotOnly )) {
+      x[upper.tri(x, diag = plotOnly=="lower_tri_noDiag")] <- NA
+    }
+  }
+  
+  
   x[is.na(x)] <- na.col
   range_pos <- as.numeric(rownames(x)) %>% range
   nr <- nrow(x)
@@ -77,10 +92,14 @@ my_plot_matrix <- function (mat, tad_coord, resolution, bins_around=NULL, transf
   axis(1, at = guides_pos, labels = guides/unit_x_axis, cex.axis = 1.5)
   
   if(plotBorder) {
-    segments(x0=startX_line, y0=startX_line, x1=endX_line, y1=startX_line, col=borderCol,lwd=borderWidth)
-    segments(x0=startX_line, y0=startX_line, x1=startX_line, y1=endX_line, col=borderCol,lwd=borderWidth)
-    segments(x0=startX_line, y0=endX_line, x1=endX_line, y1=endX_line, col=borderCol,lwd=borderWidth)
-    segments(x0=endX_line, y0=endX_line, x1=endX_line, y1=startX_line, col=borderCol,lwd=borderWidth)
+    if(is.null(plotOnly) || grepl("lower_tri", plotOnly))
+      segments(x0=startX_line, y0=startX_line, x1=endX_line, y1=startX_line, col=borderCol,lwd=borderWidth)
+    if(is.null(plotOnly) || grepl("lower_tri", plotOnly))
+      segments(x0=startX_line, y0=startX_line, x1=startX_line, y1=endX_line, col=borderCol,lwd=borderWidth)
+    if(is.null(plotOnly) || grepl("upper_tri", plotOnly))
+      segments(x0=startX_line, y0=endX_line, x1=endX_line, y1=endX_line, col=borderCol,lwd=borderWidth)
+    if(is.null(plotOnly) || grepl("upper_tri", plotOnly))
+      segments(x0=endX_line, y0=endX_line, x1=endX_line, y1=startX_line, col=borderCol,lwd=borderWidth)
     if(withDiagBorder)
       segments(x0=startX_line, y0=endX_line, x1=endX_line, y1=startX_line, col=borderCol,lwd=borderWidth)
   }
