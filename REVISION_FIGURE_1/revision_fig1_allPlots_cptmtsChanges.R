@@ -27,6 +27,7 @@ require(ggplot2)
 require(ggrepel)
 require(ggsci)
 require(ggpubr)
+require(scatterpie)
 source(file.path(runFolder, "revision_settings.R"))
 source(file.path("..", "revision_settings.R"))
 
@@ -165,6 +166,88 @@ save(nonsignif_agg_dt, file=file.path(outFolder, "nonsignif_agg_dt.Rdata"), vers
 save(signif_agg_dt, file=file.path(outFolder, "signif_agg_dt.Rdata"), version=2)
 
 
+#*********************************************************************************************************
+################### PLOT 2: barplot cptmt changes with pie chart on the top same/diff 8 cptmt
+#*********************************************************************************************************
+
+enrich_p <- ggbarplot(data=both_dt,x="agg_col", y = "signif_enrich", fill = "agg_col",
+                      xlab="", ylab ="signif./non signif. ratio of CDs") + 
+  geom_hline(yintercept = 1) +
+  scale_y_continuous(trans = shift_trans(1)) +
+  ggtitle(myTit, subtitle=mysub)+
+  eval(parse(text = paste0("scale_fill_", eightCptmtPalette, "()")))+ #
+  labs(fill="")+
+  title_theme +
+  theme(
+    # plot.title = element_text(size=14, face="bold", hjust=0.5),
+    # plot.subtitle = element_text(size=12, face="italic", hjust=0.5),
+    axis.line=element_line(),
+    axis.text.y = element_text(size=16, color="black"),
+    axis.text.x = element_text(size=16, color="black"),
+    axis.title.y = element_text(size=20, color="black")
+  )
+# blank_theme
+
+sub_matching_dt <- init_matching_dt[init_matching_dt$norm2tumor_cptmtChange == "B->B" |
+                                      init_matching_dt$norm2tumor_cptmtChange == "A->A",]
+stopifnot(nrow(sub_matching_dt) > 0)
+suffix <- "_eight"
+mycol <- paste0("norm2tumor_cptmtChange", suffix) 
+sub_matching_dt[,mycol][sub_matching_dt[,paste0("tumorCptmt", suffix)] == sub_matching_dt[,paste0("normCptmt", suffix)]] <- "same 8-cptmt label"
+sub_matching_dt[,mycol][sub_matching_dt[,paste0("tumorCptmt", suffix)] != sub_matching_dt[,paste0("normCptmt", suffix)]] <- "diff. 8-cptmt label"
+# stopifnot(unique(sub_matching_dt[,mycol]) %in% c("same8", "diff8"))
+stopifnot(unique(sub_matching_dt[,mycol]) %in% c("same 8-cptmt label", "diff. 8-cptmt label"))
+
+agg_dt <- aggregate(as.formula(paste0("ref_region_ID", "~", mycol , " + norm2tumor_cptmtChange")), data=sub_matching_dt, FUN=length)
+
+agg_dt$x_pos <- as.numeric(sapply(agg_dt$norm2tumor_cptmtChange, function(x)which(levels(both_dt$agg_col) == x)))
+stopifnot(!is.na(agg_dt$x_pos))
+
+both_dt$nTADs <- both_dt$nTADs_nonsignif+both_dt$nTADs_signif
+agg_dt$totTADs <- as.numeric(sapply(agg_dt$norm2tumor_cptmtChange, function(x)both_dt$nTADs[which(levels(both_dt$agg_col) == x)]))
+agg_dt$value <- agg_dt$ref_region_ID/agg_dt$totTADs
+stopifnot(!is.na(agg_dt$x_pos))
+agg_dt$y_pos_tmp <- as.numeric(sapply(agg_dt$norm2tumor_cptmtChange, function(x)both_dt$signif_enrich_hk[which(levels(both_dt$agg_col) == x)]))
+stopifnot(!is.na(agg_dt$y_pos_tmp))
+
+yoffset <- 0.15
+pieradius <- 0.2
+textoffset <- 0.25
+
+stopifnot(sum(agg_dt$ref_region_ID) == nrow(init_matching_dt[init_matching_dt$norm2tumor_cptmtChange=="B->B" | 
+                                                     init_matching_dt$norm2tumor_cptmtChange=="A->A",]))
+
+agg_dt$y_pos <- ceiling(agg_dt$y_pos_tmp) 
+agg_dt$y_pos[agg_dt$y_pos < 1] <- 1 + yoffset#0
+agg_dt$y_pos <- agg_dt$y_pos + yoffset
+# agg_dt$y_pos <- 2
+agg_dt$radius <- pieradius
+
+enrich_p1 <- enrich_p +
+  geom_scatterpie(aes(x=x_pos, y=y_pos, r=radius),
+                  # r=radius,
+                  # pie_scale=15,
+                  data=agg_dt, cols="norm2tumor_cptmtChange_eight", long_format=TRUE) 
+  
+annot_vect <- c(by(agg_dt, agg_dt$norm2tumor_cptmtChange, function(x) {
+  tmp_dt <- x[order(x$norm2tumor_cptmtChange_eight),]
+  paste0(paste0(round(tmp_dt$value*100, 2), "%"), collapse="-")
+}))
+annot_dt <- agg_dt[,c("norm2tumor_cptmtChange", "x_pos", "y_pos")]
+annot_dt$lab <- annot_vect[agg_dt$norm2tumor_cptmtChange]
+stopifnot(!is.na(annot_dt$lab))
+
+enrich_p2 <- enrich_p1 + 
+  annotate("text", x = annot_dt$x_pos, y = annot_dt$y_pos + textoffset, label=annot_dt$lab )#+
+# annotate("text", x =1, y = 1, label="test" )
+
+
+
+outFile <- file.path(outFolder, paste0( "ratio_distSignifOverAllTADs_by_", "cptmt_change", "_barplot_withPies.", plotType))
+ggsave(enrich_p2, file=outFile, height=myHeightGG_bp, width=myWidthGG_bp*1.5)
+cat(paste0("... written: ", outFile, "\n"))
+
+stop("--ok\n")
 #*********************************************************************************************************
 ################### PLOT 2: barplot cptmt changes (8 cptmt - B->B)
 #*********************************************************************************************************

@@ -49,6 +49,12 @@ for(i_tad in seq_along(tads_to_plot)) {
       all_starts == tads_to_plot[[i_tad]][2] & 
       all_ends == tads_to_plot[[i_tad]][3] 
       )
+  i_2 <- which(
+    all_chromos == tads_to_plot[[i_tad]][1] & 
+      all_starts == as.numeric(tads_to_plot[[i_tad]][2]) & 
+      all_ends == as.numeric(tads_to_plot[[i_tad]][3]) 
+      )
+      stopifnot(i == i_2)
   stopifnot(length(i) == 1)
   pval_mat <-   dt[[i]][["diffInt_pmat"]][[matchingDir]]
   stopifnot(isSymmetric(as.matrix(pval_mat)))

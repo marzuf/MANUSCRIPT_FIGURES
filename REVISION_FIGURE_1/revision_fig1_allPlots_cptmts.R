@@ -174,6 +174,26 @@ for(plot_var in names(plot_var_labs)) {
   
   revFig_dt$signif_lab <- ifelse(revFig_dt$signif, "signif.", "not signif.")
   
+  p_uniqueBox1 <- ggplot(revFig_dt, aes(x = cptmt_var, y = plot_var)) + 
+    # geom_split_violin() +
+    geom_violin(fill="azure3") +
+    scale_fill_manual(values=mycolsSignif)+
+    geom_boxplot(fill="white", color="dimgray", notch=TRUE, width=0.1) + 
+    ggtitle(myTit, subtitle=mysub)+
+    labs(x="", y=plot_var_labs[plot_var], fill=legTitle, col=legTitle)+ 
+    scale_y_continuous(breaks = scales::pretty_breaks(n = 10))+
+    mytheme +
+    title_theme + 
+    leg_theme +
+    theme(axis.line=element_line(), 
+          axis.title=element_text(color="black", size=14),
+          axis.text=element_text(color="black", size=12)
+    )  
+  outFile <- file.path(outFolder,paste0(plot_var, "_byCptmt_", cptmt_var, "_1dist_with1box_violinplot.", plotType))
+  ggsave(p_uniqueBox1, filename = outFile, height=myHeightGG_boxCptmt, width=myWidthGG_boxCptmt)
+  cat(paste0("... written: ", outFile, "\n"))
+  next
+  
   p_uniqueBox <- ggplot(revFig_dt, aes(x = cptmt_var, y = plot_var, fill=signif_lab)) + 
     geom_split_violin() +
     scale_fill_manual(values=mycolsSignif)+
