@@ -1,15 +1,15 @@
-file="extract_hic/RWPE1_chr12_obs_KR_20kb.txt"
-outfile = "extract_hic/RWPE1_chr12_obs_KR_20kb_matrix.txt"
+file="extract_hic/RWPE1_chr12_obs_KR_100kb.txt"
+outfile = "extract_hic/RWPE1_chr12_obs_KR_100kb_matrix.txt"
 bin.size=20000
-file="extract_hic/22Rv1_chr12_obs_KR_20kb.txt"
-outfile = "extract_hic/22Rv1_chr12_obs_KR_20kb_matrix.txt"
-bin.size=10000
+#file="extract_hic/22Rv1_chr12_obs_KR_20kb.txt"
+#outfile = "extract_hic/22Rv1_chr12_obs_KR_20kb_matrix.txt"
+#bin.size=10000
 #file="extract_hic/22Rv1_chr17_obs_KR_10kb.txt"
 #outfile = "extract_hic/22Rv1_chr17_obs_KR_10kb_matrix.txt"
 #bin.size=20000
-file="extract_hic/RWPE1_chr7_obs_KR_20kb.txt"
-outfile = "extract_hic/RWPE1_chr7_obs_KR_20kb_matrix.txt"
-bin.size=20000
+#file="extract_hic/RWPE1_chr7_obs_KR_20kb.txt"
+#outfile = "extract_hic/RWPE1_chr7_obs_KR_20kb_matrix.txt"
+#bin.size=20000
 # Rscript convert_to_matrix.R
 
 require(Matrix)

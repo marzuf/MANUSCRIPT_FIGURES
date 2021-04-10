@@ -34,7 +34,7 @@ if(length(args) > 0) {
   cell_line <- "RWPE1"
   tad_id <- "chr12_CD194"
   tad_chromo <- "chr12"
-  tad_start <- 54160000
+  tad_start <- 54160001
   tad_end <- 54440000
   plot_around <- 0
   resol <- 20000
@@ -54,7 +54,7 @@ if(plotType=="png") {
 stopifnot(tad_end > tad_start)
 
 stopifnot(tad_end %% resol == 0)
-stopifnot(tad_start %% resol == 0)
+stopifnot( (tad_start-1) %% resol == 0)
 
 outFolder <- file.path("REVISION_FIG5_HICPLOT")
 dir.create(outFolder)
