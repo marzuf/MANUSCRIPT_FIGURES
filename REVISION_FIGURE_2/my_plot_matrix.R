@@ -1,5 +1,8 @@
+options(scipen = 999)
 
 ### adapted from dryhic package
+
+stop("--why not using v2\n")
 
 require(dryhic)
 require(magrittr)
@@ -14,23 +17,43 @@ my_plot_matrix <- function (mat, tad_coord, resolution, bins_around=NULL, transf
                             trim = 0.01, rotate = FALSE, unit_x_axis = 1000000, label_x_axis = "Genomic Position / Mbp",
                             na.col = "white", ...)
 {
+  options(scipen = 999)
+  
   # ADDED >>>
   # take 0-based start
   tad_coord[1] <- tad_coord[1]-1
   stopifnot(tad_coord %% resolution == 0)
-  # <<<
-  stopifnot(tad_coord %in% colnames(mat))
-  stopifnot(tad_coord %in% rownames(mat))
+  # ## if I give 1-80000 -> I want to plot the 4 following bins: 0,20000,40000,60000
+  stopifnot(tad_coord[1] %in% colnames(mat))
+  stopifnot(tad_coord[1] %in% rownames(mat))
   
-  options(scipen = 999)
+  cat(paste0("tad_coord[2]=",tad_coord[2], "\n"))
+cat(paste0("head col=",paste0(head(colnames(mat)), collapse=","), "\n"))
+cat(paste0("tail col=",paste0(tail(colnames(mat)), collapse=","), "\n"))
+cat(paste0("head col=",paste0(head(rownames(mat)), collapse=","), "\n"))
+cat(paste0("tail col=",paste0(tail(rownames(mat)), collapse=","), "\n"))
+
+cat(paste0("resolution=",resolution, "\n"))
+
+  stopifnot( (tad_coord[2]-resolution) %in% colnames(mat))
+  stopifnot( (tad_coord[2]-resolution) %in% rownames(mat))
+  # <<<
+
   rownames(mat) <- colnames(mat) <- rownames(mat) %>% gsub("^.*:", 
                                                            "", .)
   
   if(!is.null(bins_around)) {
-    coord <- tad_coord+c(-bins_around*resolution, bins_around*resolution)  
+    coord <- tad_coord+c(-bins_around[1]*resolution, bins_around[2]*resolution)  
+    cat(paste0("coord = ",paste0(coord, collapse=","),"\n") )
     startX_line <- bins_around[1]
     # endX_line <- (tad_coord[2]-tad_coord[1])/resolution+1-bins_around[2]
-    endX_line <- (tad_coord[2]-resolution-tad_coord[1])/resolution+1-bins_around[2]
+    # endX_line <- (tad_coord[2]-resolution-tad_coord[1])/resolution+1-bins_around[2]
+    
+    endX_line <- (tad_coord[2]-tad_coord[1])/resolution + startX_line
+    
+    cat(paste0("startX_line = ",paste0(startX_line, collapse=","),"\n") )
+    cat(paste0("endX_line = ",paste0(endX_line, collapse=","),"\n") )
+    
   }else {
     coord <- tad_coord
     startX_line <- 0
@@ -38,6 +61,7 @@ my_plot_matrix <- function (mat, tad_coord, resolution, bins_around=NULL, transf
     endX_line <- (tad_coord[2]-resolution-tad_coord[1])/resolution+1
   }
   # ADDED >>>
+  # tad input 40001-120000 -> 2-5
   bin_start <- coord[1]/resolution
   bin_end <- coord[2]/resolution -  1
   # <<<
@@ -47,17 +71,33 @@ my_plot_matrix <- function (mat, tad_coord, resolution, bins_around=NULL, transf
   
   cat(paste0("# plotted: ", length(lims), "\n"))
   cat(paste0("plotted: ", paste0(lims/resolution, collapse=","), "\n"))
-      
+  
   i <- rownames(mat) %in% lims
   mat <- as.matrix(mat[i, i])
   mat <- mat[match(lims, rownames(mat)), match(lims, rownames(mat))]
   rownames(mat) <- colnames(mat) <- lims
   
+  cat(paste0("colnames(mat): ", paste0(colnames(mat), collapse=","), "\n"))
+  
   # ADDED >>>
-  stopifnot( max(lims) + resolution - min(lims) ==  (tad_coord[2]- tad_coord[1]))
-  stopifnot(min(lims) == (tad_coord[1]))
-  stopifnot(max(lims) == tad_coord[2]-resolution)
-  stopifnot(length(lims) == (tad_coord[2]-tad_coord[1])/resolution)
+  if(is.null(bins_around)) {
+    stopifnot(min(lims) == (tad_coord[1]))
+    stopifnot(max(lims) == tad_coord[2]-resolution)
+    stopifnot(length(lims) == (tad_coord[2]-tad_coord[1])/resolution)
+    
+  } else {
+    cat("TODOHERE") # Rscript revision_fig5_hicPlot.R RWPE1 chr12_CD194 chr12 40001 120000 0 20000 pngand test 
+    stopifnot(min(lims) == (tad_coord[1]-bins_around[1]*resolution))
+    cat(paste0("max(lims) = ", max(lims), "\n"))
+    cat(paste0("tad_coord[2] = ", tad_coord[2], "\n"))
+    cat(paste0("bins_around[2] = ", bins_around[2], "\n"))
+    stopifnot(max(lims) == (tad_coord[2]-resolution+bins_around[2]*resolution))
+    cat(paste0("length(lims) = ", length(lims), "\n"))
+    cat(paste0("sum(bins_around)  = ", sum(bins_around) , "\n"))
+    cat(paste0(" (tad_coord[2]-tad_coord[1])/resolution) = ",  (tad_coord[2]-tad_coord[1])/resolution), "\n")
+    stopifnot(length(lims) == sum(bins_around) + (tad_coord[2]-tad_coord[1])/resolution)
+  }
+  
   # <<<
   if(checkSim) stopifnot(isSymmetric(mat))
   
@@ -159,23 +199,24 @@ my_plot_matrix_withLeg <- function (mat, tad_coord, resolution, bins_around=NULL
   stopifnot(tad_coord[1] %in% colnames(mat))
   stopifnot(tad_coord[1] %in% rownames(mat))
 
-  cat(paste0(tad_coord[2]-binSize, collapse=","), "\n")
+  cat(paste0(tad_coord[2]-resolution, collapse=","), "\n")
   
   
-  stopifnot( (tad_coord[2]-binSize) %in% colnames(mat))
-  stopifnot( (tad_coord[2]-binSize) %in% rownames(mat))
+  stopifnot( (tad_coord[2]-resolution) %in% colnames(mat))
+  stopifnot( (tad_coord[2]-resolution) %in% rownames(mat))
     
-  options(scipen = 999)
   rownames(mat) <- colnames(mat) <- rownames(mat) %>% gsub("^.*:", 
                                                            "", .)
   
   
   
   if(!is.null(bins_around)) {
-    coord <- tad_coord+c(-bins_around*resolution, bins_around*resolution)  
+    coord <- tad_coord+c(-bins_around[1]*resolution, bins_around[2]*resolution)  
     startX_line <- bins_around[1]
     # endX_line <- (tad_coord[2]-tad_coord[1])/resolution+1-bins_around[2]
-    endX_line <- (tad_coord[2]-tad_coord[1])/resolution-bins_around[2]
+    # endX_line <- (tad_coord[2]-tad_coord[1])/resolution-bins_around[2]
+    endX_line <- (tad_coord[2]-tad_coord[1])/resolution + startX_line
+    
   }else {
     coord <- tad_coord
     startX_line <- 0
@@ -202,9 +243,18 @@ my_plot_matrix_withLeg <- function (mat, tad_coord, resolution, bins_around=NULL
   stopifnot( max(lims) + resolution - min(lims) ==  (tad_coord[2]- tad_coord[1]))
   cat(paste0(min(lims), "\n"))
   cat(paste0(tad_coord[1], "\n"))
-  stopifnot(min(lims) == (tad_coord[1]))
-  stopifnot(max(lims) == tad_coord[2]-resolution)
-  stopifnot(length(lims) == (tad_coord[2]-tad_coord[1])/resolution)
+  # stopifnot(min(lims) == (tad_coord[1]))
+  if(is.null(bins_around)) {
+    stopifnot(min(lims) == (tad_coord[1]))
+    stopifnot(max(lims) == tad_coord[2]-resolution)
+    stopifnot(length(lims) == (tad_coord[2]-tad_coord[1])/resolution)
+    
+  } else {
+    cat("TODOHERE") # Rscript revision_fig5_hicPlot.R RWPE1 chr12_CD194 chr12 40001 120000 0 20000 pngand test 
+    stopifnot(min(lims) == (tad_coord[1]-bins_around[1]*resolution))
+    stopifnot(max(lims) == (tad_coord[2]-resolution+bins_around[2]*resolution))
+    stopifnot(length(lims) == (tad_coord[2]-tad_coord[1])/resolution)
+  }
   
   if (rotate) 
     mat <- mat[nrow(mat):1, ]

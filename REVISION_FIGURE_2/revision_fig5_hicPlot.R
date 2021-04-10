@@ -51,6 +51,8 @@ if(plotType=="png") {
   
 }
 
+options(scipen = 999)
+
 stopifnot(tad_end > tad_start)
 
 stopifnot(tad_end %% resol == 0)
@@ -68,12 +70,30 @@ rownames(htc_mat) <- seq(from=0, by=resol, length.out=nrow(htc_mat))
 plotTit <- paste0(tad_id, " (", tad_start, "-", tad_end, ")")
 subTit <- paste0(cell_line, " Hi-C data - ", resol/1000, "kb (KR - obs)")
 
-source("my_plot_matrix.R")
+source("my_plot_matrix_v2.R")
 
-outFile <- file.path(outFolder, paste0(cell_line, "_", tad_id, "_", resol/1000, "kb_hicplot.", plotType))
+outFile <- file.path(outFolder, paste0(cell_line, "_", tad_id, "_",tad_start, "_", tad_end, "_", resol/1000, "kb_hicplot.", plotType))
 do.call(plotType, list(outFile, height=myHeight, width=myWidth))
 # outFile <- file.path(outFolder, paste0(cell_line, "_", tad_id, "_", resol/1000, "kb_hicplot_2.", "pdf"))
 # pdf(outFile, height=7, width=7, dpi=10)
+
+# bins_around=NULL; transformation = logfinite;
+# color = colorRampPalette(c("white", "red"))(100);sym = FALSE;
+# borderCol = "darkgrey";
+# borderWidth=2;
+# withDiagBorder=TRUE;
+# plotBorder=TRUE;
+# plotOnly=NULL;
+# checkSim=TRUE;
+# trim = 0.01; rotate = FALSE;unit_x_axis = 1000000;label_x_axis = "Genomic Position / Mbp";
+# na.col = "white"
+# 
+# mat = htc_mat
+# tad_coord = c(tad_start,tad_end)
+# resolution = resol
+# bins_around=c(plot_around, plot_around)
+# main=plotTit
+
 
 my_plot_matrix(mat = htc_mat, 
                tad_coord = c(tad_start,tad_end),
