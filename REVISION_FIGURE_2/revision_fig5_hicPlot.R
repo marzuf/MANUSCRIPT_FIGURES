@@ -72,7 +72,7 @@ subTit <- paste0(cell_line, " Hi-C data - ", resol/1000, "kb (KR - obs)")
 
 source("my_plot_matrix_v2.R")
 
-outFile <- file.path(outFolder, paste0(cell_line, "_", tad_id, "_",tad_start, "_", tad_end, "_", resol/1000, "kb_hicplot.", plotType))
+outFile <- file.path(outFolder, paste0(cell_line, "_", tad_id, "_",tad_start, "_", tad_end, "_", resol/1000, "kb_", plot_around, "around_hicplot.", plotType))
 do.call(plotType, list(outFile, height=myHeight, width=myWidth))
 # outFile <- file.path(outFolder, paste0(cell_line, "_", tad_id, "_", resol/1000, "kb_hicplot_2.", "pdf"))
 # pdf(outFile, height=7, width=7, dpi=10)

@@ -10,7 +10,7 @@ outFolder <- "REVISION_FIG5_PVALPLOT_V2"
 dir.create(outFolder, recursive = TRUE)
 
 
-plotType <- "pdf"
+plotType <- "png"
 
 if(plotType=="png") {
   myHeight <- 400
@@ -74,9 +74,9 @@ tads_to_plot <- list(
   c("chr7", 116080001, 116320000),
   c("chr17", 46720001, 46880000)
 )
-tads_to_plot <- list(
-  c("chr12", 54160001, 54440000)
-)
+# tads_to_plot <- list(
+#   c("chr12", 54160001, 54440000)
+# )
 all_chromos <-  paste0("chr", gsub("^\\s+|\\s+$", "", unlist(lapply(strsplit(names(dt), split=":"), function(x) x[[1]]))))
 stopifnot(!is.na(all_chromos))
 all_starts <-  as.numeric(gsub("^\\s+|\\s+$", "", unlist(lapply(strsplit(names(dt), split=":"), function(x) x[[2]]))))

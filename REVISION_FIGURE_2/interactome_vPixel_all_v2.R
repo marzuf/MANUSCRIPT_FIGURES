@@ -10,7 +10,7 @@ require(patchwork)
 
 # Rscript interactome_vPixel_all_v2.R
 
-buildTable <- F
+buildTable <- T
 
 outFolder <- "INTERACTOME_VPIXEL_ALL_V2"
 dir.create(outFolder, recursive = TRUE)
@@ -23,9 +23,11 @@ signif_level <- 0.05
 # then it means, the contact intensity of LNCaP is lower than RWPE1, with a p-value of 0.01
 
 # 22Rv1minusRWPE1 -> higher intensity in 22Rv1;
+ref_hicds <- "22Rv1"
+matching_hicds <- "RWPE1"
 
-ref_hicds <- "RWPE1"
-matching_hicds <- "22Rv1"
+# ref_hicds <- "RWPE1"
+# matching_hicds <- "22Rv1"
 
 if(ref_hicds == "22Rv1" | ref_hicds =="LNCaP") {
   ds_dir2 <- matching_hicds

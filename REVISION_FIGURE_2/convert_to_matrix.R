@@ -1,6 +1,6 @@
-file="extract_hic/RWPE1_chr12_obs_KR_100kb.txt"
-outfile = "extract_hic/RWPE1_chr12_obs_KR_100kb_matrix.txt"
-bin.size=20000
+# file="extract_hic/RWPE1_chr12_obs_KR_100kb.txt"
+# outfile = "extract_hic/RWPE1_chr12_obs_KR_100kb_matrix.txt"
+# bin.size=20000
 #file="extract_hic/22Rv1_chr12_obs_KR_20kb.txt"
 #outfile = "extract_hic/22Rv1_chr12_obs_KR_20kb_matrix.txt"
 #bin.size=10000
@@ -10,7 +10,20 @@ bin.size=20000
 #file="extract_hic/RWPE1_chr7_obs_KR_20kb.txt"
 #outfile = "extract_hic/RWPE1_chr7_obs_KR_20kb_matrix.txt"
 #bin.size=20000
-# Rscript convert_to_matrix.R
+
+# Rscript convert_to_matrix.R RWPE1 20 chr12
+  
+args <- commandArgs(trailingOnly = TRUE)
+
+cell_line <- args[1]
+binsizeKb <- as.numeric(args[2])
+stopifnot(!is.na(binsizeKb))
+bin.size <- binsizeKb*1000
+chromo <- args[3]
+
+file <- file.path("extract_hic", paste0(cell_line, "_", chromo, "_obs_KR_", binsizeKb,"kb.txt"))
+outfile <- file.path("extract_hic", paste0(cell_line, "_", chromo, "_obs_KR_", binsizeKb,"kb_matrix.txt"))
+
 
 require(Matrix)
 
@@ -41,4 +54,7 @@ stopifnot(dim(sym_chr.matrix)[1] == dim(sym_chr.matrix)[2])
 
 sym_chr.matrix2 <- as.data.frame(as.matrix(sym_chr.matrix))
 write.table(sym_chr.matrix2, file=outfile, sep="\t", quote=F, col.names=F, row.names=F)
+
+cat(paste0(dim(sym_chr.matrix2), "\n"))
+
 cat(paste0("... written ", outfile, "\n"))
