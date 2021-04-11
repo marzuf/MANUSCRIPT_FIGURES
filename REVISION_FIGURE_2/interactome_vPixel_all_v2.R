@@ -150,6 +150,8 @@ plot_dt <- plot_dt[! grepl("notsignif", plot_dt$tad_dir),]
 labtext_plotvar <- c(p_values="p-val.",
                      p_values_log10="p-val. [-log10]")
 
+save(plot_dt, file=file.path(outFolder, "fig5_density_pvals.Rdata"), version=2)
+
 plot_var="p_values_log10"
 for(plot_var in c("p_values", "p_values_log10")) {
   

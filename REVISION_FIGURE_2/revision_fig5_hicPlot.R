@@ -4,12 +4,16 @@
 
 
 # Rscript revision_fig5.R
-# Rscript revision_fig5_hicPlot.R RWPE1 chr12_CD194 chr12 54160000 54440000 0 20000 png
-# Rscript revision_fig5_hicPlot.R RWPE1 chr12_CD194 chr12 54160000 54440000 0 20000 svg
-# Rscript revision_fig5_hicPlot.R RWPE1 chr7_CD424 chr7 116080000 116320000 0 20000 png
-# Rscript revision_fig5_hicPlot.R RWPE1 chr7_CD424 chr7 116080000 116320000 0 20000 svg
-# Rscript revision_fig5_hicPlot.R RWPE1 chr17_CD174 chr17 46720000 46880000 0 20000 png
-# Rscript revision_fig5_hicPlot.R RWPE1 chr17_CD174 chr17 46720000 46880000 0 20000 svg
+# Rscript revision_fig5_hicPlot.R RWPE1 chr12_CD194 chr12 54160001 54440000 0 20000 png
+# Rscript revision_fig5_hicPlot.R RWPE1 chr12_CD194 chr12 54160001 54440000 0 20000 svg
+# Rscript revision_fig5_hicPlot.R RWPE1 chr7_CD424 chr7 116080001 116320000 0 20000 png
+# Rscript revision_fig5_hicPlot.R RWPE1 chr7_CD424 chr7 116080001 116320000 0 20000 svg
+# Rscript revision_fig5_hicPlot.R RWPE1 chr17_CD174 chr17 46720001 46880000 0 20000 png
+# Rscript revision_fig5_hicPlot.R RWPE1 chr17_CD174 chr17 46720001 46880000 0 20000 svg
+
+ # Rscript revision_fig5_hicPlot.R 22Rv1 chr12_CD194 chr12 54160001 54440000 0 20000 png
+ # Rscript revision_fig5_hicPlot.R 22Rv1 chr7_CD424 chr7 116080001 116320000 0 20000 png
+ # Rscript revision_fig5_hicPlot.R 22Rv1 chr17_CD174 chr17 46720001 46880000 0 20000 png
 
 
 
@@ -72,6 +76,10 @@ subTit <- paste0(cell_line, " Hi-C data - ", resol/1000, "kb (KR - obs)")
 
 source("my_plot_matrix_v2.R")
 
+matFile <- file.path(outFolder, paste0(cell_line, "_", tad_id, "_",tad_start, "_", tad_end, "_", resol/1000, "kb_", plot_around, "around_hicplot_mat.Rdata"))
+matcolFile <- file.path(outFolder, paste0(cell_line, "_", tad_id, "_",tad_start, "_", tad_end, "_", resol/1000, "kb_", plot_around, "around_hicplot_matcol.Rdata"))
+
+
 outFile <- file.path(outFolder, paste0(cell_line, "_", tad_id, "_",tad_start, "_", tad_end, "_", resol/1000, "kb_", plot_around, "around_hicplot.", plotType))
 do.call(plotType, list(outFile, height=myHeight, width=myWidth))
 # outFile <- file.path(outFolder, paste0(cell_line, "_", tad_id, "_", resol/1000, "kb_hicplot_2.", "pdf"))
@@ -99,6 +107,10 @@ my_plot_matrix(mat = htc_mat,
                tad_coord = c(tad_start,tad_end),
                resolution = resol, 
                bins_around=c(plot_around, plot_around),
+               
+               saveMatFile = matFile,
+               saveMatcolFile =matcolFile,
+               
                main=plotTit) 
 mtext(side=3, text=subTit)
 

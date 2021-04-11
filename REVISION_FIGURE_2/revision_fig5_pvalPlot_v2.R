@@ -137,6 +137,8 @@ for(i_tad in seq_along(tads_to_plot)) {
   # bin_end <- coord[2]/resolution -  1
   # lims <- seq(floor(bin_start), ceiling(bin_end)) * resolution
   
+  matFile <- file.path(outFolder, paste0("ref", ref_hicds, "_", matchingDir, "_", tad_chromo, "_", tad_start, "_", tad_end, "_", binSize/1000, "kb_pvalplot_mat.Rdata"))
+  matcolFile <- file.path(outFolder, paste0("ref", ref_hicds, "_", matchingDir, "_", tad_chromo, "_", tad_start, "_", tad_end, "_", binSize/1000, "kb_pvalplot_matcol.Rdata"))
   
   outFile <- file.path(outFolder, paste0("ref", ref_hicds, "_", matchingDir, "_", tad_chromo, "_", tad_start, "_", tad_end, "_", binSize/1000, "kb_pvalplot.", plotType))
   do.call(plotType, list(outFile, height=myHeight, width=myWidth))
@@ -158,6 +160,12 @@ for(i_tad in seq_along(tads_to_plot)) {
                  resolution = binSize, 
                  transformation=identity,
                  bins_around=c(plot_around, plot_around),
+                 
+                 saveMatFile = matFile,
+                 saveMatcolFile =matcolFile,
+                 
+                 
+                 
                  main=plotTit) 
   
   foo <- dev.off()

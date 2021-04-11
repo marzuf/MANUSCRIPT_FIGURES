@@ -32,6 +32,10 @@ my_plot_matrix <- function (mat, tad_coord,
                             legMargins=c(5.1,0.5,4.1,0.5),
                             legCoords=  c(1,1,1.5,2), #  xl,yb,xr,yt
                             legWidth =0.1,
+                            
+                            saveMatFile = NULL,
+                            saveMatcolFile = NULL,
+                            
                              ...)
 {
   
@@ -154,6 +158,12 @@ cat(paste0("resolution=",resolution, "\n"))
   # <<<
   if(checkSim) stopifnot(isSymmetric(mat))
   
+  if(!is.null(saveMatFile)) {
+    dir.create(dirname(saveMatFile), recursive = TRUE)
+    save(mat, file=saveMatFile, version=2)
+    cat(paste0("... written: ", saveMatFile, "\n"))
+  }
+  
   if (rotate) 
     mat <- mat[nrow(mat):1, ]
   guides <- pretty(x = rownames(mat) %>% as.numeric)
@@ -187,6 +197,13 @@ cat(paste0("resolution=",resolution, "\n"))
     x[] <- color[cut(c(x), seq(minColRange, maxColRange, len = length(color) + 
                                  1), include = T)]
   }
+  
+  if(!is.null(saveMatcolFile)) {
+    dir.create(dirname(saveMatcolFile), recursive = TRUE)
+    save(x, file=saveMatcolFile, version=2)
+    cat(paste0("... written: ", saveMatcolFile, "\n"))
+  }
+  
   
   if(!is.null(plotOnly)) {
     stopifnot(plotOnly %in% c("upper_tri", "upper_tri_noDiag", "lower_tri", "lower_tri_noDiag"))  
