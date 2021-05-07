@@ -33,7 +33,8 @@ final_table_file <- file.path(runFolder, "CREATE_FINAL_TABLE/all_result_dt.Rdata
 result_dt <- get(load(final_table_file))
 result_dt$chromo <- gsub("(chr.+)_TAD.+", "\\1", result_dt$region)
 
-ref_hicds = "RWPE1"
+ref_hicds = "22Rv1"
+ref_hicds <- commandArgs(trailingOnly=TRUE)
 match_hicds <- setdiff(c("22Rv1", "RWPE1"), ref_hicds)
 
 
@@ -267,10 +268,21 @@ for(i_top in 1:nTop) {
   cat(paste0("... written: ", outFile, "\n"))
   
   
+  outFile <- file.path(outFolder, 
+                       paste0("ref", ref_hicds, "_top", i_top, "_", tad_region, "_", ref_hicds, "_hicdcPvalMat.Rdata"))
+  save(ref_hicdcmat, file = outFile)
+  cat(paste0("... ", outFile, "\n"))
   
+  outFile <- file.path(outFolder, 
+                       paste0("ref", ref_hicds, "_top", i_top, "_", tad_region, "_", match_hicds, "_hicdcPvalMat.Rdata"))
+  save(match_hicdcmat, file = outFile)
+  cat(paste0("... ", outFile, "\n"))
   
   
 }
 ds_dt$adjPvalComb_rd <- formatC(ds_dt$adjPvalComb, format = "e", digits = 2)
+ds_dt$meanLogFC_rd <- round(ds_dt$meanLogFC,4)
+
 rownames(ds_dt) <- 1:nrow(ds_dt)
 write.table(ds_dt[1:nTop, c("hicds", "region", "region_genes", "adjPvalComb_rd")], sep="\t", row.names=T, quote=F)
+write.table(ds_dt[1:nTop, c("hicds", "region","start", "end","meanLogFC_rd" ,"region_genes", "adjPvalComb_rd")], sep="\t", row.names=T, quote=F)
