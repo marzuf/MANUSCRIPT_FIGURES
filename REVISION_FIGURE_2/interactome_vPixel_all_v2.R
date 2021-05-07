@@ -10,10 +10,14 @@ require(patchwork)
 
 # Rscript interactome_vPixel_all_v2.R
 
-buildTable <- T
+buildTable <- F
 
 outFolder <- "INTERACTOME_VPIXEL_ALL_V2"
 dir.create(outFolder, recursive = TRUE)
+
+full_width <- 6
+full_height <- 5.5
+
 
 signif_level <- 0.05
 
@@ -26,8 +30,8 @@ signif_level <- 0.05
 ref_hicds <- "22Rv1"
 matching_hicds <- "RWPE1"
 
-# ref_hicds <- "RWPE1"
-# matching_hicds <- "22Rv1"
+ref_hicds <- "RWPE1"
+matching_hicds <- "22Rv1"
 
 if(ref_hicds == "22Rv1" | ref_hicds =="LNCaP") {
   ds_dir2 <- matching_hicds
@@ -170,7 +174,7 @@ for(plot_var in c("p_values", "p_values_log10")) {
             fill = "tad_dir_short",
             palette = "d3"
   ) +
-    scale_fill_manual(values=mycols)+
+    scale_fill_manual(values=mycols)+ 
     scale_color_manual(values=mycols)+
     labs(x=paste0(matchingDir, " ", plot_var), y="Density", fill="", color="" )+
     ggtitle(plotTit, subtitle=subTit)+
@@ -188,9 +192,9 @@ for(plot_var in c("p_values", "p_values_log10")) {
   p_dens <- p_dens + 
     geom_vline(xintercept=c(-signif_lev,signif_lev), linetype=1, color="orange")
   
-  # outFile <- file.path(outFolder, paste0("ref", ref_hicds, "_", plot_var, "_", matchingDir, "_density_by_tadDir.png"))
-  # ggsave(p_dens, file=outFile, height=5.5, width = 6.5)
-  # cat(paste0("... written: ", outFile, "\n"))
+  outFile <- file.path(outFolder, paste0("ref", ref_hicds, "_", plot_var, "_", matchingDir, "_density_by_tadDir_full.", "svg"))
+  ggsave(p_dens, file=outFile, height=full_height, width = full_width)
+  cat(paste0("... written: ", outFile, "\n"))
   
   
 
@@ -206,6 +210,8 @@ for(plot_var in c("p_values", "p_values_log10")) {
     sub_data_ymax <- max(density_data[abs(density_data$x) <= signif_lev, "y"])
     p_cut <- p_dens +  coord_cartesian(xlim=c(-signif_lev,signif_lev), ylim=c(0, sub_data_ymax))
     
+    full_ymax <- sub_data_ymax
+    
     widthGG <- 7.5
     
   }else if(plot_var == "p_values_log10") {
@@ -215,6 +221,8 @@ for(plot_var in c("p_values", "p_values_log10")) {
     
     sub_data_left_xmin <- min(density_data[density_data$x <= -signif_lev, "x"])
     sub_data_right_xmax <- max(density_data[density_data$x >= signif_lev, "x"])
+    
+    full_ymax <- max(c(sub_data_right_ymax, sub_data_left_ymax))
 
         # on electron, does not work with NA !!!
     p_left <- p_dens + 
@@ -241,6 +249,14 @@ for(plot_var in c("p_values", "p_values_log10")) {
   }else{
     stop("error\n")
   }
+  
+  p_dens2 <- p_dens +  
+    coord_cartesian(ylim=c(0,full_ymax))
+  
+  outFile <- file.path(outFolder, paste0("ref", ref_hicds, "_", plot_var, "_", matchingDir, "_density_by_tadDir_fullCut.", "svg"))
+  ggsave(p_dens2, file=outFile,height=full_height, width = full_width)
+  cat(paste0("... written: ", outFile, "\n"))
+  
   
   outFile <- file.path(outFolder, paste0("ref", ref_hicds, "_", plot_var, "_", matchingDir, "_density_by_tadDir_vCut.svg"))
   ggsave(p_cut, file=outFile, height=5.5, width = widthGG)

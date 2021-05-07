@@ -291,7 +291,8 @@ cat(paste0("resolution=",resolution, "\n"))
     mtext(bquote(paste("", bold(.(legTit)), "")), side=2,at=max(leg_labelpos)+(1*leg_labelpos[2]-leg_labelpos[1]),las=2,cex=0.9, line=-2.5)
     # mtext(bquote(paste("", bold(.(legTit)), "")), side=2,at=max(leg_labelpos)+(2*leg_labelpos[2]-leg_labelpos[1]),las=2,cex=0.9)
     
-  }
-  
+  } else {
+      mtext(side=3, text=subTit)
+   }
   invisible()
 }
