@@ -3,14 +3,10 @@
 options(scipen=100)
 
 
-# Rscript meanFC_meanCorr_dotSizeGG_v3_purityfilter_final.R ENCSR489OCU_NCI-H460_40kb TCGAprad_norm_prad chr17_TAD147 chr12_TAD194 chr17_TAD174
-# Rscript meanFC_meanCorr_dotSizeGG_v3_purityfilter_final.R ENCSR489OCU_NCI-H460_40kb TCGAluad_norm_luad chr11_TAD390 chr10_TAD268
-# Rscript meanFC_meanCorr_dotSizeGG_v3_purityfilter_final.R ENCSR489OCU_NCI-H460_40kb TCGAluad_mutKRAS_mutEGFR chr10_TAD16 chr17_TAD162
-# Rscript meanFC_meanCorr_dotSizeGG_v3_purityfilter_final.R ENCSR489OCU_NCI-H460_40kb TCGAluad_nonsmoker_smoker chr10_TAD16 chr17_TAD162
-# 
+# Rscript meanFC_meanCorr_dotSizeGG_v3_revision_notPF.R GSE118514_RWPE1_40kb TCGAprad_norm_prad chr17_TAD147 chr12_TAD194 chr17_TAD174 chr7_TAD424
+#  Rscript meanFC_meanCorr_dotSizeGG_v3_revision_notPF.R GSE118514_22Rv1_40kb TCGAprad_norm_prad chr12_TAD196 chr1_TAD460 chr17_TAD135 chr17_TAD269
 
-
-script_name <- "meanFC_meanCorr_dotSizeGG_v3_purityfilter_final.R"
+script_name <- "meanFC_meanCorr_dotSizeGG_v3_revision_notPF.R"
 
 startTime <- Sys.time()
 
@@ -29,7 +25,7 @@ registerDoMC(4)
 source("../../Cancer_HiC_data_TAD_DA/utils_fct.R")
 source("../../Yuanlong_Cancer_HiC_data_TAD_DA/subtype_cols.R")
 
-outFolder <- "MEANFC_MEANCORR_DOTSIZEGG_V3_PURITYFILTER_FINAL"
+outFolder <- "MEANFC_MEANCORR_DOTSIZEGG_V3_REVISION_NOTPF"
 dir.create(outFolder, recursive = TRUE)
 
 all_cols[all_cols == "red"] <- "brown3"
@@ -55,8 +51,9 @@ stopifnot(dir.exists(mainFolder))
 pipFolder <- file.path(pipFolder)
 stopifnot(dir.exists(pipFolder))
 
+#### #### #### #### #### #### #### #### #### #### #### #### 
+#### retrieve the purity tagged tads
 
-### prepare the purity data
 purity_ds <- "aran"
 pm <- "CPE"
 purity_plot_name <- paste0("Aran - ", pm)
@@ -77,12 +74,18 @@ result_file <- file.path(runFolder,"CREATE_FINAL_TABLE", "all_result_dt.Rdata")
 resultData <- get(load(result_file))
 resultData$dataset <- file.path(resultData$hicds, resultData$exprds)
 
-merge_dt <- merge(agg_purity, resultData, by=c("dataset", "region"))
+merge_dt <- merge(agg_purity, resultData, by=c("dataset", "region"))  # !!! WILL DISCARD DATA WITHOUT PURITY SCORE !!!
+merge_dt$region_ID <- file.path(merge_dt$dataset, merge_dt$region)
 merge_dt$signif <- merge_dt$adjPvalComb <= signifThresh
 merge_dt$signif_lab <- ifelse(merge_dt$signif, paste0("adj. p-val <=", signifThresh), paste0("adj. p-val >", signifThresh) )
 purityCorrThresh <- as.numeric(quantile(merge_dt$purityCorr[!merge_dt$signif], probs = corrPurityQtThresh ))
-merge_dt$purityFlagged <- merge_dt$purityCorr <= purityCorrThresh
-cat(paste0("purityCorrThresh = ", purityCorrThresh, "\n"))
+
+# purity_flagged_tads <- merge_dt$region_ID[merge_dt$purityCorr <= purityCorrThresh]
+tokeep_tads <- merge_dt$region_ID[merge_dt$purityCorr > purityCorrThresh]
+cat(paste0( "purityCorrThresh = ", round(purityCorrThresh, 4), "\n"))
+#### #### #### #### #### #### #### #### #### #### #### #### #### #### #### #### #### #### #### #### #### 
+
+
 
 ex_hicds <- "ENCSR489OCU_NCI-H460_40kb"
 ex_exprds <- "TCGAlusc_norm_lusc"
@@ -121,9 +124,16 @@ plotCex <- 1.2
 signifThresh <- 0.01
 
 final_DT <- get(load(file.path(runFolder, "CREATE_FINAL_TABLE/all_result_dt.Rdata")))
+final_DT$regionID <- file.path(final_DT$hicds, final_DT$exprds, final_DT$region)
+############################## !!! ADD HERE THE FILTER FOR PURITY
+stopifnot(tokeep_tads %in% final_DT$regionID)
+final_DT <- final_DT[final_DT$regionID %in% tokeep_tads,]
+#######
 final_DT_signif <- final_DT[final_DT$adjPvalComb <= signifThresh,]
 
+
 cat(paste0(ex_hicds, "\n", ex_exprds, "\n"))
+
 
 ex_DT <- final_DT[final_DT$hicds == ex_hicds &
                     final_DT$exprds == ex_exprds,
@@ -173,13 +183,13 @@ stopifnot(!is.na(ex_DT$dotcol_lab))
 # library(yarrr)
 # basel_pal_transp <- piratepal(palette = "basel",  trans = .8)
 # save(basel_pal_transp, file=file.path(outFolder, "basel_pal_transp.Rdata"), version=2)
-basel_pal_transp <- get(load(file.path(gsub("V3", "V2", gsub("_PURITYFILTER_FINAL", "", outFolder)), "basel_pal_transp.Rdata")))
+basel_pal_transp <- get(load(file.path(gsub("V3_REVISION_NOTPF", "V2", outFolder), "basel_pal_transp.Rdata")))
 # basel_pal <- piratepal(palette = "basel")
 # save(basel_pal, file=file.path(outFolder, "basel_pal.Rdata"), version=2)
-basel_pal <- get(load(file.path(gsub("V3", "V2", gsub("_PURITYFILTER_FINAL", "", outFolder)), "basel_pal.Rdata")))
+basel_pal <- get(load(file.path(gsub("V3_REVISION_NOTPF", "V2", outFolder), "basel_pal.Rdata")))
 # xmen_pal_transp <- piratepal(palette = "xmen",  trans = .8)
 # save(xmen_pal_transp, file=file.path(outFolder, "xmen_pal_transp.Rdata"), version=2)
-xmen_pal_transp <- get(load(file.path(gsub("V3", "V2", gsub("_PURITYFILTER_FINAL", "", outFolder)), "xmen_pal_transp.Rdata")))
+xmen_pal_transp <- get(load(file.path(gsub("V3_REVISION_NOTPF", "V2", outFolder), "xmen_pal_transp.Rdata")))
 
 strongRed <-  as.character(basel_pal[2])
 lightRed <- as.character(basel_pal_transp[2])
@@ -202,54 +212,29 @@ mycols_labs <- setNames(c("mean LogFC > 0 &\nadj. p-val <=0.01",
                      "adjP>0.05"))
 
 
-mycols_border <- setNames(c(strongRed, lightRed, strongBlue, lightBlue, "darkgrey", "darkgreen"), 
-                   c("logFC>0.adjP<=0.01","logFC>0.adjP<=0.05",
-                     "logFC<=0.adjP<=0.01","logFC<=0.adjP<=0.05", 
-                     "adjP>0.05", "purity-flagged"))
+cat(paste0("not available TAD: ", tads_to_annot[!tads_to_annot %in% ex_DT$region], "\n"))
 
 
-ex_dt <- ex_DT
-ex_DT <- merge(ex_DT, merge_dt[,c("hicds", "exprds", "region", "purityFlagged", "purityCorr")], all.x=T, all.y=F, by=c("hicds", "exprds", "region"))
-stopifnot(!is.na(ex_DT$dotcol_lab))
+# stopifnot(!is.na(ex_DT))
 
-ex_DT$border_lab <- ex_DT$dotcol_lab
-ex_DT$border_lab[ex_DT$purityFlagged] <- "purity-flagged"
-stopifnot(sum(ex_DT$border_lab == "purity-flagged") == sum(ex_DT$purityFlagged))
-
-ex_DT_s <- ex_DT
-# ex_DT <- ex_DT[ex_DT$purityFlagged,] #-> "onlyPF"
-
-ex_DT$meanLogFC_sign <- sign(ex_DT$meanLogFC)
-aggregate(purityFlagged ~ meanLogFC_sign, data =ex_DT, FUN=sum)
-
-fc_corr_p <- ggplot(ex_DT, aes(x=meanLogFC, y = meanCorr, fill = dotcol_lab, color=border_lab )) +
+fc_corr_p <- ggplot(ex_DT, aes(x=meanLogFC, y = meanCorr, fill = dotcol_lab, color=dotcol_lab )) +
   ggtitle(plotTit, subtitle = subTit)+
   
-  scale_fill_manual(values=mycols, labels = mycols_labs)+
-  
-  # scale_fill_manual(values=mycols_border)+ 
-  
-  
+  scale_fill_manual(values=mycols, labels = mycols_labs)+  
                     # labels=setNames(names(mycols), mycols)
+  scale_color_manual(values=mycols,
+                    labels=setNames(names(mycols), mycols), guide=F)+
   
-  # scale_color_manual(values=mycols,
-  #                   labels=setNames(names(mycols), mycols), guide=F)+
-
-  scale_color_manual(values=mycols_border,
-                     labels=setNames(names(mycols_border), mycols_border))+
-  labs(color="")+
-  
-    
   # scale_color_manual(values=ratioDown_cols,
   #                    labels=setNames(names(ratioDown_cols),ratioDown_cols)) +
-  # guides(color=F)+
+  guides(color=F)+
   
   geom_point(data=ex_DT[ex_DT$dotcol_lab=="adjP>0.05",],
              shape=21,
-             aes(size = adjPvalComb_log10_col, color = border_lab), stroke=1) +
+             aes(size = adjPvalComb_log10_col, color = dotcol_lab), stroke=1) +
   geom_point(data=ex_DT[ex_DT$dotcol_lab!="adjP>0.05",],
              shape=21,
-             aes(size = adjPvalComb_log10_col, color = border_lab), stroke=1)+
+             aes(size = adjPvalComb_log10_col, color = dotcol_lab), stroke=1)+
   
   labs( size= "TAD adj. p-val", fill="")+#, color="TAD ratio\ndown-reg. genes")+
 #  labs( fill = "TAD adj. p-val",size="TAD adj. p-val")+#, color="TAD ratio\ndown-reg. genes")+
@@ -291,36 +276,22 @@ fc_corr_p <- ggplot(ex_DT, aes(x=meanLogFC, y = meanCorr, fill = dotcol_lab, col
   geom_vline(xintercept = 0, linetype=2, color="darkgrey")
 
 
-outFile <- file.path(outFolder, paste0(ex_hicds, "_", ex_exprds, "_meanIntraCorr_meanLogFC_dotplot_with_signifGG_PF.", plotType))
+outFile <- file.path(outFolder, paste0(ex_hicds, "_", ex_exprds, "_meanIntraCorr_meanLogFC_dotplot_with_signifGG_notPF.", plotType))
 ggsave(fc_corr_p, filename = outFile, height=myHeightGG, width=myWidthGG)
 cat(paste0("... written: ", outFile, "\n"))
 
 
 logFC_meanCorr_volcano_dt <- ex_DT
-saveFile <- file.path(outFolder, paste0("fig3A_PF_", ex_hicds, "_", ex_exprds, "_logFC_meanCorr_volcano_dt.Rdata"))
+saveFile <- file.path(outFolder, paste0("fig3A_", ex_hicds, "_", ex_exprds, "_logFC_meanCorr_volcano_dt_notPF.Rdata"))
 save(logFC_meanCorr_volcano_dt, file=saveFile, version=2)
 cat(paste0("... written:" , saveFile, "\n"))
 
 
-xlabs <- c("meanCorr", "meanLogFC")
-
-for(xlab in xlabs) {
-  
-  my_x <- ex_DT[,paste0(xlab)]
-  my_y <- ex_DT[,paste0("purityCorr")]
-  
-  outFile <- file.path(outFolder, paste0(ex_hicds, "_", ex_exprds, "_", xlab, "_vs_", xlab, "_densplot.", "png"))
-  do.call("png", list(outFile, height=400, width=400))
-  densplot(
-    x=my_x, y=my_y, xlab=xlab, ylab="mean purity corr.",
-    main=plotTit
-  )
-  mtext(side=3, text= subTit)
-  addCorr(x=my_x, y=my_y, legPos="topleft",bty="n")
-    foo <- dev.off()
-    cat(paste0("... written: ", outFile, "\n"))
-  
-}
+#######################################################################################################################################
+#######################################################################################################################################
+#######################################################################################################################################
+cat("***** DONE: ", script_name, "\n")
+cat(paste0(startTime, "\n", Sys.time(), "\n"))
 
 #######################################################################################################################################
 #######################################################################################################################################

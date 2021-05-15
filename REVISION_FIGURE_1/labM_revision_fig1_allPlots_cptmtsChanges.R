@@ -1,6 +1,6 @@
-# Rscript revision_fig1_allPlots_cptmtsChanges.R
+# Rscript labM_revision_fig1_allPlots_cptmtsChanges.R
 
-outFolder <- file.path("REVISION_FIG1_ALLPLOTS_CPTMTSCHANGES")
+outFolder <- file.path("LABM_REVISION_FIG1_ALLPLOTS_CPTMTSCHANGES")
 dir.create(outFolder, recursive = TRUE)
 
 runFolder <- "../../v2_Yuanlong_Cancer_HiC_data_TAD_DA"
@@ -50,6 +50,271 @@ matching_dt <- matching_dt[matching_dt$ref_region_ID %in% tokeep_tads &
 stopifnot(nrow(matching_dt)>0)
 
 init_matching_dt <- matching_dt
+
+
+#*********************************************************************************************************
+################### PLOT 1: barplot cptmt changes (8 cptmt - all changes)
+#*********************************************************************************************************
+matching_dt <- init_matching_dt
+suffix <- "_eight"
+cptmt_var_lab <- "CD 8-compartment"
+# cptmt_levels <- c("A->A", "B->B", "A->B", "B->A") 
+bplot <- "all"
+
+my_cols_palette <- "nejm"
+legTitle <- ""
+
+all_cmps <- unique(file.path(matching_dt$matching_hicds, matching_dt$matching_exprds,
+                             matching_dt$ref_hicds, matching_dt$ref_exprds))
+
+mySub <- paste0("# DS comparisons = ", length(all_cmps), "; # CDs = ", nrow(matching_dt), 
+                " (signif.: ", sum(matching_dt$adjPval <= tadSignifThresh), ")")
+
+agg_dt <- aggregate(as.formula(paste0("ref_region_ID~norm2tumor_cptmtChange", suffix, " + ref_tadSignif")),
+                    data=matching_dt, FUN=length)
+colnames(agg_dt)[colnames(agg_dt)=="ref_region_ID"] <- "nTADs"
+tmp_dt <- aggregate(ref_region_ID~ref_tadSignif, data=matching_dt, FUN=length)
+nTot <- setNames(tmp_dt$ref_region_ID, tmp_dt$ref_tadSignif)
+agg_dt$ratioTADs <- agg_dt$nTADs/nTot[paste0(agg_dt$ref_tadSignif)]
+plotTit <- paste0("norm vs. tumor ratio CDs by 8-cptmt change")
+# agg_dt$norm2tumor_cptmtChange <- factor(agg_dt[,paste0("norm2tumor_cptmtChange", suffix)], levels=cptmt_levels)
+stopifnot(!is.na(agg_dt[,paste0("norm2tumor_cptmtChange", suffix)]))
+
+agg_dt$agg_col <- agg_dt[,paste0("norm2tumor_cptmtChange", suffix)]
+
+agg_dt$cpt1 <- gsub("(.+)->.+", "\\1", agg_dt$agg_col)
+agg_dt$cpt2 <- gsub(".+->(.+)", "\\1", agg_dt$agg_col)
+
+# both_dt$agg_col <- factor(both_dt$agg_col, levels=cptmt_levels)
+stopifnot(!is.na(agg_dt$agg_col))
+
+agg_dt_sub <- agg_dt[agg_dt$cpt1 == agg_dt$cpt2,]
+
+
+
+ggbar_p <-  ggplot(agg_dt_sub, aes_string(y="ratioTADs",
+                                      x="ref_tadSignif", 
+                                      fill=paste0("norm2tumor_cptmtChange", suffix))) +
+  ggtitle(plotTit, subtitle=mySub)+
+  geom_bar(position = position_stack(), stat="identity") +
+  labs(x="" , y ="ratio of CDs", color=paste0(legTitle),fill=paste0(legTitle)) +
+  eval(parse(text = paste0("scale_fill_", my_cols_palette, "()")))+ #
+  mytheme + title_theme+
+  theme(
+    plot.title = element_text(size=14, face="bold", hjust=0.5),
+    plot.subtitle = element_text(size=12, face="italic", hjust=0.5),
+    axis.line=element_line(),
+    axis.text.y = element_text(size=16, color="black"),
+    axis.text.x = element_text(size=16, color="black"),
+    axis.title.y = element_text(size=20, color="black")
+  )
+
+#   axis.text.x = element_text(hjust=1, vjust=0.5,size=10,angle=90)
+# )
+outFile <- file.path(outFolder,paste0("norm_vs_tumor_cptmt", suffix, "_change_signif_notSignif", "_", bplot, "_barplot_8labSame.", plotType))
+ggsave(ggbar_p, filename = outFile, height=myHeightGG_bp, width=myWidthGG_bp)
+cat(paste0("... written: ", outFile, "\n"))
+
+
+
+cptmt_var_lab <- "8-cptmt change"
+
+tmp_dt <- matching_dt
+tmp_dt$agg_col <- tmp_dt[,paste0("norm2tumor_cptmtChange", suffix)]
+
+nonsignif_dt <- tmp_dt[tmp_dt$ref_region_pval > tadSignifThresh,]
+nonsignif_agg_dt <- aggregate(as.formula(paste0("ref_region_ID ~ ", "agg_col")), data=nonsignif_dt, FUN=length)
+colnames(nonsignif_agg_dt)[colnames(nonsignif_agg_dt) == "ref_region_ID"] <- "nTADs"
+nonsignif_agg_dt$ratioTADs <- nonsignif_agg_dt$nTADs/nrow(nonsignif_dt)
+nonsignif_agg_dt$ratioTADs_lab <- paste0(round(nonsignif_agg_dt$ratioTADs*100, 2), "%")
+
+signif_dt <- tmp_dt[tmp_dt$ref_region_pval <= tadSignifThresh,]
+signif_agg_dt <- aggregate(as.formula(paste0("ref_region_ID ~ ", "agg_col")), data=signif_dt, FUN=length)
+colnames(signif_agg_dt)[colnames(signif_agg_dt) == "ref_region_ID"] <- "nTADs"
+signif_agg_dt$ratioTADs <- signif_agg_dt$nTADs/nrow(signif_dt)
+signif_agg_dt$ratioTADs_lab <- paste0(round(signif_agg_dt$ratioTADs*100, 2), "%")
+
+bp_nonsignif_dt <- nonsignif_agg_dt
+bp_signif_dt <- signif_agg_dt
+both_dt <- merge(bp_nonsignif_dt, bp_signif_dt, by=c("agg_col"), suffixes = c("_nonsignif", "_signif"), all=TRUE)
+
+both_dt$signif_enrich <-  both_dt$ratioTADs_signif/both_dt$ratioTADs_nonsignif
+# stopifnot(!is.na(both_dt$signif_enrich))
+
+both_dt$signif_enrich_hk <-  both_dt$signif_enrich-1
+
+shift_trans = function(d = 0) {
+  scales::trans_new("shift", transform = function(x) x - d, inverse = function(x) x + d)
+}
+
+myTit <- paste0("Signif./non signif. CDs dist. across ", cptmt_var_lab)
+
+mysub <- paste0("# DS comparisons = ", length(all_cmps), "; # CDs = ", nrow(matching_dt), 
+                " (signif.: ", sum(matching_dt$adjPval <= tadSignifThresh), ")")
+
+both_dt$cpt1 <- gsub("(.+)->.+", "\\1", both_dt$agg_col)
+both_dt$cpt2 <- gsub(".+->(.+)", "\\1", both_dt$agg_col)
+
+# both_dt$agg_col <- factor(both_dt$agg_col, levels=cptmt_levels)
+stopifnot(!is.na(both_dt$agg_col))
+
+both_dt_sub <- both_dt[both_dt$cpt1 == both_dt$cpt2,]
+
+enrich_p <- ggbarplot(data=both_dt_sub,x="agg_col", y = "signif_enrich", fill = "agg_col",
+                      xlab="", ylab ="signif./non signif. ratio of CDs") + 
+  geom_hline(yintercept = 1) +
+  scale_y_continuous(trans = shift_trans(1)) +
+  ggtitle(myTit, subtitle=mysub)+
+  eval(parse(text = paste0("scale_fill_", eightCptmtPalette, "()")))+ #
+  labs(fill="")+
+  title_theme +
+  theme(
+    # plot.title = element_text(size=14, face="bold", hjust=0.5),
+    # plot.subtitle = element_text(size=12, face="italic", hjust=0.5),
+    axis.line=element_line(),
+    axis.text.y = element_text(size=16, color="black"),
+    axis.text.x = element_text(size=16, color="black"),
+    axis.title.y = element_text(size=20, color="black")
+  )
+# blank_theme
+
+outFile <- file.path(outFolder, paste0( "ratio_distSignifOverAllTADs_by_", "cptmt_change", "_barplot_8labSame.", plotType))
+ggsave(enrich_p, file=outFile, height=myHeightGG_bp, width=myWidthGG_bp)
+cat(paste0("... written: ", outFile, "\n"))
+
+save(both_dt, file=file.path(outFolder, "both_dt_8.Rdata"), version=2)
+save(nonsignif_agg_dt, file=file.path(outFolder, "nonsignif_agg_dt_8.Rdata"), version=2)
+save(signif_agg_dt, file=file.path(outFolder, "signif_agg_dt_8.Rdata"), version=2)
+
+write.table(both_dt, file=file.path(outFolder, "both_dt_8.txt"), col.names=T,row.names=F, sep="\t", quote=F)
+
+# stop("-ok\n")
+
+
+
+#*********************************************************************************************************
+################### PLOT XXX  - pie chart 8 cptmt change 1) all CDs, 2) only signif CDs
+#*********************************************************************************************************
+save(init_matching_dt, file=file.path(outFolder, "init_matching_dt.Rdata"), version=2)
+myHeightGG_pie <- 5
+myWidthGG_pie <- 5.5
+
+all_cmps <- unique(file.path(init_matching_dt$matching_hicds, init_matching_dt$matching_exprds,
+                             init_matching_dt$ref_hicds, init_matching_dt$ref_exprds))
+mysub <- paste0("# DS comparisons = ", length(all_cmps), "; # CDs = ", nrow(init_matching_dt), 
+                " (signif.: ", sum(init_matching_dt$adjPval <= tadSignifThresh), ")")
+
+
+cptmt_var <- "sameCptmt"
+cptmt_var_lab <- "CD 2-compartment"
+
+mycolsSame <- c("chocolate1", "darkslateblue")
+
+tmp_dt <- aggregate(as.formula(paste0("ref_region_ID ~ ", cptmt_var)), data=init_matching_dt, FUN=length)
+colnames(tmp_dt)[colnames(tmp_dt) == "ref_region_ID"] <- "nTADs"
+tmp_dt$ratioTADs <- tmp_dt$nTADs/nrow(init_matching_dt)
+tmp_dt$ratioTADs_lab <- paste0(round(tmp_dt$ratioTADs*100, 2), "%")
+
+tmp_dt$cptmt_var2 <- tmp_dt[,cptmt_var]
+tmp_dt$cptmt_var2[tmp_dt[,cptmt_var]] <- "same"
+tmp_dt$cptmt_var2[!tmp_dt[,cptmt_var]] <- "diff."
+
+myTit <- paste0("Dist. of all CDs across ", cptmt_var_lab)
+
+p_dist <- ggplot(tmp_dt, aes_string(x="1", y="ratioTADs", fill="cptmt_var2")) +
+  geom_col() +
+  scale_fill_manual(values=mycolsSame)+
+  geom_text_repel(aes(label = ratioTADs_lab), size=6, position = position_stack(vjust = 0.5))+
+  coord_polar(theta = "y") + 
+  ggtitle(myTit, subtitle=mysub) +
+  theme_void() +    
+  labs(fill="2-cptmt label") +
+  blank_theme +
+  title_theme + 
+  theme(legend.text=element_text(size=10),
+        legend.title=element_text(face="bold"))
+
+
+outFile <- file.path(outFolder, paste0( "distAllTADs_by_", cptmt_var, "_2cptmt_pie.", plotType))
+ggsave(p_dist, file=outFile, height=myHeightGG_pie, width=myWidthGG_pie)
+cat(paste0("... written: ", outFile, "\n"))
+
+
+signif_dt <- init_matching_dt[init_matching_dt$ref_region_pval <= tadSignifThresh,]
+
+mysub <- paste0("# DS comparisons = ", length(all_cmps), "; # CDs = ", nrow(signif_dt))
+
+agg_dt <- aggregate(as.formula(paste0("ref_region_ID ~ ", cptmt_var)), data=signif_dt, FUN=length)
+colnames(agg_dt)[colnames(agg_dt) == "ref_region_ID"] <- "nTADs"
+agg_dt$ratioTADs <- agg_dt$nTADs/nrow(signif_dt)
+
+agg_dt$ratioTADs_lab <- paste0(round(agg_dt$ratioTADs*100, 2), "%")
+agg_dt$cptmt_var2 <- agg_dt[,cptmt_var]
+agg_dt$cptmt_var2[agg_dt[,cptmt_var]] <- "same"
+agg_dt$cptmt_var2[!agg_dt[,cptmt_var]] <- "diff."
+
+myTit <- paste0("Dist. signif. CDs across ", cptmt_var_lab)
+
+p_dist <- ggplot(agg_dt, aes_string(x="1", y="ratioTADs", fill="cptmt_var2")) +
+  geom_col() +
+  scale_fill_manual(values=mycolsSame)+
+  geom_text_repel(aes(label = ratioTADs_lab), size=6, position = position_stack(vjust = 0.5))+
+  coord_polar(theta = "y") + 
+  ggtitle(myTit, subtitle=mysub) +
+  theme_void() +    
+  labs(fill="") +
+  blank_theme +
+  theme(
+    plot.title = element_text(size=14, face="bold", hjust=0.5),
+    plot.subtitle = element_text(size=12, face="italic", hjust=0.5)
+  )
+
+outFile <- file.path(outFolder, paste0( "distSignifTADs_by_", cptmt_var, "_2cptmt_pie.", plotType))
+ggsave(p_dist, file=outFile, height=myHeightGG_pie, width=myWidthGG_pie)
+cat(paste0("... written: ", outFile, "\n"))
+
+all_by8cptmt_pie <- tmp_dt
+save(tmp_dt, file=file.path(outFolder, "all_by2cptmt_pie.Rdata"), version=2)
+signif_by8cptmt_pie <- agg_dt
+save(signif_by8cptmt_pie, file=file.path(outFolder, "signif_by2cptmt_pie.Rdata"), version=2)
+
+stop("--ok\n")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #*********************************************************************************************************
 ################### PLOT 1: barplot cptmt changes (2 cptmt - all changes)
@@ -335,7 +600,7 @@ save(tmp_dt, file=file.path(outFolder, "all_by8cptmt_pie.Rdata"), version=2)
 signif_by8cptmt_pie <- agg_dt
 save(signif_by8cptmt_pie, file=file.path(outFolder, "signif_by8cptmt_pie.Rdata"), version=2)
 
- # stop("--ok\n")
+ stop("--ok\n")
 
 
 
@@ -397,16 +662,16 @@ cat(paste0("... written: ", outFile, "\n"))
 ################### PLOT 3: distribution of  abs rank diff
 #*********************************************************************************************************
 
-matching_dt <- init_matching_dt
-matching_dt$absRankDiff <- abs(matching_dt$rankDiff)
-
-
 # for plot 3 and 4:
 col_var <- "absRankDiff"
-thresh1 <- quantile(matching_dt$absRankDiff[!matching_dt$sameCptmt_eight], probs=cptmtQtThresh)
+thresh1 <- quantile(abs(matching_dt$rankDiff)[!matching_dt$sameCptmt_eight], probs=cptmtQtThresh)
 curr_thresh <- thresh1
 curr_thresh_name <- cptmtQtThresh
 threshLab <-   paste0(cptmtQtThresh, "-qt for cptmt-changing CDs (", round(curr_thresh, 4), ")") 
+
+
+
+matching_dt <- init_matching_dt
 
 cptmt_type <- "eight"
 legTitle <- paste0("sameCptmt_", cptmt_type, "\n(same=",sum(matching_dt[,paste0("sameCptmt_", cptmt_type)]) , ")")
@@ -420,6 +685,7 @@ all_cmps <- unique(file.path(matching_dt$matching_hicds, matching_dt$matching_ex
 mySub <- paste0("# DS comparisons = ", length(all_cmps), "; # CDs = ", nrow(matching_dt), 
                 " (signif.: ", sum(matching_dt$adjPval <= tadSignifThresh), ")")
 
+matching_dt$absRankDiff <- abs(matching_dt$rankDiff)
 
 matching_dt$plot_lab <- ifelse(matching_dt[,paste0("sameCptmt_", cptmt_type)], paste0("same cptmt\n(", sum(matching_dt[,paste0("sameCptmt_", cptmt_type)]), ")"), 
                                paste0("diff. cptmt\n(", sum(!matching_dt[,paste0("sameCptmt_", cptmt_type)]), ")"))
@@ -429,7 +695,6 @@ my_cols <- setNames(pal_jama()(3)[c(2, 3)], sort(unique(matching_dt$plot_lab)))
 mylineTxt <- paste(
   threshLab)
 
-save(matching_dt, file=file.path(outFolder, "density_matching_dt.Rdata"), version=2)
 
 p3 <- gghistogram(matching_dt,
                   x = paste0("absRankDiff"),

@@ -25,6 +25,9 @@ ggsci_subpal <- ""
 require(reshape2)
 log10_offset <- 0.01
 
+
+# Rscript look_TAD_expression_withRank_v2.R GSE118514_RWPE1_40kb TCGAprad_norm_prad chr17_TAD147
+
 # Rscript look_TAD_expression_withRank_v2.R ENCSR489OCU_NCI-H460_40kb TCGAluad_mutKRAS_mutEGFR chr10_TAD16
 # Rscript look_TAD_expression_withRank_v2.R ENCSR489OCU_NCI-H460_40kb TCGAluad_mutKRAS_mutEGFR chr17_TAD162
 # Rscript look_TAD_expression_withRank_v2.R ENCSR489OCU_NCI-H460_40kb TCGAluad_nonsmoker_smoker chr10_TAD16
